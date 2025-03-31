@@ -31,8 +31,11 @@ source .venv/bin/activate
 python -m pip install -r .\requirements.txt
 ```
 5. Install RGBDS
-```
-
+```bash
+mkdir src/rgbds
+wget -O src/rgbds/rgbds-0.9.1-linux-x86_64.tar.xz https://github.com/gbdev/rgbds/releases/download/v0.9.1/rgbds-0.9.1-linux-x86_64.tar.xz
+tar xf src/rgbds/rgbds-0.9.1-linux-x86_64.tar.xz -C src/rgbds
+rm src/rgbds/rgbds-0.9.1-linux-x86_64.tar.xz
 ```
 6. Generate ANTLR4 lexer/parser files
 ```bash
