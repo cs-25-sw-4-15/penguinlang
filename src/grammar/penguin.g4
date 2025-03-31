@@ -30,22 +30,45 @@ initialization
     ;
 
 expression
-    : literal
-    | name
-    | listAccess
-    | attributeAccess
-    | procedureCall
-    | '(' expression ')'
-    | 'not' expression
-    | '~' expression
-    | expression comparisonOperator expression
-    | expression arithmeticOperator expression
-    | expression logicalOperator expression
-    | expression bitwiseOperator expression
+    : expr_val                               // En value
+    | '~' expression                        // Unary bitwise not
+    | 'not' expression                      // Unary logical not
+    | expression '*' expression             // Gange
+    | expression ('+' | '-') expression     // Plus og minus
+    | expression ('<<' | '>>') expression   // Bitwise shift operationer
+    | expression '&' expression             // Bitwise and
+    | expression '|' expression             // Bitwise or
+    | expression comparisonOperator expression // Comparison operationer
+    | expression logicalOperator expression // Logiske operationer
+    ;
+
+expr_val
+    : literal           // numre
+    | name              // variabler
+    | listAccess        // værdier i lister
+    | attributeAccess   // værdi af attribut i struct
+    | procedureCall     // værdi af procedure
+    | '(' expression ')'// parenteser
     ;
 
 expressions
     : expression (',' expression)*
+    ;
+
+comparisonOperator
+    : '<' | '>' | '<=' | '>=' | '==' | '!='
+    ;
+
+logicalOperator
+    : 'and' | 'or' | 'xor'
+    ;
+
+arithmeticOperator
+    : '*' | '+' | '-'
+    ;
+
+bitwiseOperator
+    : '<<' | '>>' | '&' | '|'
     ;
 
 listAccess
@@ -62,22 +85,6 @@ conditionalStatement
 
 conditionalStatementElse
     : 'else' statementBlock
-    ;
-
-comparisonOperator
-    : '==' | '!=' | '<' | '>' | '<=' | '>='
-    ;
-
-arithmeticOperator
-    : '+' | '-' | '*'
-    ;
-
-logicalOperator
-    : 'and' | 'or' | 'xor'
-    ;
-    
-bitwiseOperator
-    : '&' | '|'| '<<' | '>>'
     ;
 
 procedureDeclaration
