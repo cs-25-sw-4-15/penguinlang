@@ -4,6 +4,8 @@
 
 1. install the UV package installer
 
+Jeg gider ikke dette uv noget længere. tror vi flytter det til miniconda
+
 With PyPI:
 ```bash
 pip install uv
@@ -24,10 +26,16 @@ Win:
 ```
 3. Install Python requirements
 ```bash
-uv pip install -r requirements.txt
+uv pip install -r pyproject.toml
+```
+4. Generate ANTLR4 lexer/parser files
+```bash
+antlr4 -Dlanguage=Python3 -o generated/ grammar/penguin.g4
 ```
 4. Fetch RGBDS
+```
 
+```
 
 - Exit virtual environment
 ```bash
@@ -35,7 +43,9 @@ deactivate
 ```
 
 ## Running
-
+```bash
+uv run SCRIPTPATH.FILEEXTENTION
+```
 
 ## Building
 
