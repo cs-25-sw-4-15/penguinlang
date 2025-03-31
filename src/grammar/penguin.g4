@@ -30,16 +30,19 @@ initialization
     ;
 
 expression
-    : expr_val                               // En value
+    : expr_val                              // En value
     | '~' expression                        // Unary bitwise not
     | 'not' expression                      // Unary logical not
-    | expression '*' expression             // Gange
+    | expression ('*') expression           // Gange
     | expression ('+' | '-') expression     // Plus og minus
     | expression ('<<' | '>>') expression   // Bitwise shift operationer
-    | expression '&' expression             // Bitwise and
+    | expression ('<' | '>' | '<=' | '>=') expression // Comparison operationer - relationer
+    | expression ('==' | '!=') expression   // Lighed og ulighed - relationer
+    | expression '&' expression             // Bitwise and 
+    | expression 'xor' expression           // Bitwise xor
     | expression '|' expression             // Bitwise or
-    | expression comparisonOperator expression // Comparison operationer
-    | expression logicalOperator expression // Logiske operationer
+    | expression 'and' expression           // Logisk and
+    | expression 'or' expression            // Logisk or
     ;
 
 expr_val
@@ -53,22 +56,6 @@ expr_val
 
 expressions
     : expression (',' expression)*
-    ;
-
-comparisonOperator
-    : '<' | '>' | '<=' | '>=' | '==' | '!='
-    ;
-
-logicalOperator
-    : 'and' | 'or' | 'xor'
-    ;
-
-arithmeticOperator
-    : '*' | '+' | '-'
-    ;
-
-bitwiseOperator
-    : '<<' | '>>' | '&' | '|'
     ;
 
 listAccess
