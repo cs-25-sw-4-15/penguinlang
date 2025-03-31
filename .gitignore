@@ -1,4 +1,6 @@
 .venv/
+__pycache__/
+penguin_env/
 .antlr/
 *.egg-info/
 .asm

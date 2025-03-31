@@ -1,41 +1,44 @@
 # penguin GB lang
 
+## Pre
+
+Installer 
+
+
+
 ## Setup
 
-1. install the UV package installer
-
-Jeg gider ikke dette uv noget længere. tror vi flytter det til miniconda
-
-With PyPI:
+0. Installer Python 3.10 or higher
+1. Upgade pip
 ```bash
-pip install uv
+python3 -m pip install --upgrade pip
 ```
-2. Create UV virtual environment
-``` bash
-uv venv --python 3.11
+2. Lav python enviroment
+```bash
+python3 -m venv .venv
 ```
-3. Enter venv
-
-Unix:
+3. Aktiver enviroment
+  - Windows
+```bash
+.\.venv\Scripts\activate
+```
+  - macOS/Linux/wsl
 ```bash
 source .venv/bin/activate
 ```
-Win:
-```powershell
-.venv\Scripts\activate
-```
-3. Install Python requirements
+4. Install Python requirements
 ```bash
-uv pip install -r pyproject.toml
+python -m pip install -r .\requirements.txt
 ```
-4. Generate ANTLR4 lexer/parser files
-```bash
-antlr4 -Dlanguage=Python3 -o generated/ grammar/penguin.g4
-```
-4. Fetch RGBDS
+5. Install RGBDS
 ```
 
 ```
+6. Generate ANTLR4 lexer/parser files
+```bash
+antlr4 -Dlanguage=Python3 -o src/generated/ src/grammar/penguin.g4
+```
+
 
 - Exit virtual environment
 ```bash
@@ -44,13 +47,17 @@ deactivate
 
 ## Running
 ```bash
-uv run SCRIPTPATH.FILEEXTENTION
+py SCRIPTPATH.FILEEXTENTION INPUTFILE -o OUTPUTFILE
 ```
 
-## Building
-
+o: optional
 
 ## Testing
-
+```bash
+pytest tests/tester.py
+```
+```bash
+pytest -q tests/tester.py
+```
 
 ## CI
