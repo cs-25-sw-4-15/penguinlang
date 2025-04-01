@@ -39,7 +39,7 @@ expression
     | expression ('<' | '>' | '<=' | '>=') expression // Comparison operationer - relationer
     | expression ('==' | '!=') expression   // Lighed og ulighed - relationer
     | expression '&' expression             // Bitwise and 
-    | expression 'xor' expression           // Bitwise xor
+    | expression '^' expression             // Bitwise xor
     | expression '|' expression             // Bitwise or
     | expression 'and' expression           // Logisk and
     | expression 'or' expression            // Logisk or
