@@ -1,0 +1,130 @@
+control.LCDon();
+control.waitVBlank();
+control.LCDoff();
+
+// Globals
+int BRICK_LEFT = 5;
+int BRICK_RIGHT = 6;
+int BLANK_TILE = 8;
+
+// Tile resources
+tileset arkenoidtileset = "arkanoid_tiles.bin";
+tilemap arkenoidtilemap = "arkanoid_tilemap.bin";
+
+// Set onto display backround
+display.tileset0[0] = arkenoidtileset;
+display.tilemap0[0][0] = arkenoidtilemap;
+
+sprite paddle = “paddle.bin”;
+sprite ball = “ball.bin”;
+
+int paddleX = 16;
+int paddleY = 128;
+int ballX = 32;
+int ballY = 100;
+int ballMomentumX = 1;
+int ballMomentumY = 0 - 1;
+
+display.oam[0].tile = paddle;
+display.oam[0].x = paddleX + 8;
+display.oam[0].y = paddleY + 16;
+display.oam[1].tile = ball;
+display.oam[1].x = ballX + 8;
+display.oam[1].y = ballY + 16;
+
+procedure brickAndBreak(int x, int y, int tileN) {
+	int Xtile = x << 4; // x / 8
+	int Ytile = y << 4; // y / 8
+	Ytile = Ytile * 32;
+
+	if ((tileN == BRICK_LEFT) or (tileN == BRICK_RIGHT)) {
+		display.tilemap0[Xtile][Ytile] = BLANK_TILE;
+    }
+}
+
+procedure int tileAtPixel(int x, int y){
+	int Xtile = x << 4;
+	int Ytile = y << 4;
+	Ytile = Ytile * 32;
+	
+	int tile = display.tilemap0[Xtile][Ytile];
+	
+	return tile;
+}
+
+procedure bounce(int dir) {
+	int index = 0;
+	int bounce = 0;
+	int tileN = tileAtPixel(ballX, ballY);
+	loop (index < 8) {
+    	if (tileN != index) {
+        	brickAndBreak(ballX, ballY, tileN);
+    	} else {
+        	brickAndBreak(ballX, ballY, tileN);
+        	bounce = 1;
+        	index = 99;
+    	}
+    	index = index + 1;
+	}
+	if (bounce and (dir == 0 or dir == 3)) {
+    		ballMomentumY = 0 - ballMomentumY ;
+	}
+	if (bounce and (dir == 1 or dir == 2)) {
+    		ballMomentumX = 0 - ballMomentumX ;
+	}
+}
+
+procedure paddleBounce() {
+	if ((ballMomentumY == 1) 
+		and (ballY == paddleY + 3) 
+        and (ballX >= paddleX) 
+        and (ballX <= paddleX + 16)) {
+    	ballMomentumY = 0 - 1;
+	}
+}
+
+procedure main() {
+	control.LCDon();
+
+	int gamecounter = 0;
+
+	loop (1) {
+    	control.waitVBlank();
+    	control.LCDoff();
+        control.updateInput();
+
+    	// Add momentum
+    	ballX = ballX + ballMomentumX;
+    	ballY = ballY + ballMomentumY;
+
+    	// Check playfield bounce
+    	bounce(0);
+    	bounce(1);
+    	bounce(2);
+    	bounce(3);
+
+    	paddleBounce();
+
+    	if (input.Right and (gamecounter == 8)) {
+        	paddleX = paddleX + 1;
+    	}
+    	if (input.Left) {
+        	paddleX = paddleX - 1;
+    	}
+
+        display.oam[0].x = paddleX + 8;
+        display.oam[0].y = paddleY + 16;
+        display.oam[1].x = ballX + 8;
+        display.oam[1].y = ballY + 16;
+
+    	gamecounter = gamecounter + 1;
+    	if (gamecounter == 8) {
+        	gamecounter = 0;
+    	}
+
+    	control.LCDon();
+	}
+}
+
+main();
+
