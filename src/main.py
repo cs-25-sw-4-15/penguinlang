@@ -14,38 +14,62 @@ from generated.penguinParser import penguinParser
 from generated.penguinListener import penguinListener
 
 # custom modules
-""" from parser import parser
-from codegen import codegen """
+
+
+
+def frontend(input_stream: str):
+    # lex
+    print("Lexing file...")
+    lexer = penguinLexer(input_stream)
+    
+    # token stream
+    print("Creating token stream...")
+    stream = CommonTokenStream(lexer)
+    
+    # parse tokens
+    print("Parsing tokens...")
+    parser = penguinParser(stream)
+    
+    # parse tree / concrete syntax tree
+    print("Creating parse tree...")
+    tree = parser.program()
+    
+    print(tree.toStringTree(recog=parser))
+    
+    # abstract syntax tree
+    print("Creating abstract syntax tree...")
+    #ast = parser.program()
+    
+    # type annotated abstract syntax tree
+    print("Creating type annotated abstract syntax tree...")
+    #tast = parser.program()
+    
+    
+    return tree
+    
+
 
 def main(input_file: str, output_file: str = "out.gb"):
     # read file
     print("Reading file...")
     input_stream = FileStream(input_file)
-    # lex
-    print("Lexing file...")
-    lexer = penguinLexer(input_stream)
-    # token stream
-    print("Creating token stream...")
-    stream = CommonTokenStream(lexer)
-    # parse tokens
-    print("Parsing tokens...")
-    parser = penguinParser(stream)
-    # parse tree
-    print("Creating parse tree...")
-    tree = parser.program()
-    print("Done!")
     
-    print(tree.toStringTree(recog=parser))
+    # frontend
+    print("Starting frontend...")
+    tast = frontend(input_file)
+    
+    
+    # backend
+    
+    
+    # rgbds
+    
+    
+    # cleanup
+    
     
     # RGBASM to binary
-    #typer.echo("Compiling to Game Boy ROM...")
-    #typer.run([f"scripts/build.sh {"out.asm"} {output_file}"])
-              
-    # cleanup
-    #typer.echo("Cleanup...")
-    #typer.run([f"scripts/cleanup.sh"])
-    
-    #typer.echo("Done! Output file: " + output_file)
+
     
 if __name__ == "__main__":
     argparse = argparse.ArgumentParser(description="Penguin Compiler")
