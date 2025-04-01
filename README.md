@@ -63,4 +63,8 @@ pytest tests/tester.py
 pytest -q tests/tester.py
 ```
 
-## CI
+## CLI
+
+## Flake8 error codes
+https://pycodestyle.pycqa.org/en/latest/intro.html#error-codes
+
