@@ -1,9 +1,9 @@
-"""
+"""_summary_
 Types for the Penguin compiler.
 """
 
 class Type:
-    """
+    """_summary_
     Type base class for the Penguin compiler.
     """
     
@@ -18,21 +18,21 @@ class Type:
         return self.__class__.__name__
     
 class IntType(Type):
-    """
+    """_summary_
     Integer type.
     """
     
     pass
 
 class StringType(Type):
-    """
+    """_summary_
     String type.
     """
     
     pass
 
 class ListType(Type):
-    """
+    """_summary_
     List type.
     """
     
