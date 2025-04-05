@@ -1,7 +1,17 @@
-"""Abstract Syntaz tree node classes for the Penguin compiler."""
+"""Abstract Syntaz tree node classes for the Penguin compiler.
 
+Defining the AST node classes for the Penguin compiler.
+"""
+
+
+# Typing modules
 from __future__ import annotations # PEP 563 style. For forward references, e.g. ProcedureCall
-from typing import Optional, Union, List, Tuple
+from typing import Optional, Union, List, Tuple, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    # Stops Pylance from complaining about the import. 
+    # Recursive import, but only for type checking.
+    from ast import ProcedureCall
 
 
 class ASTNode:
@@ -39,15 +49,25 @@ class ASTNode:
 """Note to self
 
 Order og classes: 
-- program
+- program:
     - Program
 - statements
-    - Declaration, Assignment, Initialization, ListInitialization
-    - If, While, Return, ProcedureCall, ProcedureCallStatement
-- expressions
-    - BinaryOp, UnaryOp
-    - Variable, Number, String
-    - ListAccess, AttributeAccess
+    - Declaration
+    - Assignment
+    - Initialization
+    - ListInitialization
+    - If
+    - Loop
+    - Return
+    - ProcedureCallStatement
+- expressions:
+    - BinaryOp
+    - UnaryOp
+    - IntegerLiteral
+    - StringLiteral
+    - Variable
+    - ListAccess
+    - AttributeAccess
 - procedures
     - ProcedureDef
 
