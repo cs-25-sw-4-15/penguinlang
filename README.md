@@ -28,7 +28,7 @@ source .venv/bin/activate
 ```
 4. Install Python requirements
 ```bash
-python -m pip install -r .\requirements.txt
+python3 -m pip install -r .\requirements.txt
 ```
 5. Install RGBDS
 ```bash

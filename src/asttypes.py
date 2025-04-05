@@ -4,7 +4,7 @@ Types for the Penguin compiler.
 
 class Type:
     """
-    Type class for the Penguin compiler.
+    Type base class for the Penguin compiler.
     """
     
     def __repr__(self):
@@ -56,7 +56,7 @@ class ListType(Type):
         
         return f"List[{self.element_type}]"
 
-# Singleton type instances
+# Singleton type instances for the Penguin compiler, used in the type checker and AST nodes.
 INT = IntType()
 STRING = StringType()
 LIST = ListType()

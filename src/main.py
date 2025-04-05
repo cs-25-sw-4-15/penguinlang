@@ -38,25 +38,23 @@ def frontend(input_stream: str):
     
     # abstract syntax tree
     print("Creating abstract syntax tree...")
-    #ast = parser.program()
+    #ast = ()
     
     # type annotated abstract syntax tree
     print("Creating type annotated abstract syntax tree...")
-    #tast = parser.program()
+    #tast = ()
     
     
     return tree
     
-
-
 def main(input_file: str, output_file: str = "out.gb"):
     # read file
     print("Reading file...")
-    input_stream = FileStream(input_file)
+    input_stream = FileStream(input_file, encoding="utf-8")
     
     # frontend
     print("Starting frontend...")
-    tast = frontend(input_file)
+    tast: str = frontend(input_stream)
     
     
     # backend
