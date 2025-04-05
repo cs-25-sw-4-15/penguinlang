@@ -1,1 +1,5 @@
-int a = 1 + 2 * 3 << 4;
+int a = 1 + 2;
+
+if ((tileN == BRICK_LEFT) or (tileN == BRICK_RIGHT)) {
+		display.tilemap0[Xtile][Ytile] = BLANK_TILE;
+    }

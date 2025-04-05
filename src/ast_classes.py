@@ -182,7 +182,7 @@ class ListInitialization(ASTNode):
         self.values = values
 
 
-class If(ASTNode):
+class Conditional(ASTNode):
     """If Statement AST Node.
     
     Args:
@@ -359,7 +359,7 @@ class AttributeAccess(ASTNode):
         self.attribute = attribute 
         
 
-class ProcesureCall(ASTNode):
+class ProcedureCall(ASTNode):
     """Procedure Call Expression AST Node.
     
     Args:
