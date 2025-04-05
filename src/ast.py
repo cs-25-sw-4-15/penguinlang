@@ -32,7 +32,7 @@ class ASTNode:
         """
         
         classname = self.__class__.__name__
-        fields = ', '.join(f"{k}={v!r}" for k, v in self.__dict__.items())
+        fields = ", ".join(f"{k}={v!r}" for k, v in self.__dict__.items())
         return f"{classname}({fields})"
 
 
