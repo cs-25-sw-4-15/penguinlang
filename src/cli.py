@@ -21,7 +21,8 @@ from typing_extensions import Annotated
 
 
 # Import compiler functions
-from compiler import read_input_file, concrete_syntax_tree
+from compiler import read_input_file, \
+    concrete_syntax_tree, abstact_syntax_tree
 
 
 # Create instance of Typer
@@ -51,6 +52,10 @@ def cst(input_path: Annotated[str, typer.Argument(help="Input file path")]):
 @app.command()
 def ast(input_path: Annotated[str, typer.Argument(help="Input file path")]):
     print("AST function called with input:", input_path)
+    input_stream = read_input_file(input_path)
+    cst = concrete_syntax_tree(input_stream)
+    ast = abstact_syntax_tree(cst)
+    print(ast)
 
 
 @app.command()

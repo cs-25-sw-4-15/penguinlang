@@ -82,6 +82,9 @@ Grammar that dose not need to be implemented as they are helper-grammar
 class example(ASTNode):
     """Example AST Node.
     
+    SKAL ALDRIG KALDES
+    NEVER VISIT/CALL THIS CLASS
+    
     Args:
         ASTNode (none): Base class for all AST nodes.
         
