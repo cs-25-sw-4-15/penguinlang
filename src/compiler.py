@@ -29,7 +29,7 @@ def read_input_file(input_file: str):
     return FileStream(input_file, encoding="utf-8")
 
 
-def concrete_syntax_tree(input_stream: str) -> str:
+def concrete_syntax_tree(input_stream: str, p: bool = False) -> str:
     """Creates a concrete syntax tree (CST) from the input stream.
     
     Lexing -> tokenstresm -> parsing -> parse tree (CST)
@@ -53,7 +53,7 @@ def concrete_syntax_tree(input_stream: str) -> str:
     print("Creating parse tree...")
     tree = parser.program()
     
-    #print(tree.toStringTree(recog=parser))
+    print(tree.toStringTree(recog=parser)) if p else None
     
     return tree
 

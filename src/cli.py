@@ -20,6 +20,10 @@ import typer
 from typing_extensions import Annotated
 
 
+# Import compiler functions
+from compiler import read_input_file, concrete_syntax_tree
+
+
 # Create instance of Typer
 app = typer.Typer()
 
@@ -39,17 +43,19 @@ def test():
 
 @app.command()
 def cst(input_path: Annotated[str, typer.Argument(help="Input file path")]):
-    print("AST function called")
-
+    print("AST function called with input:", input_path)
+    input_stream = read_input_file(input_path)
+    cst = concrete_syntax_tree(input_stream, p=True)
+    
 
 @app.command()
 def ast(input_path: Annotated[str, typer.Argument(help="Input file path")]):
-    print("AST function called")
+    print("AST function called with input:", input_path)
 
 
 @app.command()
 def tast(input_path: Annotated[str, typer.Argument(help="Input file path")]):
-    print("Typed AST function called")
+    print("Typed AST function called with input:", input_path)
 
 
 if __name__ == "__main__":
