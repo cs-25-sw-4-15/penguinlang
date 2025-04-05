@@ -28,7 +28,7 @@ source .venv/bin/activate
 ```
 4. Install Python requirements
 ```bash
-python -m pip install -r .\requirements.txt
+python3 -m pip install -r .\requirements.txt
 ```
 5. Install RGBDS
 ```bash
@@ -39,7 +39,7 @@ rm src/rgbds/rgbds-0.9.1-linux-x86_64.tar.xz
 ```
 6. Generate ANTLR4 lexer/parser files
 ```bash
-antlr4 -Dlanguage=Python3 -o src/generated/ src/grammar/penguin.g4
+antlr4 -Dlanguage=Python3 -visitor -o src/generated/ src/grammar/penguin.g4
 ```
 
 

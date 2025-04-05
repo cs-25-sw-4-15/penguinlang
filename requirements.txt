@@ -1,6 +1,6 @@
 antlr4-python3-runtime~=4.13.2
 antlr4-tools~=0.2.1
-pytest
+pytest~=8.3.5
 rich~=13.9.4
 typer~=0.15.1
-flake8
+flake8~=7.2.0
