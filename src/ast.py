@@ -1,6 +1,7 @@
 """Abstract Syntaz tree node classes for the Penguin compiler."""
 
-from typing import Any
+from __future__ import annotations # PEP 563 style. For forward references, e.g. ProcedureCall
+from typing import Optional, Union, List, Tuple
 
 
 class ASTNode:
@@ -10,27 +11,29 @@ class ASTNode:
         type (str): The type of the node.
         children (list[ASTNode]): The children of the node.
         value (Any): The value of the node.
+    
+    Update:
+        Constructor does not get used by any class idealy.
+        The constructor is used for the base class ASTNode.
     """
     
-    def __init__(self, type, children=None, value=None):
+    def __init__(self, type, children=None, value=None) -> None:
         """AST Node Constructor"""
         
         self.type = type
         self.children = children or []
         self.value = value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """___repr__ method
 
         Returns:
             string: Printable representation of Node.
         """
         
-        type_str = f": {self.type}" if self.type else ""
-        if self.value:
-            return f"{self.type}({self.value}){type_str}"
-        
-        return f"{self.type}({', '.join(map(str, self.children))}){type_str}"
+        classname = self.__class__.__name__
+        fields = ', '.join(f"{k}={v!r}" for k, v in self.__dict__.items())
+        return f"{classname}({fields})"
 
 
 """Note to self
@@ -66,8 +69,11 @@ class example(ASTNode):
         value (Any): The value of the node.
     """
     
-    def __init__(self, value):
+    def __init__(self, value: ASTNode) -> None:
         super().__init__(None, value=value)
+
+
+"""Program"""
 
 
 class Program(ASTNode):
@@ -80,9 +86,12 @@ class Program(ASTNode):
         statements (list[ASTNode]): The statements in the program.
     """
     
-    def __init__(self, statements: list[ASTNode]):
+    def __init__(self, statements: List[ASTNode]) -> None:
         self.statements = statements
         
+
+"""Statements"""
+
 
 class Declaration(ASTNode):
     """Declaration Statement AST Node.
@@ -95,8 +104,7 @@ class Declaration(ASTNode):
         name (str): The name of the variable.
     """
     
-    def __init__(self, var_type, name: str): 
-        # TODO: mangler type var_type, det kan være mange, så måske "Any"?
+    def __init__(self, var_type: str, name: str) -> None: 
         self.var_type = var_type
         self.name = name
 
@@ -112,7 +120,7 @@ class Assignment(ASTNode):
         value (Any): The value to assign to the target. (Variable, Number, String, ListAccess, AttributeAccess)
     """
     
-    def __init__(self, target: str, value: Any):
+    def __init__(self, target: ASTNode, value: ASTNode) -> None:
         self.target = target
         self.value = value
 
@@ -129,7 +137,7 @@ class Initialization(ASTNode):
         value (Any): The value to assign to the target. (Variable, Number, String, ListAccess, AttributeAccess)
     """
     
-    def __init__(self, var_type, name: str, value: Any):
+    def __init__(self, var_type: str, name: str, value: ASTNode) -> None:
         self.var_type = var_type
         self.name = name
         self.value = value
@@ -146,8 +154,7 @@ class ListInitialization(ASTNode):
         value (Any): The value to assign to the target. (Variable, Number, String, ListAccess, AttributeAccess)
     """
     
-    def __init__(self, name: str, values): 
-        # TODO: type for values, det er nok en liste af INT type
+    def __init__(self, name: str, values: List[ASTNode]) -> None: 
         self.name = name
         self.values = values
 
@@ -164,10 +171,10 @@ class If(ASTNode):
         else_body (list[ASTNode]): Default: None. The statements to execute if the condition is false. 
     """
     
-    def __init__(self, condition: Any, then_body: list[ASTNode], else_body: list[ASTNode] = None):
+    def __init__(self, condition: ASTNode, then_body: List[ASTNode], else_body: Optional[List[ASTNode]] = None) -> None:
         self.condition = condition
         self.then_body = then_body # Liste of statements
-        self.else_body = else_body # Liste of statements
+        self.else_body = else_body or [] # Liste of statements, men kan være tom
 
 
 class Loop(ASTNode):
@@ -181,7 +188,7 @@ class Loop(ASTNode):
         body (list[ASTNode]): The statements to execute if the condition is true.
     """
     
-    def __init__(self, condition: Any, body: list[ASTNode]):
+    def __init__(self, condition: ASTNode, body: List[ASTNode]) -> None:
         self.condition = condition
         self.body = body # Liste of statements
         
@@ -196,8 +203,7 @@ class Return(ASTNode):
         value (Any): The value to return from the function. (Sematically should only be integers)
     """
     
-    def __init__(self, value: Any): 
-        # TODO: evaluer om type skal være INT i stedet for Any
+    def __init__(self, value: ASTNode) -> None: 
         self.value = value 
 
 
@@ -208,60 +214,69 @@ class ProcedureCallStatement(ASTNode):
     Call (str): The name of the procedure to call.
     """
     
-    def __init__(self, call: str):
+    def __init__(self, call: "ProcedureCall") -> None: # noqa: ProcedureCall
+        # ProcedureCall er en klasse, der repræsenterer et procedurekald
+        # Den indeholder navnet på proceduren og argumenterne
+        # som en liste af AST-noder
+        # call er en instans af ProcedureCall-klassen
         self.call = call
 
 
+"""Expressions"""
+
+
 class BinaryOp(ASTNode):
-    """hii
+    """Binary Operation Expression AST Node.
 
     Args:
         ASTNode (none): Base class for all AST nodes.
         
     Attributes:
-        left (Any): The left operand of the binary operation.
+        left (ASTNode): The left operand of the binary operation.
         op (str): The operator of the binary operation.
-        right (Any): The right operand of the binary operation.
+        right (ASTNode): The right operand of the binary operation.
     """
     
-    def __init__(self, left: Any, op: str, right: Any):
+    def __init__(self, left: ASTNode, op: str, right: ASTNode) -> None:
         self.left = left
         self.op = op
         self.right = right
 
 
 class UnaryOp(ASTNode):
-    """Unary Operation AST Node.
+    """Unary Operation Expression AST Node.
     
     Args:
         ASTNode (none): Base class for all AST nodes.
         
     Attributes:
         op (str): The operator of the unary operation.
-        operand (Any): The operand of the unary operation.
+        operand (ASTNode): The operand of the unary operation.
     """
     
-    def __init__(self, op: str, operand: Any):
+    def __init__(self, op: str, operand: ASTNode) -> None:
         self.op = op
         self.operand = operand
 
 
 class IntegerLiteral(ASTNode):
-    """Integer Literal AST Node.
+    """Integer Literal Expression AST Node.
     
     Args:
         ASTNode (none): Base class for all AST nodes.
         
     Attributes:
-        value (int): The value of the integer.
+        value (str): The value of the integer.
     """
     
-    def __init__(self, value: int):
+    def __init__(self, value: Union[int, str]) -> None:
+        # value kan være int eller str, da det kan være en hex- eller binærværdi
+        # burde enlig bare være str, men det er lidt mere "pænt" at have det som int
         self.value = value
         
 
 class StringLiteral(ASTNode):
-    """String Literal AST Node.
+    """String Literal Expression AST Node.
     
     Args:
         ASTNode (none): Base class for all AST nodes.
@@ -270,12 +285,13 @@ class StringLiteral(ASTNode):
         value (str): The value of the string.
     """
     
-    def __init__(self, value: str):
+    def __init__(self, value: str) -> None:
+        # value kan være str, da det er det det er
         self.value = value
         
 
 class Variable(ASTNode):
-    """Variable AST Node.
+    """Variable Expression AST Node.
     
     Args:
         ASTNode (none): Base class for all AST nodes.
@@ -284,12 +300,12 @@ class Variable(ASTNode):
         name (str): The name of the variable.
     """
     
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         self.name = name
         
 
 class ListAccess(ASTNode):
-    """List Access AST Node.
+    """List Access Expression AST Node.
     
     Args:
         ASTNode (none): Base class for all AST nodes.
@@ -299,13 +315,13 @@ class ListAccess(ASTNode):
         index (int): The index of the element in the list.
     """
     
-    def __init__(self, name: str, indices: int):
+    def __init__(self, name: str, indices: List[ASTNode]) -> None:
         self.name = name
-        self.indices = indices # En liste af expressions
+        self.indices = indices # En liste af expressions, som repræsenterer indekserne
 
 
 class AttributeAccess(ASTNode):
-    """Attribute Access AST Node.
+    """Attribute Access Expression AST Node.
     
     Args:
         ASTNode (none): Base class for all AST nodes.
@@ -315,13 +331,13 @@ class AttributeAccess(ASTNode):
         attribute (str): The name of the attribute to access.
     """
     
-    def __init__(self, name: str, attribute: str):
+    def __init__(self, name: str, attribute: str) -> None:
         self.name = name
         self.attribute = attribute 
         
 
 class ProcesureCall(ASTNode):
-    """Procedure Call AST Node.
+    """Procedure Call Expression AST Node.
     
     Args:
         ASTNode (none): Base class for all AST nodes.
@@ -331,9 +347,12 @@ class ProcesureCall(ASTNode):
         args (list[ASTNode]): The arguments to pass to the procedure.
     """
     
-    def __init__(self, name: str, args: list[ASTNode]):
+    def __init__(self, name: str, args: List[ASTNode]) -> None:
         self.name = name
         self.args = args
+
+
+"""Procedures"""
 
 
 class ProcedureDef(ASTNode):
@@ -348,8 +367,10 @@ class ProcedureDef(ASTNode):
         body (list[ASTNode]): The body of the procedure.
     """
     
-    def __init__(self, return_type, name: str, params: list[ASTNode], body: list[ASTNode]): 
-        # TODO: type for return_type
+    def __init__(self, return_type: Optional[str], name: str, 
+                 params: List[Tuple[str, str]], body: List[ASTNode]) -> None: 
+        # Optional[str] for return_type, da det kan være None
+        # List[Tuple[str, str]] for params, da det er en liste af tuples med (type, name)
         self.return_type = return_type 
         self.name = name
         self.params = params
