@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from ast import ProcedureCall
 
 
-class ASTNode:
+class ASTNode():
     """AST Base Class.
     
     Attributes:

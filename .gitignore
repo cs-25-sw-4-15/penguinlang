@@ -21,3 +21,4 @@ PENGUINVisitor.py
 *.tokens
 *.interp
 *.pycache/
+.vscode/
