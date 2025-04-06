@@ -17,7 +17,7 @@ Note til gruppemedlemmer fra Naitsa:
     Eksempel:
     Kode: int a = 1 + 2;
     CST: (program (statement (initialization (type int) (name a) = (expression (expression (expr_val (literal 1))) + (expression (expr_val (literal 2)))) ;)))
-    AST: Initialization(type='int', name='a', value=BinaryOp('+', Number(1), Number(2)))
+    AST: Program(statements=[Initialization(var_type='int', name='a', value=BinaryOp(left=IntegerLiteral(value=1), op='+', right=IntegerLiteral(value=2)))])
     
     Af de to er der en der er betydligt sjovere at lege med
     
