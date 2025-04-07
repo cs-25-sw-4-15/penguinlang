@@ -181,7 +181,7 @@ class ASTGenerator(penguinVisitor):
         assert condition and then_stmts, "Conditional statement missing condition or statements"
         logger.debug(f"Conditional statement condition: {condition}, then statements: {then_stmts}, else statements: {else_stmts}")
         
-        return super().visitConditionalStatement(context)
+        return Conditional(condition, then_stmts, else_stmts)
     
     def visitConditionalStatementElse(self, context: penguinParser.ConditionalStatementElseContext) -> List[ASTNode]:
         """Visit the else part of the conditional statement."""
@@ -220,7 +220,7 @@ class ASTGenerator(penguinVisitor):
         
         assert return_type and name, "Procedure declaration missing return type or name"
         
-        params: List[Tuple[str, str]] = None
+        params: List[Tuple[str, str]] = []
         if context.parameterList():
             logger.debug("Procedure declaration has parameters")
             
@@ -466,24 +466,24 @@ class ASTGenerator(penguinVisitor):
     def visitListAccess(self, context: penguinParser.ListAccessContext) -> ListAccess:
         logger.debug(f"Visiting list access: {context.getText()}")
         
-        name_node = self.visit(context.name())
+        name = self.visit(context.name())
         indeces: List[ASTNode] = self.visitExpressions(context.expressions())
         
-        assert name_node and indeces, "List access missing name or indeces"
-        logger.debug(f"List access name: {name_node}, indeces: {indeces}")
+        assert name and indeces, "List access missing name or indeces"
+        logger.debug(f"List access name: {name}, indeces: {indeces}")
         
-        return ListAccess(name=name_node, indeces=indeces)
+        return ListAccess(name, indeces)
     
     def visitAttributeAccess(self, context: penguinParser.AttributeAccessContext) -> AttributeAccess:
         logger.debug(f"Visiting attribute access: {context.getText()}")
         
-        name_node: ASTNode = self.visit(context.name())
-        attribute: str = self.IDENTIFIER().getText()
+        name: ASTNode = self.visit(context.name())
+        attribute: str = self.IDENTIFIER().getText() # seems right
         
-        assert name_node and attribute, "Attribute access missing name or attribute"
-        logger.debug(f"Attribute access name: {name_node}, attribute: {attribute}")
+        assert name and attribute, "Attribute access missing name or attribute"
+        logger.debug(f"Attribute access name: {name}, attribute: {attribute}")
         
-        return AttributeAccess(name_node=name_node, attribute=attribute)
+        return AttributeAccess(name, attribute)
     
     def visitProcedureCall(self, context: penguinParser.ProcedureCallContext) -> ProcedureCall:
         logger.debug(f"Visiting procedure call: {context.getText()}")
