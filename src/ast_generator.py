@@ -171,7 +171,17 @@ class ASTGenerator(penguinVisitor):
     def visitConditionalStatementElse(self, context: penguinParser.ConditionalStatementElseContext) -> Conditional:
         # Kan være det bare skal være del af conditional statement, da de bergge retuyreene conditional
         logger.debug(f"Visiting conditional statement else: {context.getText()}")
-        # TODO
+        
+        condition = self.visit(context.expression()) # condition er den eneste expression
+        then_stmts = self.visit(context.statementBlock(0)) # første block
+        else_stmts: List[ASTNode] = None
+        if context.statementBlock(1):
+            else_stmts = self.visit(context.statementBlock(1)) # anden block
+            logger.debug(f"Has else statements: {else_stmts}")
+            
+        assert condition and then_stmts, "Conditional statement missing condition or statements"
+        logger.debug(f"Conditional statement condition: {condition}, then statements: {then_stmts}, else statements: {else_stmts}")
+        
         return super().visitConditionalStatementElse(context)
     
     def visitLoop(self, context: penguinParser.LoopContext) -> Loop:
