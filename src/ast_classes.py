@@ -323,8 +323,10 @@ class Variable(ASTNode):
         name (str): The name of the variable.
     """
     
-    def __init__(self, name: str) -> None:
+    def __init__(self, var_type: str, name: str) -> None:
+        self.var_type = var_type
         self.name = name
+        
         
 
 class ListAccess(ASTNode):
