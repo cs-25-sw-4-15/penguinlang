@@ -76,7 +76,7 @@ class ASTGenerator(penguinVisitor):
         logger.info("Visiting program")
         
         # Visit each statement in the program context
-        statements: List[ASTNode] = [self.visit(stmt) for stmt in context.statement()]
+        statements: List[ASTNode] = self.visitStatements(context.statement())
         
         # Assert that all statements are ASTNodes
         assert all(isinstance(stmt, ASTNode) for stmt in statements), "Not all statements in the block are ASTNodes"
@@ -155,7 +155,7 @@ class ASTGenerator(penguinVisitor):
             logger.debug("List initialization")
             
             name: str = context.name().getText()
-            values: list[ASTNode] = self.visit(context.expressions())
+            values: list[ASTNode] = self.visitExpressions(context.expressions()) # list of expressions be like ~(_8^(I)
             
             assert name and values, "List initialization missing name or values"
             logger.debug(f"List initialization name: {name}, values: {values}")
@@ -172,7 +172,7 @@ class ASTGenerator(penguinVisitor):
         logger.info(f"Visiting conditional statement: {context.getText()}")
         
         condition: ASTNode = self.visit(context.expression()) # condition er den eneste expression
-        then_stmts: List[ASTNode] = self.visit(context.statementBlock(0)) # første block
+        then_stmts: List[ASTNode] = self.visitStatementBlock(context.statementBlock(0)) # første block
         
         assert condition and then_stmts, "Conditional statement missing condition or statements"
         
@@ -195,12 +195,12 @@ class ASTGenerator(penguinVisitor):
         # Kan være det bare skal være del af conditional statement, da de bergge retuyreene conditional
         logger.info(f"Visiting conditional statement else: {context.getText()}")
         
-        statements: List[ASTNode] = self.visit(context.statementBlock())
+        statements: List[ASTNode] = self.visitStatementBlock(context.statementBlock())
 
         assert statements, "Conditional statement else missing statements"
         logger.debug(f"Conditional statement else statements: {statements}")
         
-        return [self.visit(stmt) for stmt in context.statementBlock().statement()]
+        return statements
     
     def visitLoop(self, context: penguinParser.LoopContext) -> Loop:
         """Visits the loop context and creates a Loop AST node."""
@@ -208,7 +208,7 @@ class ASTGenerator(penguinVisitor):
         logger.info(f"Visiting loop: {context.getText()}")
         
         condition: ASTNode = self.visit(context.expression())
-        statements: List[ASTNode] = [self.visit(stmt) for stmt in context.statementBlock().statement()]
+        statements: List[ASTNode] = self.visitStatementBlock(context.statementBlock())
         
         assert condition and statements, "Loop missing condition or statements"
         assert all(isinstance(stmt, ASTNode) for stmt in statements), "Not all statements are ASTNodes"
@@ -248,7 +248,7 @@ class ASTGenerator(penguinVisitor):
             assert parametres, "Procedure declaration missing parameters"
             logger.debug(f"Procedure declaration parameters: {parametres}")
             
-        statements: List[ASTNode] = [self.visit(stmt) for stmt in context.statementBlock().statement()]
+        statements: List[ASTNode] = self.visitStatementBlock(context.statementBlock())
         
         assert statements, "Procedure declaration missing statements"
         logger.debug(f"Procedure declaration return type: {return_type}, name: {name}, parameters: {parametres}, statements: {statements}")
@@ -458,7 +458,7 @@ class ASTGenerator(penguinVisitor):
         logger.info(f"Visiting list access: {context.getText()}")
         
         name = self.visit(context.name())
-        indices: List[ASTNode] = self.visitExpressionList(context.expressions())
+        indices: List[ASTNode] = self.visitExpressions(context.expressions())
         
         assert name and indices, "List access missing name or indices"
         logger.debug(f"List access name: {name}, indices: {indices}")
