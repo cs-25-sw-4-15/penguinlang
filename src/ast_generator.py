@@ -165,28 +165,35 @@ class ASTGenerator(penguinVisitor):
         
     def visitConditionalStatement(self, context: penguinParser.ConditionalStatementContext) -> Conditional:
         logger.debug(f"Visiting conditional statement: {context.getText()}")
-        # TODO
+        condition = self.visit(context.expression()) # condition er den eneste expression
+        then_stmts: List[ASTNode] = self.visit(context.statementBlock(0)) # første block
+        else_stmts: List[ASTNode] = None
+        
+        if context.conditionalStatementElse():
+            else_stmts: List[ASTNode] = self.visit(context.conditionalStatementElse())
+            assert else_stmts, "Conditional statement else missing statements"
+            logger.debug(f"Conditional statement else: {else_stmts}")
+            
+        assert condition and then_stmts, "Conditional statement missing condition or statements"
+        logger.debug(f"Conditional statement condition: {condition}, then statements: {then_stmts}, else statements: {else_stmts}")
+        
         return super().visitConditionalStatement(context)
     
     def visitConditionalStatementElse(self, context: penguinParser.ConditionalStatementElseContext) -> Conditional:
         # Kan være det bare skal være del af conditional statement, da de bergge retuyreene conditional
         logger.debug(f"Visiting conditional statement else: {context.getText()}")
         
-        condition = self.visit(context.expression()) # condition er den eneste expression
-        then_stmts = self.visit(context.statementBlock(0)) # første block
-        else_stmts: List[ASTNode] = None
-        if context.statementBlock(1):
-            else_stmts = self.visit(context.statementBlock(1)) # anden block
-            logger.debug(f"Has else statements: {else_stmts}")
-            
-        assert condition and then_stmts, "Conditional statement missing condition or statements"
-        logger.debug(f"Conditional statement condition: {condition}, then statements: {then_stmts}, else statements: {else_stmts}")
+        statements: List[ASTNode] = self.visit(context.statementBlock())
+
+        assert statements, "Conditional statement else missing statements"
+        logger.debug(f"Conditional statement else statements: {statements}")
         
-        return super().visitConditionalStatementElse(context)
+        return [self.visit(stmt) for stmt in context.statementBlock().statement()]
     
     def visitLoop(self, context: penguinParser.LoopContext) -> Loop:
         logger.debug(f"Visiting loop: {context.getText()}")
-        # TODO
+        condition = self.visit(context.expression())
+        statements = self.visit(context.statementBlock())
         return super().visitLoop(context)
     
     def visitProcedureDeclaration(self, context: penguinParser.ProcedureDeclarationContext) -> ProcedureDef:
