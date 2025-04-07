@@ -227,7 +227,7 @@ class ASTGenerator(penguinVisitor):
         
         assert return_type and name, "Procedure declaration missing return type or name"
         
-        parametres : List[Tuple[str, str]] = []
+        parametres: List[Tuple[str, str]] = []
         if context.parameterList():
             logger.debug("Procedure declaration has parameters")
             
