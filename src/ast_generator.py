@@ -45,7 +45,7 @@ from ast_classes import ASTNode, \
     ProcedureDef
 
 # Typing modules
-from typing import List
+from typing import List, Tuple
 
 # Logging modules
 import logging
@@ -129,6 +129,7 @@ class ASTGenerator(penguinVisitor):
         return Assignment(target=target, value=value)
 
     def visitInitialization(self, context: penguinParser.InitializationContext) -> Initialization | ListInitialization:
+        """Visits the initialization context and creates an Initialization or ListInitialization AST node."""
         
         logger.debug(f"Visiting initialization: {context.getText()}")
         
@@ -164,8 +165,11 @@ class ASTGenerator(penguinVisitor):
             raise Exception("Unknown initialization type")
         
     def visitConditionalStatement(self, context: penguinParser.ConditionalStatementContext) -> Conditional:
+        """Visits the conditional statement context and creates a Conditional AST node."""
+        
         logger.debug(f"Visiting conditional statement: {context.getText()}")
-        condition = self.visit(context.expression()) # condition er den eneste expression
+        
+        condition: ASTNode = self.visit(context.expression()) # condition er den eneste expression
         then_stmts: List[ASTNode] = self.visit(context.statementBlock(0)) # første block
         else_stmts: List[ASTNode] = None
         
@@ -179,7 +183,9 @@ class ASTGenerator(penguinVisitor):
         
         return super().visitConditionalStatement(context)
     
-    def visitConditionalStatementElse(self, context: penguinParser.ConditionalStatementElseContext) -> Conditional:
+    def visitConditionalStatementElse(self, context: penguinParser.ConditionalStatementElseContext) -> List[ASTNode]:
+        """Visit the else part of the conditional statement."""
+        
         # Kan være det bare skal være del af conditional statement, da de bergge retuyreene conditional
         logger.debug(f"Visiting conditional statement else: {context.getText()}")
         
@@ -191,24 +197,77 @@ class ASTGenerator(penguinVisitor):
         return [self.visit(stmt) for stmt in context.statementBlock().statement()]
     
     def visitLoop(self, context: penguinParser.LoopContext) -> Loop:
+        """Visits the loop context and creates a Loop AST node."""
+        
         logger.debug(f"Visiting loop: {context.getText()}")
-        condition = self.visit(context.expression())
-        statements = self.visit(context.statementBlock())
-        return super().visitLoop(context)
+        
+        condition: ASTNode = self.visit(context.expression())
+        statements: List[ASTNode] = [self.visit(stmt) for stmt in context.statementBlock().statement()]
+        
+        assert condition and statements, "Loop missing condition or statements"
+        logger.debug(f"Loop condition: {condition}, statements: {statements}")
+        
+        return Loop(condition, statements)
     
     def visitProcedureDeclaration(self, context: penguinParser.ProcedureDeclarationContext) -> ProcedureDef:
-        # TODO
-        return super().visitProcedureDeclaration(context)
+        """Visits the procedure declaration context and creates a ProcedureDef AST node."""
+        
+        logger.debug(f"Visiting procedure declaration: {context.getText()}")
+        
+        # Retuern type can være helt tom
+        return_type: str = context.type_().getText() if context.type_() else "void"
+        name: str = context.name().getText()
+        
+        assert return_type and name, "Procedure declaration missing return type or name"
+        
+        params: List[Tuple[str, str]] = None
+        if context.parameterList():
+            logger.debug("Procedure declaration has parameters")
+            
+            params_raw = self.visit(context.parameterList())
+            assert params_raw, "Procedure declaration missing parameters"
+            
+            for i in range(len(params_raw)):
+                param_type_: str = params_raw.type_[i].getText()
+                param_name: str = params_raw.IDENTIFIER[i].getText() # IDENTIFIER fordi procedure calls can ikek have dot notation eller liste ting
+                
+                assert param_type_ and param_name, "Procedure declaration missing parameter type or name"
+                
+                params.append(Tuple(param_type_, param_name))
+            
+            assert params, "Procedure declaration missing parameters"
+            logger.debug(f"Procedure declaration parameters: {params}")
+            
+        statements: List[ASTNode] = [self.visit(stmt) for stmt in context.statementBlock().statement()]
+        
+        assert statements, "Procedure declaration missing statements"
+        logger.debug(f"Procedure declaration return type: {return_type}, name: {name}, parameters: {params}, statements: {statements}")
+        
+        return ProcedureDef(return_type, name, params, statements)
     
     def visitReturnStatement(self, context: penguinParser.ReturnStatementContext) -> Return:
+        """Visits the return statement context and creates a Return AST node."""
+        
         logger.debug(f"Visiting return statement: {context.getText()}")
-        # TODO
-        return super().visitReturnStatement(context)
+        
+        value = self.visit(context.expression())
+        
+        assert value, "Return statement missing value"
+        logger.debug(f"Return statement value: {value}")
+        
+        return Return(value)
     
     def visitProcedureCallStatement(self, context: penguinParser.ProcedureCallStatementContext) -> ProcedureCallStatement:
+        """Visit the procedure call statement context and creates a ProcedureCallStatement AST node."""
+        
         logger.debug(f"Visiting procedure call statement: {context.getText()}")
-        # TODO
-        return super().visitProcedureCallStatement(context)
+        
+        call: ProcedureCall = self.visit(context.procedureCall())
+        
+        assert isinstance(call, ProcedureCall), "Procedure call statement missing procedure call"
+        logger.debug(f"Procedure call statement: {call}")
+        
+        return ProcedureCallStatement(call)
     
     """ def visitProcedureCallStatement(self, context: penguinParser.ProcedureCallStatementContext) -> ProcedureCallStatement:
         logger.debug(f"Visiting procedure call statement: {context.getText()}")
