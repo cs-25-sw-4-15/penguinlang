@@ -17,7 +17,7 @@ Note til gruppemedlemmer fra Naitsa:
     Eksempel:
     Kode: int a = 1 + 2;
     CST: (program (statement (initialization (type int) (name a) = (expression (expression (expr_val (literal 1))) + (expression (expr_val (literal 2)))) ;)))
-    AST: Program(statements=[Initialization(var_type='int', name='a', value=BinaryOp(left=IntegerLiteral(value=1), op='+', right=IntegerLiteral(value=2)))])
+    AST: Program(statements=[Initialization(type_='int', name='a', value=BinaryOp(left=IntegerLiteral(value=1), op='+', right=IntegerLiteral(value=2)))])
     
     Af de to er der en der er betydligt sjovere at lege med
     
@@ -94,14 +94,14 @@ class ASTGenerator(penguinVisitor):
         logger.debug(f"Visiting declaration: {context.getText()}")
         
         # Læg mærke til at for context.NOGET er noget havd det hedder i vores grammar regler!
-        var_type: str = context.type().getText() # getText() returns token string
+        type_: str = context.type().getText() # getText() returns token string
         name: str = context.name().getText()
         
-        assert var_type and name, "Declaration missing type or name"
+        assert type_ and name, "Declaration missing type or name"
         
-        logger.debug(f"Declared variable: {name} of type {var_type}")
+        logger.debug(f"Declared variable: {name} of type {type_}")
         
-        return Declaration(var_type, name)
+        return Declaration(type_, name)
     
     def visitAssignment(self, context: penguinParser.AssignmentContext) -> Assignment:
         """ Visits the assignment context and creates an Assignment AST node."""
@@ -138,14 +138,14 @@ class ASTGenerator(penguinVisitor):
             logger.debug("Normal initialization")
             
             # Hvis det er en normal initialization
-            var_type: str = context.type_().getText()
+            type_: str = context.type_().getText()
             name: str = context.name().getText()
             value: str = self.visit(context.expression())
             
-            assert var_type and name and value, "Initialization missing type, name or value"
-            logger.debug(f"Initialization type: {var_type}, name: {name}, value: {value}")
+            assert type_ and name and value, "Initialization missing type, name or value"
+            logger.debug(f"Initialization type: {type_}, name: {name}, value: {value}")
             
-            return Initialization(var_type, name, value)
+            return Initialization(type_, name, value)
         
         elif context.LBRACK():
             # Check for "[" - navnet efter lexerens reglsæt 
@@ -220,30 +220,30 @@ class ASTGenerator(penguinVisitor):
         
         assert return_type and name, "Procedure declaration missing return type or name"
         
-        params: List[Tuple[str, str]] = []
+        parametres : List[Tuple[str, str]] = []
         if context.parameterList():
             logger.debug("Procedure declaration has parameters")
             
-            params_raw = self.visit(context.parameterList())
-            assert params_raw, "Procedure declaration missing parameters"
+            parametres_raw = self.visit(context.parameterList())
+            assert parametres_raw, "Procedure declaration missing parameters"
             
-            for i in range(len(params_raw)):
-                param_type_: str = params_raw.type_[i].getText()
-                param_name: str = params_raw.IDENTIFIER[i].getText() # IDENTIFIER fordi procedure calls can ikek have dot notation eller liste ting
+            for i in range(len(parametres_raw)):
+                parametre_type_: str = parametres_raw.type_[i].getText()
+                parametre_name: str = parametres_raw.IDENTIFIER[i].getText() # IDENTIFIER fordi procedure calls can ikek have dot notation eller liste ting
                 
-                assert param_type_ and param_name, "Procedure declaration missing parameter type or name"
+                assert parametre_type_ and parametre_name, "Procedure declaration missing parameter type or name"
                 
-                params.append(Tuple(param_type_, param_name))
+                parametres.append(Tuple(parametre_type_, parametre_name))
             
-            assert params, "Procedure declaration missing parameters"
-            logger.debug(f"Procedure declaration parameters: {params}")
+            assert parametres, "Procedure declaration missing parameters"
+            logger.debug(f"Procedure declaration parameters: {parametres}")
             
         statements: List[ASTNode] = [self.visit(stmt) for stmt in context.statementBlock().statement()]
         
         assert statements, "Procedure declaration missing statements"
         logger.debug(f"Procedure declaration return type: {return_type}, name: {name}, parameters: {params}, statements: {statements}")
         
-        return ProcedureDef(return_type, name, params, statements)
+        return ProcedureDef(return_type, name, parametres, statements)
     
     def visitReturnStatement(self, context: penguinParser.ReturnStatementContext) -> Return:
         """Visits the return statement context and creates a Return AST node."""
@@ -275,20 +275,20 @@ class ASTGenerator(penguinVisitor):
         proc_call_context = context.procedureCall()
         assert proc_call_context is not None, "Procedure call missing in statement"
         
-        name_node: ASTNode = self.visit(proc_call_context.name())
-        logger.debug(f"Procedure name: {name_node}")
+        name: ASTNode = self.visit(proc_call_context.name())
+        logger.debug(f"Procedure name: {name}")
         
         # Args start as an empty list per default
-        arg_nodes: List[ASTNode] = []
+        args: List[ASTNode] = []
         # Fill args if they exist
         if proc_call_context.argumentList():
             # Visit the argument list and get the expressions
             # This is done by entering the argumentList context from the procedureCall context
             # Which is bas shit crazy, but look though the classes, and it is there
-            arg_nodes = [self.visit(arg) for arg in proc_call_context.argumentList().expression()]
-            logger.debug(f"Procedure arguments: {arg_nodes}")
+            args = [self.visit(arg) for arg in proc_call_context.argumentList().expression()]
+            logger.debug(f"Procedure arguments: {args}")
             
-        return ProcedureCallStatement(name=name_node, args=arg_nodes) """
+        return ProcedureCallStatement(name, args) """
     
     """Expressions"""
     
@@ -444,35 +444,35 @@ class ASTGenerator(penguinVisitor):
         assert context.IDENTIFIER(), "Name node has no identifiers"
         
         # Find basis navnet
-        current_name_node: ASTNode = Variable(context.IDENTIFIER(0).getText())
-        logger.debug(f"Base variable: {current_name_node}")
+        current_name: ASTNode = Variable(context.IDENTIFIER(0).getText())
+        logger.debug(f"Base variable: {current_name}")
         
         # For hver attribut i navnet af den nuværende context, undtagen basis
         for i in range(1, len(context.IDENTIFIER())):
-            # Wrap current_name_node med en AttributeAccess node (alt det der dot notation)
-            current_name_node = AttributeAccess(current_name_node, context.IDENTIFIER(i).getText())
-            logger.debug(f"Wrapped in AttributeAccess: {current_name_node}")
+            # Wrap current_name med en AttributeAccess node (alt det der dot notation)
+            current_name = AttributeAccess(current_name, context.IDENTIFIER(i).getText())
+            logger.debug(f"Wrapped in AttributeAccess: {current_name}")
         
         # For hver list access i navnet
         for expression_context in context.expression():
             # Besøg listen og få fat i index expression, som er det der står i []
             index_expression: ASTNode = self.visit(expression_context)
-            # Wrap current_name_node med en ListAccess node (alt det der bracket notation)
-            current_name_node = ListAccess(current_name_node, index_expression)
-            logger.debug(f"Wrapped in ListAccess: {current_name_node}")
+            # Wrap current_name med en ListAccess node (alt det der bracket notation)
+            current_name = ListAccess(current_name, index_expression)
+            logger.debug(f"Wrapped in ListAccess: {current_name}")
         
-        return current_name_node
+        return current_name
     
     def visitListAccess(self, context: penguinParser.ListAccessContext) -> ListAccess:
         logger.debug(f"Visiting list access: {context.getText()}")
         
         name = self.visit(context.name())
-        indeces: List[ASTNode] = self.visitExpressions(context.expressions())
+        indices: List[ASTNode] = self.visitExpressions(context.expressions())
         
-        assert name and indeces, "List access missing name or indeces"
-        logger.debug(f"List access name: {name}, indeces: {indeces}")
+        assert name and indices, "List access missing name or indices"
+        logger.debug(f"List access name: {name}, indices: {indices}")
         
-        return ListAccess(name, indeces)
+        return ListAccess(name, indices)
     
     def visitAttributeAccess(self, context: penguinParser.AttributeAccessContext) -> AttributeAccess:
         logger.debug(f"Visiting attribute access: {context.getText()}")
@@ -569,7 +569,7 @@ class ASTGenerator(penguinVisitor):
     def visitStatementBlock(self, context: penguinParser.StatementBlockContext) -> List[ASTNode]:
         # Can probably be incorporated in where it is implemented, præcist det samme some ovenover
         logger.debug(f"Visiting statement block: {context.getText()}")
-        statmwetns: List[ASTNode] = [self.visit(statement) for statement in context.statement()]
-        assert all(isinstance(stmt, ASTNode) for stmt in statmwetns), "Not all statements are ASTNodes"
-        logger.debug(f"Statement block: {statmwetns}")
-        return statmwetns
+        statements: List[ASTNode] = [self.visit(statement) for statement in context.statement()]
+        assert all(isinstance(stmt, ASTNode) for stmt in statements), "Not all statements are ASTNodes"
+        logger.debug(f"Statement block: {statements}")
+        return statements
