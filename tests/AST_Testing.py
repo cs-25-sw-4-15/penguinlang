@@ -36,18 +36,21 @@ def ast_generator():
 
 
 
-######################
+#######################
 # Basic Structure Tests
-######################
+#######################
 
 
 def test_empty_program():
-    """Test that an empty program creates a Program node with no statements."""
     ast = build_ast("")
     assert isinstance(ast, Program)
     assert len(ast.statements) == 0
 
+
+#######################
 # Declaration Tests
+#######################
+
 def test_declaration():
     ast = build_ast("int x;")
     
@@ -69,7 +72,9 @@ def test_multiple_declarations():
     assert ast.statements[1].var_type == "string"
     assert ast.statements[1].name == "y"
 
+#######################
 # Assignment Tests
+#######################
 def test_simple_assignment():
     ast = build_ast("x = 42;")
     
@@ -94,3 +99,65 @@ def test_list_assignment():
     assert ast.statements[0].target.indices[0].value == 0
     assert isinstance(ast.statements[0].value, IntegerLiteral)
     assert ast.statements[0].value.value == 42
+
+#######################
+# Initialization Tests
+#######################
+def test_simple_initialization():
+    ast = build_ast("int x = 42;")
+    
+    assert isinstance(ast, Program)
+    assert len(ast.statements) == 1
+    assert isinstance(ast.statements[0], Initialization)
+    assert ast.statements[0].var_type == "int"
+    assert ast.statements[0].name == "x"
+    assert isinstance(ast.statements[0].value, IntegerLiteral)
+    assert ast.statements[0].value.value == 42
+
+def test_list_initialization():
+    ast = build_ast("x = [1, 2, 3];")
+    
+    assert isinstance(ast, Program)
+    assert len(ast.statements) == 1
+    assert isinstance(ast.statements[0], ListInitialization)
+    assert ast.statements[0].name == "x"
+    assert len(ast.statements[0].values) == 3
+    assert all(isinstance(val, IntegerLiteral) for val in ast.statements[0].values)
+    assert [val.value for val in ast.statements[0].values] == [1, 2, 3]
+
+
+#######################
+# Binary Expression Tests
+#######################
+
+#######################
+# Unary Expression Tests
+#######################
+
+#######################
+# Literal Tests
+#######################
+
+#######################
+# Conditional Tests
+#######################
+
+#######################
+# Loop Tests
+#######################
+
+#######################
+# Procedure Tests
+#######################
+
+#######################
+# List Tests
+#######################
+
+#######################
+# Dot Notation Tests
+#######################
+
+#######################
+# Complex Tests
+#######################
