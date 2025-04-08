@@ -130,9 +130,61 @@ def test_list_initialization():
 # Binary Expression Tests
 #######################
 
+def test_binary_expression():
+    ast = build_ast("x = a + b;")
+    
+    assert isinstance(ast, Program)
+    assert len(ast.statements) == 1
+    assert isinstance(ast.statements[0], Assignment)
+    assert isinstance(ast.statements[0].value, BinaryOp)
+    assert ast.statements[0].value.op == "+"
+    assert isinstance(ast.statements[0].value.left, Variable)
+    assert ast.statements[0].value.left.name == "a"
+    assert isinstance(ast.statements[0].value.right, Variable)
+    assert ast.statements[0].value.right.name == "b"
+
+def test_complex_binary_expression():
+    ast = build_ast("x = a + b * c;")
+    
+    assert isinstance(ast, Program)
+    assert len(ast.statements) == 1
+    assert isinstance(ast.statements[0], Assignment)
+    assert isinstance(ast.statements[0].value, BinaryOp)
+    assert ast.statements[0].value.op == "+"
+    assert isinstance(ast.statements[0].value.left, Variable)
+    assert ast.statements[0].value.left.name == "a"
+    assert isinstance(ast.statements[0].value.right, BinaryOp)
+    assert ast.statements[0].value.right.op == "*"
+    assert isinstance(ast.statements[0].value.right.left, Variable)
+    assert ast.statements[0].value.right.left.name == "b"
+    assert isinstance(ast.statements[0].value.right.right, Variable)
+    assert ast.statements[0].value.right.right.name == "c"
+
+def test_parenthesized_expression():
+    ast = build_ast("x = (a + b) * c;")
+    
+    assert isinstance(ast, Program)
+    assert len(ast.statements) == 1
+    assert isinstance(ast.statements[0], Assignment)
+    assert isinstance(ast.statements[0].value, BinaryOp)
+    assert ast.statements[0].value.op == "*"
+    assert isinstance(ast.statements[0].value.left, BinaryOp)
+    assert ast.statements[0].value.left.op == "+"
+    assert isinstance(ast.statements[0].value.right, Variable)
+    assert ast.statements[0].value.right.name == "c"
 #######################
 # Unary Expression Tests
 #######################
+def test_unary_expression():
+    ast = build_ast("x = -a;")
+    
+    assert isinstance(ast, Program)
+    assert len(ast.statements) == 1
+    assert isinstance(ast.statements[0], Assignment)
+    assert isinstance(ast.statements[0].value, UnaryOp)
+    assert ast.statements[0].value.op == "-"
+    assert isinstance(ast.statements[0].value.operand, Variable)
+    assert ast.statements[0].value.operand.name == "a"
 
 #######################
 # Literal Tests
