@@ -76,10 +76,10 @@ class ASTGenerator(penguinVisitor):
         logger.info("Visiting program")
         
         # Visit each statement in the program context
-        statements: List[ASTNode] = self.visitStatements(context.statement())
+        statements: List[ASTNode] = self.visitStatements(context.statement())[:-1]
         
         # Assert that all statements are ASTNodes
-        assert all(isinstance(stmt, ASTNode) for stmt in statements), "Not all statements in the block are ASTNodes"
+        assert all(isinstance(stmt, ASTNode) for stmt in statements), "Not all statements in the block are ASTNodes" + "\n" + str(statements)
         
         logger.debug(f"Program contains {len(statements)} statements")
         
@@ -96,7 +96,7 @@ class ASTGenerator(penguinVisitor):
         logger.info(f"Visiting declaration: {context.getText()}")
         
         # Læg mærke til at for context.NOGET er noget havd det hedder i vores grammar regler!
-        type_: str = context.type().getText() # getText() returns token string
+        type_: str = context.type_().getText() # getText() returns token string
         name: str = context.name().getText()
         
         assert type_ and name, "Declaration missing type or name"
@@ -172,7 +172,7 @@ class ASTGenerator(penguinVisitor):
         logger.info(f"Visiting conditional statement: {context.getText()}")
         
         condition: ASTNode = self.visit(context.expression()) # condition er den eneste expression
-        then_stmts: List[ASTNode] = self.visitStatementBlock(context.statementBlock(0)) # første block
+        then_stmts: List[ASTNode] = self.visitStatementBlock(context.statementBlock()) # første block
         
         assert condition and then_stmts, "Conditional statement missing condition or statements"
         
@@ -223,7 +223,7 @@ class ASTGenerator(penguinVisitor):
         
         # Retuern type can være helt tom
         return_type: str = context.type_().getText() if context.type_() else "void"
-        name: str = context.name().getText()
+        name: str = context.IDENTIFIER().getText()
         
         assert return_type and name, "Procedure declaration missing return type or name"
         
@@ -231,14 +231,14 @@ class ASTGenerator(penguinVisitor):
         if context.parameterList():
             logger.debug("Procedure declaration has parameters")
             
-            parametres_raw = self.visit(context.parameterList())
+            parametres_raw = self.visitParameterList(context.parameterList())
             assert parametres_raw, "Procedure declaration missing parameters"
             
             for i in range(len(parametres_raw)):
-                logger.debug(f"Visiting parameter {i}: {parametres_raw[i].getText()}")
+                logger.debug(f"Visiting parameter {i}: {parametres_raw[i].name}")
                 
-                parametre_type_: str = parametres_raw.type_[i].getText()
-                parametre_name: str = parametres_raw.IDENTIFIER[i].getText() # IDENTIFIER fordi procedure calls can ikek have dot notation eller liste ting
+                parametre_type_: str = parametres_raw[i].var_type
+                parametre_name: str = parametres_raw[i].name # IDENTIFIER fordi procedure calls can ikek have dot notation eller liste ting
                 # TODO vær sikekr på at IDENTIFIER har getText()
                 
                 assert parametre_type_ and parametre_name, "Procedure declaration missing parameter type or name"
@@ -434,7 +434,7 @@ class ASTGenerator(penguinVisitor):
         assert context.IDENTIFIER(), "Name node has no identifiers"
         
         # Find basis navnet
-        current_name: ASTNode = Variable(context.IDENTIFIER(0).getText()) # TODO har IDENTIFIER getText()?
+        current_name: ASTNode = context.IDENTIFIER(0).getText() # TODO har IDENTIFIER getText()?
         logger.debug(f"Base variable: {current_name}")
         
         # For hver attribut i navnet af den nuværende context, undtagen basis
@@ -538,10 +538,10 @@ class ASTGenerator(penguinVisitor):
         """
 
         # assert that type and identifier are the same length
-        assert len(context.type()) == len(context.IDENTIFIER()), "Parameter list type and identifier length mismatch"
+        assert len(context.type_()) == len(context.IDENTIFIER()), "Parameter list type and identifier length mismatch"
         
         # Zip de to lister sammen, så vi kan få fat i type og navn på samme tid
-        for t, i in zip(context.type(), context.IDENTIFIER()):
+        for t, i in zip(context.type_(), context.IDENTIFIER()):
             # Besøg type og navn og lav en ny node Variable for hver parameter
             parametres.append(Variable(i.getText(), t.getText()))
         
@@ -556,9 +556,9 @@ class ASTGenerator(penguinVisitor):
         logger.info(f"Visiting argument list: {context.getText()}")
         
         # Arguments could could all come in some form of expression
-        arguments: List[ASTNode] = [self.visit(expression) for expression in context.expression()]
+        arguments: List[ASTNode] = [self.visitExpression(expression) for expression in context.expression()]
         
-        assert all(isinstance(arg, ASTNode) for arg in arguments), "Not all arguments are ASTNodes"
+        assert all(isinstance(arg, ASTNode) for arg in arguments), "Not all arguments are ASTNodes" + "\n" + str(arguments)
         logger.debug(f"Argument list: {arguments}")
         
         return arguments
@@ -577,7 +577,7 @@ class ASTGenerator(penguinVisitor):
         statements: List[ASTNode] = [self.visit(statement) for statement in context.statement()]
         
         assert statements, "Statement block missing statements"
-        assert all(isinstance(stmt, ASTNode) for stmt in statements), "Not all statements are ASTNodes"
+        assert all(isinstance(stmt, ASTNode) for stmt in statements), "Not all statements are ASTNodes" + "\n" + str(statements)
         logger.debug(f"Statement block: {statements}")
         
         return statements
@@ -589,7 +589,7 @@ class ASTGenerator(penguinVisitor):
         
         visited_statements: List[ASTNode] = [self.visit(stmt) for stmt in statements]
         
-        assert all(isinstance(stmt, ASTNode) for stmt in statements), "Not all statements are ASTNodes"
+        assert all(isinstance(stmt, ASTNode) for stmt in visited_statements), "Not all statements are ASTNodes" + "\n" + str(visited_statements)
         logger.debug(f"Visited statements: {visited_statements}")
         
         return statements
