@@ -76,7 +76,7 @@ class ASTGenerator(penguinVisitor):
         logger.info("Visiting program")
         
         # Visit each statement in the program context
-        statements: List[ASTNode] = self.visitStatements(context.statement())[:-1]
+        statements: List[ASTNode] = self.statementsToASTNodes(context.statement())
         
         # Assert that all statements are ASTNodes
         assert all(isinstance(stmt, ASTNode) for stmt in statements), "Not all statements in the block are ASTNodes" + "\n" + str(statements)
@@ -84,6 +84,18 @@ class ASTGenerator(penguinVisitor):
         logger.debug(f"Program contains {len(statements)} statements")
         
         return Program(statements)
+    
+    def statementsToASTNodes(self, statements: List[Any]) -> List[ASTNode]:
+        """Takes parse tree list and goes thoug all root statemetns, visiting each and returning a list of AST nodes."""
+        
+        logger.info("Visiting list of statements.")
+        
+        visited_statements: List[ASTNode] = [self.visit(stmt) for stmt in statements]
+        
+        assert all(isinstance(stmt, ASTNode) for stmt in visited_statements), "Not all statements are ASTNodes" + "\n" + str(visited_statements)
+        logger.debug(f"Visited statements: {visited_statements}")
+        
+        return visited_statements
     
     """Statements"""
     
@@ -172,7 +184,7 @@ class ASTGenerator(penguinVisitor):
         logger.info(f"Visiting conditional statement: {context.getText()}")
         
         condition: ASTNode = self.visit(context.expression()) # condition er den eneste expression
-        then_stmts: List[ASTNode] = self.visitStatementBlock(context.statementBlock()) # første block
+        then_stmts: List[ASTNode] = self.visit(context.statementBlock()) # første block
         
         assert condition and then_stmts, "Conditional statement missing condition or statements"
         
@@ -195,7 +207,7 @@ class ASTGenerator(penguinVisitor):
         # Kan være det bare skal være del af conditional statement, da de bergge retuyreene conditional
         logger.info(f"Visiting conditional statement else: {context.getText()}")
         
-        statements: List[ASTNode] = self.visitStatementBlock(context.statementBlock())
+        statements: List[ASTNode] = self.visit(context.statementBlock())
 
         assert statements, "Conditional statement else missing statements"
         logger.debug(f"Conditional statement else statements: {statements}")
@@ -208,7 +220,7 @@ class ASTGenerator(penguinVisitor):
         logger.info(f"Visiting loop: {context.getText()}")
         
         condition: ASTNode = self.visit(context.expression())
-        statements: List[ASTNode] = self.visitStatementBlock(context.statementBlock())
+        statements: List[ASTNode] = self.visit(context.statementBlock())
         
         assert condition and statements, "Loop missing condition or statements"
         assert all(isinstance(stmt, ASTNode) for stmt in statements), "Not all statements are ASTNodes"
@@ -248,7 +260,7 @@ class ASTGenerator(penguinVisitor):
             assert parametres, "Procedure declaration missing parameters"
             logger.debug(f"Procedure declaration parameters: {parametres}")
             
-        statements: List[ASTNode] = self.visitStatementBlock(context.statementBlock())
+        statements: List[ASTNode] = self.visit(context.statementBlock())
         
         assert statements, "Procedure declaration missing statements"
         logger.debug(f"Procedure declaration return type: {return_type}, name: {name}, parameters: {parametres}, statements: {statements}")
@@ -442,6 +454,7 @@ class ASTGenerator(penguinVisitor):
             # Wrap current_name med en AttributeAccess node (alt det der dot notation)
             current_name = AttributeAccess(current_name, context.IDENTIFIER(i).getText()) # TODO har IDENTIFIER getText()?
             logger.debug(f"Wrapped in AttributeAccess: {current_name}")
+            return current_name
         
         # For hver list access i navnet
         for expression_context in context.expression():
@@ -450,8 +463,9 @@ class ASTGenerator(penguinVisitor):
             # Wrap current_name med en ListAccess node (alt det der bracket notation)
             current_name = ListAccess(current_name, index_expression)
             logger.debug(f"Wrapped in ListAccess: {current_name}")
+            return current_name
         
-        return current_name
+        return Variable(None, current_name)
     
     def visitListAccess(self, context: penguinParser.ListAccessContext) -> ListAccess:
         """visit the list access context and creates a ListAccess AST node."""
@@ -502,7 +516,7 @@ class ASTGenerator(penguinVisitor):
         
         logger.info(f"Visiting list of nodes: {context.getText()}")
         
-        expressions = [self.visit(expr) for expr in context.expression()]
+        expressions: List[ASTNode] = [self.visit(expr) for expr in context.expression()]
         
         # isinstandce tjekker at et objekt X er af typen Y
         # all generere en liste af bolske værdier ud fra en for in generator
@@ -579,17 +593,5 @@ class ASTGenerator(penguinVisitor):
         assert statements, "Statement block missing statements"
         assert all(isinstance(stmt, ASTNode) for stmt in statements), "Not all statements are ASTNodes" + "\n" + str(statements)
         logger.debug(f"Statement block: {statements}")
-        
-        return statements
-    
-    def visitStatements(self, statements: List[Any]) -> List[ASTNode]:
-        """Visits the statements context and creates a list of AST nodes."""
-        
-        logger.info("Visiting list of statements.")
-        
-        visited_statements: List[ASTNode] = [self.visit(stmt) for stmt in statements]
-        
-        assert all(isinstance(stmt, ASTNode) for stmt in visited_statements), "Not all statements are ASTNodes" + "\n" + str(visited_statements)
-        logger.debug(f"Visited statements: {visited_statements}")
         
         return statements
