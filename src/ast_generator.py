@@ -457,12 +457,15 @@ class ASTGenerator(penguinVisitor):
             return current_name
         
         # For hver list access i navnet
+        is_listAccess = 0
         for expression_context in context.expression():
             # Besøg listen og få fat i index expression, som er det der står i []
             index_expression: ASTNode = self.visit(expression_context)
             # Wrap current_name med en ListAccess node (alt det der bracket notation)
             current_name = ListAccess(current_name, index_expression)
             logger.debug(f"Wrapped in ListAccess: {current_name}")
+        
+        if is_listAccess:
             return current_name
         
         return Variable(None, current_name)
