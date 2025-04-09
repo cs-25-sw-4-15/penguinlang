@@ -74,11 +74,14 @@ def test_list_assignment():
     
     assert len(ast.statements) == 1
     assert isinstance(type(ast.statements[0]), type(Assignment))
+    assert isinstance(type(ast.statements[0].target), type(Variable))
+    assert isinstance(type(ast.statements[0].target.name), type(ListAccess))
+    assert ast.statements[0].target.name.name == "x"
+    assert isinstance(type(ast.statements[0].target.name.indices), type(IntegerLiteral))
+
     assert isinstance(type(ast.statements[0].target), type(ListAccess))
-    assert isinstance(type(ast.statements[0].target.name), type(Variable))
-    assert ast.statements[0].target.name == "x"
-    assert isinstance(type(ast.statements[0].target.indices), type(IntegerLiteral))
-    assert ast.statements[0].target.indices.value == 0
+    assert isinstance(type(ast.statements[0].target), type(Variable))
+    assert ast.statements[0].target.name.indices.value == 0
     assert isinstance(type(ast.statements[0].value), type(IntegerLiteral))
     assert ast.statements[0].value.value == 42
 
@@ -305,11 +308,11 @@ def test_list_access():
     
     assert len(ast.statements) == 1
     assert isinstance(type(ast.statements[0]), type(Assignment))
-    assert isinstance(type(ast.statements[0].value), type(ListAccess))
-    assert isinstance(type(ast.statements[0].value.indices), type(Variable))
-    assert ast.statements[0].value.name == "arr"
-    assert isinstance(type(ast.statements[0].value.indices), type(Variable))
-    assert ast.statements[0].value.indices.name == "i"
+    assert isinstance(type(ast.statements[0].value), type(Variable))
+    assert isinstance(type(ast.statements[0].value.name), type(ListAccess))
+    assert isinstance(type(ast.statements[0].value.name.indices), type(Variable))
+    assert ast.statements[0].value.name.name == "arr"
+    assert ast.statements[0].value.name.indices.name == "i"
 
 def test_nested_list_access():
     """Test nested list access AST construction."""
@@ -320,6 +323,8 @@ def test_nested_list_access():
     assert isinstance(type(ast.statements[0].value), type(ListAccess))
     assert isinstance(type(ast.statements[0].value.name), type(ListAccess))
     assert ast.statements[0].value.name.name == "arr"
+    assert isinstance(type(ast.statements[0].value.name.value), type(Variable))
+    assert isinstance(type(ast.statements[0].value.value), type(ListAccess))
 
 #######################
 # Dot Notation Tests
