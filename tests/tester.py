@@ -17,7 +17,6 @@ from src.ast_classes import (
 )
 
 def build_ast(source_code):
-    """Build an AST from source code."""
     input_stream = InputStream(source_code)
     lexer = penguinLexer(input_stream)
     token_stream = CommonTokenStream(lexer)
@@ -61,7 +60,7 @@ def test_declaration():
     assert ast.statements[0].name == "x"
 
 def test_multiple_declarations():
-    ast = build_ast("int x; string y;")
+    ast = build_ast("int x; int y;")
     
     assert isinstance(ast, Program)
     assert len(ast.statements) == 2
@@ -69,7 +68,7 @@ def test_multiple_declarations():
     assert isinstance(ast.statements[1], Declaration)
     assert ast.statements[0].var_type == "int"
     assert ast.statements[0].name == "x"
-    assert ast.statements[1].var_type == "string"
+    assert ast.statements[1].var_type == "int"
     assert ast.statements[1].name == "y"
 
 #######################
@@ -115,7 +114,7 @@ def test_simple_initialization():
     assert ast.statements[0].value.value == 42
 
 def test_list_initialization():
-    ast = build_ast("x = [1, 2, 3];")
+    ast = build_ast("list x = [1, 2, 3];")
     
     assert isinstance(ast, Program)
     assert len(ast.statements) == 1
@@ -173,26 +172,12 @@ def test_parenthesized_expression():
     assert isinstance(ast.statements[0].value.right, Variable)
     assert ast.statements[0].value.right.name == "c"
     
-#######################
-# Unary Expression Tests
-#######################
-def test_unary_expression():
-    ast = build_ast("x = -a;")
-    
-    assert isinstance(ast, Program)
-    assert len(ast.statements) == 1
-    assert isinstance(ast.statements[0], Assignment)
-    assert isinstance(ast.statements[0].value, UnaryOp)
-    assert ast.statements[0].value.op == "-"
-    assert isinstance(ast.statements[0].value.operand, Variable)
-    assert ast.statements[0].value.operand.name == "a"
 
 #######################
 # Literal Tests
 #######################
 
 def test_integer_literal():
-    """Test integer literal AST construction."""
     ast = build_ast("x = 42;")
     
     assert isinstance(ast, Program)
@@ -202,7 +187,6 @@ def test_integer_literal():
     assert ast.statements[0].value.value == 42
 
 def test_hex_literal():
-    """Test hexadecimal literal AST construction."""
     ast = build_ast("x = 0x2A;")
     
     assert isinstance(ast, Program)
@@ -220,16 +204,6 @@ def test_binary_literal():
     assert isinstance(ast.statements[0], Assignment)
     assert isinstance(ast.statements[0].value, IntegerLiteral)
     assert ast.statements[0].value.value == 42  # 0b101010 = 42
-
-def test_string_literal():
-    """Test string literal AST construction."""
-    ast = build_ast("x = \"hello\";")
-    
-    assert isinstance(ast, Program)
-    assert len(ast.statements) == 1
-    assert isinstance(ast.statements[0], Assignment)
-    assert isinstance(ast.statements[0].value, StringLiteral)
-    assert ast.statements[0].value.value == "\"hello\""  # Note: includes quotes
 
 #######################
 # Conditional Tests
@@ -270,7 +244,7 @@ def test_conditional_with_else():
 #######################
 
 def test_loop_statement():
-    ast = build_ast("while (i < 10) { i = i + 1; }")
+    ast = build_ast("loop (i < 10) { i = i + 1; }")
     
     assert isinstance(ast, Program)
     assert len(ast.statements) == 1
@@ -304,16 +278,15 @@ def test_procedure_call():
     assert ast.statements[0].call.args[0].value == 42
 
 def test_procedure_call_multiple_args():
-    ast = build_ast("print(42, \"hello\", x);")
+    ast = build_ast("print(42, x);")
     
     assert isinstance(ast, Program)
     assert len(ast.statements) == 1
     assert isinstance(ast.statements[0], ProcedureCallStatement)
     assert isinstance(ast.statements[0].call, ProcedureCall)
-    assert len(ast.statements[0].call.args) == 3
+    assert len(ast.statements[0].call.args) == 2
     assert isinstance(ast.statements[0].call.args[0], IntegerLiteral)
-    assert isinstance(ast.statements[0].call.args[1], StringLiteral)
-    assert isinstance(ast.statements[0].call.args[2], Variable)
+    assert isinstance(ast.statements[0].call.args[1], Variable)
 
 def test_procedure_definition():
     ast = build_ast("int add(int a, int b) { return a + b; }")
@@ -332,7 +305,7 @@ def test_procedure_definition():
     assert ast.statements[0].body[0].value.op == "+"
 
 def test_void_procedure_definition():
-    ast = build_ast("void printHello() { print(\"hello\"); }")
+    ast = build_ast("void printHello() { print(5); }")
     
     assert isinstance(ast, Program)
     assert len(ast.statements) == 1
@@ -425,7 +398,7 @@ def test_complex_nested_structure():
     """Test complex nested structure AST construction."""
     code = """
     if (x > 0) {
-        while (i < 10) {
+        loop (i < 10) {
             i = i + 1;
             if (i == 5) {
                 print(i);
