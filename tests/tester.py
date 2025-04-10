@@ -337,8 +337,8 @@ def test_attribute_access():
     assert len(ast.statements) == 1
     assert isinstance(type(ast.statements[0]), type(Assignment))
     assert isinstance(type(ast.statements[0].value), type(AttributeAccess))
-    assert isinstance(type(ast.statements[0].value.name), type(Variable))
-    assert ast.statements[0].value.name.name == "obj"
+    assert isinstance(type(ast.statements[0].value.attribute), type(Variable))
+    assert ast.statements[0].value.name == "obj"
     assert ast.statements[0].value.attribute == "attr"
 
 def test_chained_attribute_access():
@@ -348,11 +348,11 @@ def test_chained_attribute_access():
     assert len(ast.statements) == 1
     assert isinstance(type(ast.statements[0]), type(Assignment))
     assert isinstance(type(ast.statements[0].value), type(AttributeAccess))
-    assert isinstance(type(ast.statements[0].value.name), type(AttributeAccess))
-    assert isinstance(type(ast.statements[0].value.name.name), type(Variable))
-    assert ast.statements[0].value.name.name.name == "obj"
-    assert ast.statements[0].value.name.attribute == "attr1"
-    assert ast.statements[0].value.attribute == "attr2"
+    assert isinstance(type(ast.statements[0].value.attribute), type(AttributeAccess))
+    assert isinstance(type(ast.statements[0].value.name), type(Variable))
+    assert ast.statements[0].value.name == "obj"
+    assert ast.statements[0].value.attribute == "attr1"
+    assert ast.statements[0].value == "attr2"
 
 #######################
 # Complex Tests
