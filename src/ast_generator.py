@@ -424,63 +424,50 @@ class ASTGenerator(penguinVisitor):
         raise UnknownLiteralTypeError(f"Unknown literal type from {context.getText()}")
     
     def visitName(self, context: penguinParser.NameContext) -> Union[AttributeAccess, Variable, ListAccess]:
-        """Visits the name context and creates a Variable AST node.
-        
-        This is a thought peice of shit
-        En grund til at dot notation nok ikke var så smart alligevel
-        
-        Men hvad sker der her????:
-        - starter med at finde ud af hvad basis navnet er.
-        - for hvrr attribut i navnet, wrappes der med en AttributeAccess node
-        - for hver list accsess i navnet [...] wrapeps med ListAccess node, sammed nuværende node
-        - der retuneres til sidst en variable node med det sidste navn og alle de wrapede nodes, det er meget nested (venstre til højre heldigvis) og det er forfærdeligt
-        
-        Returns:
-            Some ASTNode of type Variable, ListAccess or AttributeAccess.
-            ¯\\_(ツ)_/¯
-            TODO: Find ud af hvad der faktisk retuneres her
-        """
-        
+        """Visits the name context and creates a Variable, AttributeAccess, or ListAccess AST node."""
         logger.info(f"Visiting name: {context.getText()}")
         
         assert context.IDENTIFIER(), "Name node has no identifiers"
         
-        # Find basis navnet
-        current_name: ASTNode = context.IDENTIFIER(0).getText() # TODO har IDENTIFIER getText()?
+        current_name: ASTNode = context.IDENTIFIER(0).getText()
         logger.debug(f"Base variable: {current_name}")
         
-        # For hver attribut i navnet af den nuværende context, undtagen basis
         for i in range(1, len(context.IDENTIFIER())):
-            # Wrap current_name med en AttributeAccess node (alt det der dot notation)
-            current_name = AttributeAccess(current_name, context.IDENTIFIER(i).getText()) # TODO har IDENTIFIER getText()?
+            # Wrap current_name with an AttributeAccess node
+            current_name = AttributeAccess(current_name, context.IDENTIFIER(i).getText())
             logger.debug(f"Wrapped in AttributeAccess: {current_name}")
-            return current_name
         
-        # For hver list access i navnet
-        is_listAccess = 0
-        for expression_context in context.expression():
-            # Besøg listen og få fat i index expression, som er det der står i []
-            index_expression: ASTNode = self.visit(expression_context)
-            # Wrap current_name med en ListAccess node (alt det der bracket notation)
-            current_name = ListAccess(current_name, index_expression)
-            logger.debug(f"Wrapped in ListAccess: {current_name}")
-        
-        if is_listAccess:
+        if context.expression():
+            indices = []
+            for expression_context in context.expression():
+                index_expression: ASTNode = self.visit(expression_context)
+                indices.append(index_expression)
+            
+            if indices:
+                current_name = ListAccess(current_name, indices)
+                logger.debug(f"Created ListAccess with all indices: {current_name}")
+            
             return current_name
         
         return Variable(None, current_name)
     
     def visitListAccess(self, context: penguinParser.ListAccessContext) -> ListAccess:
-        """visit the list access context and creates a ListAccess AST node."""
+        """visit the list access context and creates a ListAccess AST node with flattened indices."""
         logger.info(f"Visiting list access: {context.getText()}")
         
         name = self.visit(context.name())
-        indices: List[ASTNode] = self.visitExpressions(context.expressions())
+        current_indices: List[ASTNode] = self.visitExpressions(context.expressions())
         
-        assert name and indices, "List access missing name or indices"
-        logger.debug(f"List access name: {name}, indices: {indices}")
+        assert name and current_indices, "List access missing name or indices"
         
-        return ListAccess(name, indices)
+        if isinstance(name, ListAccess):
+            base_name = name.name
+            all_indices = name.indices + current_indices
+            logger.debug(f"Flattened list access name: {base_name}, indices: {all_indices}")
+            return ListAccess(base_name, all_indices)
+        else:
+            logger.debug(f"List access name: {name}, indices: {current_indices}")
+            return ListAccess(name, current_indices)
     
     def visitAttributeAccess(self, context: penguinParser.AttributeAccessContext) -> AttributeAccess:
         """Visit the attribute access context and creates an AttributeAccess AST node."""

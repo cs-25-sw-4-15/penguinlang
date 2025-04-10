@@ -6,15 +6,13 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from antlr4 import InputStream, CommonTokenStream
-from src.generated.penguinLexer import penguinLexer
-from src.generated.penguinParser import penguinParser
-from src.ast_generator import ASTGenerator
-
-from src.ast_classes import (
-    Program, Declaration, Assignment, Initialization, ListInitialization,
+from generated.penguinLexer import penguinLexer
+from generated.penguinParser import penguinParser
+from ast_generator import (ASTGenerator, Program, Assignment, Declaration, Initialization, ListInitialization,
     Conditional, Loop, Return, ProcedureCallStatement, ProcedureDef, BinaryOp, UnaryOp,
-    IntegerLiteral, StringLiteral, ProcedureCall, Variable, ListAccess, AttributeAccess
-)
+    IntegerLiteral, StringLiteral, ProcedureCall, Variable, ListAccess, AttributeAccess)
+
+
 
 def build_ast(source_code):
     input_stream = InputStream(source_code)
@@ -40,7 +38,7 @@ def ast_generator():
 
 def test_declaration():
     ast = build_ast("int x;")
-    assert isinstance(type(ast.statements[0]), type(Declaration))
+    assert isinstance(ast.statements[0], Declaration)
     assert len(ast.statements) == 1
     assert ast.statements[0].var_type == "int"
     assert ast.statements[0].name == "x"
@@ -49,8 +47,8 @@ def test_multiple_declarations():
     ast = build_ast("int x; int y;")
     
     assert len(ast.statements) == 2
-    assert isinstance(type(ast.statements[0]), type(Declaration))
-    assert isinstance(type(ast.statements[1]), type(Declaration))
+    assert isinstance(ast.statements[0], Declaration)
+    assert isinstance(ast.statements[1], Declaration)
     assert ast.statements[0].var_type == "int"
     assert ast.statements[0].name == "x"
     assert ast.statements[1].var_type == "int"
@@ -63,26 +61,23 @@ def test_simple_assignment():
     ast = build_ast("x = 42;")
     
     assert len(ast.statements) == 1
-    assert isinstance(type(ast.statements[0]), type(Assignment))
-    assert isinstance(type(ast.statements[0].target), type(Variable))
+    assert isinstance(ast.statements[0], Assignment)
+    assert isinstance(ast.statements[0].target, Variable)
     assert ast.statements[0].target.name == "x"
-    assert isinstance(type(ast.statements[0].value), type(IntegerLiteral))
+    assert isinstance(ast.statements[0].value, IntegerLiteral)
     assert ast.statements[0].value.value == 42
 
 def test_list_assignment():
     ast = build_ast("x[0] = 42;")
     
     assert len(ast.statements) == 1
-    assert isinstance(type(ast.statements[0]), type(Assignment))
-    assert isinstance(type(ast.statements[0].target), type(Variable))
-    assert isinstance(type(ast.statements[0].target.name), type(ListAccess))
-    assert ast.statements[0].target.name.name == "x"
-    assert isinstance(type(ast.statements[0].target.name.indices), type(IntegerLiteral))
+    assert isinstance(ast.statements[0], Assignment)
+    assert isinstance(ast.statements[0].target, ListAccess)
+    assert ast.statements[0].target.name == "x"
+    assert isinstance(ast.statements[0].target.indices[0], IntegerLiteral)
 
-    assert isinstance(type(ast.statements[0].target), type(ListAccess))
-    assert isinstance(type(ast.statements[0].target), type(Variable))
-    assert ast.statements[0].target.name.indices.value == 0
-    assert isinstance(type(ast.statements[0].value), type(IntegerLiteral))
+    assert ast.statements[0].target.indices[0].value == 0
+    assert isinstance(ast.statements[0].value, IntegerLiteral)
     assert ast.statements[0].value.value == 42
 
 
@@ -93,20 +88,20 @@ def test_simple_initialization():
     ast = build_ast("int x = 42;")
     
     assert len(ast.statements) == 1
-    assert isinstance(type(ast.statements[0]), type(Initialization))
+    assert isinstance(ast.statements[0], Initialization)
     assert ast.statements[0].var_type == "int"
     assert ast.statements[0].name == "x"
-    assert isinstance(type(ast.statements[0].value), type(IntegerLiteral))
+    assert isinstance(ast.statements[0].value, IntegerLiteral)
     assert ast.statements[0].value.value == 42
 
 def test_list_initialization():
     ast = build_ast("list x = [1, 2, 3];")
     
     assert len(ast.statements) == 1
-    assert isinstance(type(ast.statements[0]), type(ListInitialization))
+    assert isinstance(ast.statements[0], ListInitialization)
     assert ast.statements[0].name == "x"
     assert len(ast.statements[0].values) == 3
-    assert all(isinstance(type(val), type(IntegerLiteral)) for val in ast.statements[0].values)
+    assert all(isinstance(val, IntegerLiteral) for val in ast.statements[0].values)
     assert [val.value for val in ast.statements[0].values] == [1, 2, 3]
 
 
@@ -118,40 +113,40 @@ def test_binary_expression():
     ast = build_ast("x = a + b;")
     
     assert len(ast.statements) == 1
-    assert isinstance(type(ast.statements[0]), type(Assignment))
-    assert isinstance(type(ast.statements[0].value), type(BinaryOp))
+    assert isinstance(ast.statements[0], Assignment)
+    assert isinstance(ast.statements[0].value, BinaryOp)
     assert ast.statements[0].value.op == "+"
-    assert isinstance(type(ast.statements[0].value.left), type(Variable))
+    assert isinstance(ast.statements[0].value.left, Variable)
     assert ast.statements[0].value.left.name == "a"
-    assert isinstance(type(ast.statements[0].value.right), type(Variable))
+    assert isinstance(ast.statements[0].value.right, Variable)
     assert ast.statements[0].value.right.name == "b"
 
 def test_complex_binary_expression():
     ast = build_ast("x = a + b * c;")
     
     assert len(ast.statements) == 1
-    assert isinstance(type(ast.statements[0]), type(Assignment))
-    assert isinstance(type(ast.statements[0].value), type(BinaryOp))
+    assert isinstance(ast.statements[0], Assignment)
+    assert isinstance(ast.statements[0].value, BinaryOp)
     assert ast.statements[0].value.op == "+"
-    assert isinstance(type(ast.statements[0].value.left), type(Variable))
+    assert isinstance(ast.statements[0].value.left, Variable)
     assert ast.statements[0].value.left.name == "a"
-    assert isinstance(type(ast.statements[0].value.right), type(BinaryOp))
+    assert isinstance(ast.statements[0].value.right, BinaryOp)
     assert ast.statements[0].value.right.op == "*"
-    assert isinstance(type(ast.statements[0].value.right.left), type(Variable))
+    assert isinstance(ast.statements[0].value.right.left, Variable)
     assert ast.statements[0].value.right.left.name == "b"
-    assert isinstance(type(ast.statements[0].value.right.right), type(Variable))
+    assert isinstance(ast.statements[0].value.right.right, Variable)
     assert ast.statements[0].value.right.right.name == "c"
 
 def test_parenthesized_expression():
     ast = build_ast("x = (a + b) * c;")
     
     assert len(ast.statements) == 1
-    assert isinstance(type(ast.statements[0]), type(Assignment))
-    assert isinstance(type(ast.statements[0].value), type(BinaryOp))
+    assert isinstance(ast.statements[0], Assignment)
+    assert isinstance(ast.statements[0].value, BinaryOp)
     assert ast.statements[0].value.op == "*"
-    assert isinstance(type(ast.statements[0].value.left), type(BinaryOp))
+    assert isinstance(ast.statements[0].value.left, BinaryOp)
     assert ast.statements[0].value.left.op == "+"
-    assert isinstance(type(ast.statements[0].value.right), type(Variable))
+    assert isinstance(ast.statements[0].value.right, Variable)
     assert ast.statements[0].value.right.name == "c"
     
 
@@ -163,16 +158,16 @@ def test_integer_literal():
     ast = build_ast("x = 42;")
     
     assert len(ast.statements) == 1
-    assert isinstance(type(ast.statements[0]), type(Assignment))
-    assert isinstance(type(ast.statements[0].value), type(IntegerLiteral))
+    assert isinstance(ast.statements[0], Assignment)
+    assert isinstance(ast.statements[0].value, IntegerLiteral)
     assert ast.statements[0].value.value == 42
 
 def test_hex_literal():
     ast = build_ast("x = 0x2A;")
     
     assert len(ast.statements) == 1
-    assert isinstance(type(ast.statements[0]), type(Assignment))
-    assert isinstance(type(ast.statements[0].value), type(IntegerLiteral))
+    assert isinstance(ast.statements[0], Assignment)
+    assert isinstance(ast.statements[0].value, IntegerLiteral)
     assert ast.statements[0].value.value == 42  # 0x2A = 42
 
 def test_binary_literal():
@@ -180,8 +175,8 @@ def test_binary_literal():
     ast = build_ast("x = 0b101010;")
     
     assert len(ast.statements) == 1
-    assert isinstance(type(ast.statements[0]), type(Assignment))
-    assert isinstance(type(ast.statements[0].value), type(IntegerLiteral))
+    assert isinstance(ast.statements[0], Assignment)
+    assert isinstance(ast.statements[0].value, IntegerLiteral)
     assert ast.statements[0].value.value == 42  # 0b101010 = 42
 
 #######################
@@ -192,28 +187,28 @@ def test_conditional_statement():
     ast = build_ast("if (x > 0) { y = 1; }")
     
     assert len(ast.statements) == 1
-    assert isinstance(type(ast.statements[0]), type(Conditional))
-    assert isinstance(type(ast.statements[0].condition), type(BinaryOp))
+    assert isinstance(ast.statements[0], Conditional)
+    assert isinstance(ast.statements[0].condition, BinaryOp)
     assert ast.statements[0].condition.op == ">"
-    assert isinstance(type(ast.statements[0].condition.left), type(Variable))
+    assert isinstance(ast.statements[0].condition.left, Variable)
     assert ast.statements[0].condition.left.name == "x"
-    assert isinstance(type(ast.statements[0].condition.right), type(IntegerLiteral))
+    assert isinstance(ast.statements[0].condition.right, IntegerLiteral)
     assert ast.statements[0].condition.right.value == 0
     assert len(ast.statements[0].then_body) == 1
-    assert isinstance(type(ast.statements[0].then_body[0]), type(Assignment))
+    assert isinstance(ast.statements[0].then_body[0], Assignment)
     assert len(ast.statements[0].else_body) == 0  # No else body
 
 def test_conditional_with_else():
     ast = build_ast("if (x > 0) { y = 1; } else { y = 2; }")
     
     assert len(ast.statements) == 1
-    assert isinstance(type(ast.statements[0]), type(Conditional))
-    assert isinstance(type(ast.statements[0].condition), type(BinaryOp))
+    assert isinstance(ast.statements[0], Conditional)
+    assert isinstance(ast.statements[0].condition, BinaryOp)
     assert len(ast.statements[0].then_body) == 1
-    assert isinstance(type(ast.statements[0].then_body[0]), type(Assignment))
+    assert isinstance(ast.statements[0].then_body[0], Assignment)
     assert len(ast.statements[0].else_body) == 1
-    assert isinstance(type(ast.statements[0].else_body[0]), type(Assignment))
-    assert isinstance(type(ast.statements[0].else_body[0].value), type(IntegerLiteral))
+    assert isinstance(ast.statements[0].else_body[0], Assignment)
+    assert isinstance(ast.statements[0].else_body[0].value, IntegerLiteral)
     assert ast.statements[0].else_body[0].value.value == 2
 
 #######################
@@ -224,16 +219,16 @@ def test_loop_statement():
     ast = build_ast("loop (i < 10) { i = i + 1; }")
     
     assert len(ast.statements) == 1
-    assert isinstance(type(ast.statements[0]), type(Loop))
-    assert isinstance(type(ast.statements[0].condition), type(BinaryOp))
+    assert isinstance(ast.statements[0], Loop)
+    assert isinstance(ast.statements[0].condition, BinaryOp)
     assert ast.statements[0].condition.op == "<"
-    assert isinstance(type(ast.statements[0].condition.left), type(Variable))
+    assert isinstance(ast.statements[0].condition.left, Variable)
     assert ast.statements[0].condition.left.name == "i"
-    assert isinstance(type(ast.statements[0].condition.right), type(IntegerLiteral))
+    assert isinstance(ast.statements[0].condition.right, IntegerLiteral)
     assert ast.statements[0].condition.right.value == 10
     assert len(ast.statements[0].body) == 1
-    assert isinstance(type(ast.statements[0].body[0]), type(Assignment))
-    assert isinstance(type(ast.statements[0].body[0].value), type(BinaryOp))
+    assert isinstance(ast.statements[0].body[0], Assignment)
+    assert isinstance(ast.statements[0].body[0].value, BinaryOp)
     assert ast.statements[0].body[0].value.op == "+"
 
 #######################
@@ -244,58 +239,58 @@ def test_procedure_call():
     ast = build_ast("print(42);")
     
     assert len(ast.statements) == 1
-    assert isinstance(type(ast.statements[0]), type(ProcedureCallStatement))
-    assert isinstance(type(ast.statements[0].call), type(ProcedureCall))
-    assert isinstance(type(ast.statements[0].call.name), type(Variable))
+    assert isinstance(ast.statements[0], ProcedureCallStatement)
+    assert isinstance(ast.statements[0].call, ProcedureCall)
+    assert isinstance(ast.statements[0].call.name, Variable)
     assert ast.statements[0].call.name.name == "print"
     assert len(ast.statements[0].call.args) == 1
-    assert isinstance(type(ast.statements[0].call.args[0]), type(IntegerLiteral))
+    assert isinstance(ast.statements[0].call.args[0], IntegerLiteral)
     assert ast.statements[0].call.args[0].value == 42
 
 def test_procedure_call_multiple_args():
     ast = build_ast("print(42, x);")
     
     assert len(ast.statements) == 1
-    assert isinstance(type(ast.statements[0]), type(ProcedureCallStatement))
-    assert isinstance(type(ast.statements[0].call), type(ProcedureCall))
+    assert isinstance(ast.statements[0], ProcedureCallStatement)
+    assert isinstance(ast.statements[0].call, ProcedureCall)
     assert len(ast.statements[0].call.args) == 2
-    assert isinstance(type(ast.statements[0].call.args[0]), type(IntegerLiteral))
-    assert isinstance(type(ast.statements[0].call.args[1]), type(Variable))
+    assert isinstance(ast.statements[0].call.args[0], IntegerLiteral)
+    assert isinstance(ast.statements[0].call.args[1], Variable)
 
 def test_procedure_definition():
     ast = build_ast("procedure int add(int a, int b) { return a + b; }")
     
     assert len(ast.statements) == 1
-    assert isinstance(type(ast.statements[0]), type(ProcedureDef))
+    assert isinstance(ast.statements[0], ProcedureDef)
     assert ast.statements[0].return_type == "int"
     assert ast.statements[0].name == "add"
     assert len(ast.statements[0].params) == 2
     assert ast.statements[0].params[0] == ("a", "int")
     assert ast.statements[0].params[1] == ("b", "int")
     assert len(ast.statements[0].body) == 1
-    assert isinstance(type(ast.statements[0].body[0]), type(Return))
-    assert isinstance(type(ast.statements[0].body[0].value), type(BinaryOp))
+    assert isinstance(ast.statements[0].body[0], Return)
+    assert isinstance(ast.statements[0].body[0].value, BinaryOp)
     assert ast.statements[0].body[0].value.op == "+"
 
 def test_void_procedure_definition():
     ast = build_ast("procedure printHello() { print(5); };")
     
     assert len(ast.statements) == 1
-    assert isinstance(type(ast.statements[0]), type(ProcedureDef))
+    assert isinstance(ast.statements[0], ProcedureDef)
     assert ast.statements[0].return_type == "void"
     assert ast.statements[0].name == "printHello"
     assert len(ast.statements[0].params) == 0
     assert len(ast.statements[0].body) == 1
-    assert isinstance(type(ast.statements[0].body[0]), type(ProcedureCallStatement))
+    assert isinstance(ast.statements[0].body[0], ProcedureCallStatement)
 
 def test_return_statement():
     ast = build_ast("procedure int foo() { return 42; }")
     
     assert len(ast.statements) == 1
-    assert isinstance(type(ast.statements[0]), type(ProcedureDef))
+    assert isinstance(ast.statements[0], ProcedureDef)
     assert len(ast.statements[0].body) == 1
-    assert isinstance(type(ast.statements[0].body[0]), type(Return))
-    assert isinstance(type(ast.statements[0].body[0].value), type(IntegerLiteral))
+    assert isinstance(ast.statements[0].body[0], Return)
+    assert isinstance(ast.statements[0].body[0].value, IntegerLiteral)
     assert ast.statements[0].body[0].value.value == 42
 
 #######################
@@ -307,24 +302,24 @@ def test_list_access():
     ast = build_ast("x = arr[i];")
     
     assert len(ast.statements) == 1
-    assert isinstance(type(ast.statements[0]), type(Assignment))
-    assert isinstance(type(ast.statements[0].value), type(Variable))
-    assert isinstance(type(ast.statements[0].value.name), type(ListAccess))
-    assert isinstance(type(ast.statements[0].value.name.indices), type(Variable))
-    assert ast.statements[0].value.name.name == "arr"
-    assert ast.statements[0].value.name.indices.name == "i"
+    assert isinstance(ast.statements[0], Assignment)
+    assert isinstance(ast.statements[0].value, ListAccess)
+    assert isinstance(ast.statements[0].value.indices[0], Variable)
+    assert ast.statements[0].value.name == "arr"
+    assert ast.statements[0].value.indices[0].name == "i"
 
 def test_nested_list_access():
     """Test nested list access AST construction."""
     ast = build_ast("x = arr[i][j];")
     
     assert len(ast.statements) == 1
-    assert isinstance(type(ast.statements[0]), type(Assignment))
-    assert isinstance(type(ast.statements[0].value), type(ListAccess))
-    assert isinstance(type(ast.statements[0].value.name), type(ListAccess))
-    assert ast.statements[0].value.name.name == "arr"
-    assert isinstance(type(ast.statements[0].value.name.value), type(Variable))
-    assert isinstance(type(ast.statements[0].value.value), type(ListAccess))
+    assert isinstance(ast.statements[0], Assignment)
+    assert isinstance(ast.statements[0].value, ListAccess)
+    assert ast.statements[0].value.name == "arr"
+    assert isinstance(ast.statements[0].value.indices[0], Variable)
+    assert isinstance(ast.statements[0].value.indices[1], Variable)
+    assert ast.statements[0].value.indices[0].name == "i"
+    assert ast.statements[0].value.indices[1].name == "j"
 
 #######################
 # Dot Notation Tests
@@ -335,24 +330,24 @@ def test_attribute_access():
     ast = build_ast("x = obj.attr;")
     
     assert len(ast.statements) == 1
-    assert isinstance(type(ast.statements[0]), type(Assignment))
-    assert isinstance(type(ast.statements[0].value), type(AttributeAccess))
-    assert isinstance(type(ast.statements[0].value.attribute), type(Variable))
-    assert ast.statements[0].value.name == "obj"
-    assert ast.statements[0].value.attribute == "attr"
+    assert isinstance(ast.statements[0], Assignment)
+    assert isinstance(ast.statements[0].value, Variable)
+    assert isinstance(ast.statements[0].value.name, AttributeAccess)
+    assert ast.statements[0].value.name.name == "obj"
+    assert ast.statements[0].value.name.attribute == "attr"
 
 def test_chained_attribute_access():
     """Test chained attribute access AST construction."""
     ast = build_ast("x = obj.attr1.attr2;")
     
     assert len(ast.statements) == 1
-    assert isinstance(type(ast.statements[0]), type(Assignment))
-    assert isinstance(type(ast.statements[0].value), type(AttributeAccess))
-    assert isinstance(type(ast.statements[0].value.attribute), type(AttributeAccess))
-    assert isinstance(type(ast.statements[0].value.name), type(Variable))
-    assert ast.statements[0].value.name == "obj"
-    assert ast.statements[0].value.attribute == "attr1"
-    assert ast.statements[0].value == "attr2"
+    assert isinstance(ast.statements[0], Assignment)
+    assert isinstance(ast.statements[0].value, Variable)
+    assert isinstance(ast.statements[0].value.name, AttributeAccess)
+    assert isinstance(ast.statements[0].value.name.name, AttributeAccess)
+    assert ast.statements[0].value.name.name.name == "obj"
+    assert ast.statements[0].value.name.name.attribute == "attr1"
+    assert ast.statements[0].value.name.attribute == "attr2"
 
 #######################
 # Complex Tests
@@ -375,11 +370,11 @@ def test_complex_nested_structure():
     ast = build_ast(code)
     
     assert len(ast.statements) == 1
-    assert isinstance(type(ast.statements[0]), type(Conditional))
-    assert isinstance(type(ast.statements[0].condition), type(BinaryOp))
+    assert isinstance(ast.statements[0], Conditional)
+    assert isinstance(ast.statements[0].condition, BinaryOp)
     assert len(ast.statements[0].then_body) == 1
-    assert isinstance(type(ast.statements[0].then_body[0]), type(Loop))
+    assert isinstance(ast.statements[0].then_body[0], Loop)
     assert len(ast.statements[0].then_body[0].body) == 2
-    assert isinstance(type(ast.statements[0].then_body[0].body[1]), type(Conditional))
+    assert isinstance(ast.statements[0].then_body[0].body[1], Conditional)
     assert len(ast.statements[0].else_body) == 1
-    assert isinstance(type(ast.statements[0].else_body[0]), type(ProcedureCallStatement))
+    assert isinstance(ast.statements[0].else_body[0], ProcedureCallStatement)
