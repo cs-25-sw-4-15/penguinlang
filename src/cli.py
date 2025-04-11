@@ -22,7 +22,7 @@ import json
 import typer
 from typing_extensions import Annotated
 from ast_classes import ASTNode
-
+from asttype_checker import TypeChecker
 
 # Import compiler functions
 from compiler import read_input_file, \
@@ -78,9 +78,16 @@ def ast(input_path: Annotated[str, typer.Argument(help="Input file path")]):
 
 
 @app.command()
-def tast(input_path: Annotated[str, typer.Argument(help="Input file path")]):
+def taast(input_path: Annotated[str, typer.Argument(help="Input file path")]):
     print("Typed AST function called with input:", input_path)
-
+    input_stream = read_input_file(input_path)
+    cst = concrete_syntax_tree(input_stream)
+    ast = abstact_syntax_tree(cst)
+    typechecker = TypeChecker()
+    typechecker.check_program(ast)
+    #print("JSON STARTS HERE")
+    #print(json.dumps(ast, cls=ASTEncoder))
+    print("DONE")
 
 if __name__ == "__main__":
     # Run the CLI application
