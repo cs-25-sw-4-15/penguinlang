@@ -19,7 +19,9 @@ class Type:
         Returns:
             str: The name of the type.
         """
-        return self.__class__.__name__
+        classname = self.__class__.__name__
+        fields = ", ".join(f"{k}={v!r}" for k, v in self.__dict__.items())
+        return f"{classname}({fields})"
     
     def is_indexable(self):
         """
@@ -44,6 +46,10 @@ class VoidType(Type):
     """
     Void type.
     """
+    
+    def __init__(self):
+        # Store class name in __class__ attribute
+        self.__dict__["__class__"] = self.__class__.__name__
    
     def __repr__(self):
         """
@@ -58,6 +64,10 @@ class TilesetType(Type):
     """
     Tileset type.
     """
+    
+    def __init__(self):
+        # Store class name in __class__ attribute
+        self.__dict__["__class__"] = self.__class__.__name__
     
     def is_indexable(self):
         """Tilesets can be indexed."""
@@ -81,6 +91,10 @@ class TileMapType(Type):
     TileMap type.
     """
     
+    def __init__(self):
+        # Store class name in __class__ attribute
+        self.__dict__["__class__"] = self.__class__.__name__
+    
     def is_indexable(self):
         """TileMaps can be indexed."""
         return True
@@ -102,6 +116,10 @@ class SpriteType(Type):
     """
     Sprite type.
     """
+    
+    def __init__(self):
+        # Store class name in __class__ attribute
+        self.__dict__["__class__"] = self.__class__.__name__
    
     def __repr__(self):
         """
@@ -116,6 +134,10 @@ class IntType(Type):
     """
     Integer type.
     """
+    
+    def __init__(self):
+        # Store class name in __class__ attribute
+        self.__dict__["__class__"] = self.__class__.__name__
    
     def __repr__(self):
         """
@@ -130,6 +152,10 @@ class StringType(Type):
     """
     String type.
     """
+    
+    def __init__(self):
+        # Store class name in __class__ attribute
+        self.__dict__["__class__"] = self.__class__.__name__
    
     def __repr__(self):
         """
@@ -150,6 +176,9 @@ class OAMEntryType(Type):
         """
         Initialize OAM entry type with its valid attributes.
         """
+        # Store class name in __class__ attribute
+        self.__dict__["__class__"] = self.__class__.__name__
+        
         # Dictionary of valid attributes and their types
         self.attributes = {
             "x": IntType(),
@@ -192,6 +221,9 @@ class ListType(Type):
                 For user-defined lists, this will always be IntType.
                 For predefined lists, this can be any type specified.
         """
+        # Store class name in __class__ attribute
+        self.__dict__["__class__"] = self.__class__.__name__
+        
         self.element_type = element_type if element_type is not None else IntType()
     
     def is_indexable(self):

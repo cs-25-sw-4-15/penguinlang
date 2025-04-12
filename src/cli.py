@@ -39,6 +39,10 @@ class ASTEncoder(json.JSONEncoder):
             for key, value in obj.__dict__.items():
                 result[key] = value
             return result
+        # Special case for Type objects including VoidType, IntType, etc.
+        elif obj.__class__.__name__ in ['VoidType', 'IntType', 'StringType', 'TilesetType', 
+                                       'TileMapType', 'SpriteType', 'OAMEntryType', 'ListType']:
+            return {"__class__": obj.__class__.__name__}
         # Let the base class handle other types
         return super().default(obj)
 
@@ -85,8 +89,8 @@ def taast(input_path: Annotated[str, typer.Argument(help="Input file path")]):
     ast = abstact_syntax_tree(cst)
     typechecker = TypeChecker()
     typechecker.check_program(ast)
-    #print("JSON STARTS HERE")
-    #print(json.dumps(ast, cls=ASTEncoder))
+    print("JSON STARTS HERE")
+    print(json.dumps(ast, cls=ASTEncoder))
     print("DONE")
 
 if __name__ == "__main__":
