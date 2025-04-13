@@ -110,8 +110,9 @@ def typed_abstact_syntax_tree(ast: str):
     
     print("Generating typed abstract syntax tree...")
     
-    tree = TypeChecker()
-    tree.check_program(ast)
+    tree = ast
+    typechecker = TypeChecker()
+    typechecker.check_program(tree)
     
     return tree
 
