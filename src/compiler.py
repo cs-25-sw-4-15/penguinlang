@@ -14,7 +14,31 @@ from generated.penguinParser import penguinParser
 
 
 # custom modules
+from ast_classes import ASTNode
 from ast_generator import ASTGenerator
+from asttype_checker import TypeChecker
+
+
+# other modules
+import json
+
+class ASTEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, ASTNode):
+            # Convert ASTNode objects to dictionaries
+            result = {}
+            # Add class name for reconstruction
+            result["__class__"] = obj.__class__.__name__
+            # Add all attributes
+            for key, value in obj.__dict__.items():
+                result[key] = value
+            return result
+        # Special case for Type objects including VoidType, IntType, etc.
+        elif obj.__class__.__name__ in ['VoidType', 'IntType', 'StringType', 'TilesetType', 
+                                       'TileMapType', 'SpriteType', 'OAMEntryType', 'ListType']:
+            return {"__class__": obj.__class__.__name__}
+        # Let the base class handle other types
+        return super().default(obj)
 
 
 def read_input_file(input_file: str):
@@ -29,7 +53,7 @@ def read_input_file(input_file: str):
     return FileStream(input_file, encoding="utf-8")
 
 
-def concrete_syntax_tree(input_stream: str, p: bool = False) -> str:
+def concrete_syntax_tree(input_stream: str, p: bool = False):
     """Creates a concrete syntax tree (CST) from the input stream.
     
     Lexing -> tokenstresm -> parsing -> parse tree (CST)
@@ -86,9 +110,21 @@ def typed_abstact_syntax_tree(ast: str):
     
     print("Generating typed abstract syntax tree...")
     
-    tree: str = ""
+    tree = TypeChecker()
+    tree.check_program(ast)
     
     return tree
+
+def print_tree(tree: str) -> None:
+    """Prints the tree in a readable format.
+    
+    Args:
+        tree (str): The tree to print.
+    """
+    
+    print("########### JSON STARTS HERE ###########")
+    print(json.dumps(tree, cls=ASTEncoder))
+    print("############ JSON ENDS HERE ############")
 
 
 def main(input_file: str, output_file: str = "out.gb"):
@@ -99,17 +135,13 @@ def main(input_file: str, output_file: str = "out.gb"):
     # Frontend
     
     cst = concrete_syntax_tree(input_stream)
-    
     ast: str = abstact_syntax_tree(cst)
+    taast: str = typed_abstact_syntax_tree(ast)
     
-    print(ast)
-    
-    tast: str = typed_abstact_syntax_tree(ast)
-    
-    # backend    
-    # rgbds
-    # cleanup
+    # Backend
+    # RGBDS
     # RGBASM to binary
+    # Cleanup
 
 
 if __name__ == "__main__":

@@ -13,38 +13,16 @@ Help:
     py src/cli.py --help
     py src/cli.py COMMAND --help
 """
-import json
-
-
 
 
 # Import the necessary modules
 import typer
 from typing_extensions import Annotated
-from ast_classes import ASTNode
-from asttype_checker import TypeChecker
+
 
 # Import compiler functions
-from compiler import read_input_file, \
-    concrete_syntax_tree, abstact_syntax_tree
-
-class ASTEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, ASTNode):
-            # Convert ASTNode objects to dictionaries
-            result = {}
-            # Add class name for reconstruction
-            result["__class__"] = obj.__class__.__name__
-            # Add all attributes
-            for key, value in obj.__dict__.items():
-                result[key] = value
-            return result
-        # Special case for Type objects including VoidType, IntType, etc.
-        elif obj.__class__.__name__ in ['VoidType', 'IntType', 'StringType', 'TilesetType', 
-                                       'TileMapType', 'SpriteType', 'OAMEntryType', 'ListType']:
-            return {"__class__": obj.__class__.__name__}
-        # Let the base class handle other types
-        return super().default(obj)
+from compiler import print_tree, read_input_file, \
+    concrete_syntax_tree, abstact_syntax_tree, typed_abstact_syntax_tree
 
 
 # Create instance of Typer
@@ -77,8 +55,7 @@ def ast(input_path: Annotated[str, typer.Argument(help="Input file path")]):
     input_stream = read_input_file(input_path)
     cst = concrete_syntax_tree(input_stream)
     ast = abstact_syntax_tree(cst)
-    print("JSON STARTS HERE")
-    print(json.dumps(ast, cls=ASTEncoder))
+    print_tree(ast)
 
 
 @app.command()
@@ -87,11 +64,9 @@ def taast(input_path: Annotated[str, typer.Argument(help="Input file path")]):
     input_stream = read_input_file(input_path)
     cst = concrete_syntax_tree(input_stream)
     ast = abstact_syntax_tree(cst)
-    typechecker = TypeChecker()
-    typechecker.check_program(ast)
-    print("JSON STARTS HERE")
-    print(json.dumps(ast, cls=ASTEncoder))
-    print("DONE")
+    taast = typed_abstact_syntax_tree(ast)
+    
+    print_tree(taast)
 
 if __name__ == "__main__":
     # Run the CLI application
