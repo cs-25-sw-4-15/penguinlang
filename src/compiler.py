@@ -21,6 +21,7 @@ from asttype_checker import TypeChecker
 
 # other modules
 import json
+import pprint
 
 class ASTEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -124,7 +125,7 @@ def print_tree(tree: str) -> None:
     """
     
     print("########### JSON STARTS HERE ###########")
-    print(json.dumps(tree, cls=ASTEncoder))
+    print(json.dumps(tree, cls=ASTEncoder, indent=2))
     print("############ JSON ENDS HERE ############")
 
 
