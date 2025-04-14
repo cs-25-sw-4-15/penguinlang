@@ -73,7 +73,8 @@ def test_list_assignment():
     assert len(ast.statements) == 1
     assert isinstance(ast.statements[0], Assignment)
     assert isinstance(ast.statements[0].target, ListAccess)
-    assert ast.statements[0].target.name == "x"
+    assert isinstance(ast.statements[0].target.name, Variable)
+    assert ast.statements[0].target.name.name == "x"
     assert isinstance(ast.statements[0].target.indices[0], IntegerLiteral)
 
     assert ast.statements[0].target.indices[0].value == 0
@@ -304,8 +305,9 @@ def test_list_access():
     assert len(ast.statements) == 1
     assert isinstance(ast.statements[0], Assignment)
     assert isinstance(ast.statements[0].value, ListAccess)
+    assert isinstance(ast.statements[0].value.name, Variable)
     assert isinstance(ast.statements[0].value.indices[0], Variable)
-    assert ast.statements[0].value.name == "arr"
+    assert ast.statements[0].value.name.name == "arr"
     assert ast.statements[0].value.indices[0].name == "i"
 
 def test_nested_list_access():
@@ -315,7 +317,8 @@ def test_nested_list_access():
     assert len(ast.statements) == 1
     assert isinstance(ast.statements[0], Assignment)
     assert isinstance(ast.statements[0].value, ListAccess)
-    assert ast.statements[0].value.name == "arr"
+    assert isinstance(ast.statements[0].value.name, Variable)
+    assert ast.statements[0].value.name.name == "arr"
     assert isinstance(ast.statements[0].value.indices[0], Variable)
     assert isinstance(ast.statements[0].value.indices[1], Variable)
     assert ast.statements[0].value.indices[0].name == "i"
@@ -331,10 +334,10 @@ def test_attribute_access():
     
     assert len(ast.statements) == 1
     assert isinstance(ast.statements[0], Assignment)
-    assert isinstance(ast.statements[0].value, Variable)
-    assert isinstance(ast.statements[0].value.name, AttributeAccess)
+    assert isinstance(ast.statements[0].value, AttributeAccess)
+    assert isinstance(ast.statements[0].value.name, Variable)
     assert ast.statements[0].value.name.name == "obj"
-    assert ast.statements[0].value.name.attribute == "attr"
+    assert ast.statements[0].value.attribute == "attr"
 
 def test_chained_attribute_access():
     """Test chained attribute access AST construction."""
@@ -342,12 +345,12 @@ def test_chained_attribute_access():
     
     assert len(ast.statements) == 1
     assert isinstance(ast.statements[0], Assignment)
-    assert isinstance(ast.statements[0].value, Variable)
+    assert isinstance(ast.statements[0].value, AttributeAccess)
     assert isinstance(ast.statements[0].value.name, AttributeAccess)
-    assert isinstance(ast.statements[0].value.name.name, AttributeAccess)
+    assert isinstance(ast.statements[0].value.name.name, Variable)
     assert ast.statements[0].value.name.name.name == "obj"
-    assert ast.statements[0].value.name.name.attribute == "attr1"
-    assert ast.statements[0].value.name.attribute == "attr2"
+    assert ast.statements[0].value.name.attribute == "attr1"
+    assert ast.statements[0].value.attribute == "attr2"
 
 #######################
 # Complex Tests
