@@ -4,10 +4,10 @@ class RegisterAllocator:
     def __init__(self):
         # Track register availability
         self.available_registers = {
-            'a': True,  # Accumulator
+            'a': False,  # Accumulator
             'b': True, 'c': True,  # General purpose
             'd': True, 'e': True,  # General purpose
-            'h': True, 'l': True,  # Often used for memory addressing
+            'h': False, 'l': False,  # Often used for memory addressing
             # Register pairs are implicit
         }
         
