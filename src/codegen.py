@@ -1,6 +1,11 @@
 from RegisterAllocater import RegisterAllocator
 from ast_classes import ASTNode, ProcedureCall, BinaryOp, UnaryOp, IntegerLiteral, StringLiteral, Variable, ListAccess
 
+#NEED TO IMPLEMENT BINARY IMPORTING
+#NEED TO IMPLEMENT LIST HANDLING
+
+
+
 class CodeGenerator:
     """Generates GameBoy Z80 assembly code from Penguin AST."""
     
