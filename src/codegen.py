@@ -1,8 +1,7 @@
 from RegisterAllocater import RegisterAllocator
-from ast_classes import ASTNode, Program, Declaration, Assignment, Initialization, Conditional, Loop, ProcedureDef, Return, ProcedureCall, BinaryOp, UnaryOp, IntegerLiteral, StringLiteral, Variable, ListAccess
-from ast_classes import VoidType, IntType, StringType, TilesetType, TileMapType, SpriteType, OAMEntryType, ListType
-class GameBoyCodeGenerator(ASTNode):
-    
+from ast_classes import ASTNode, ProcedureCall, BinaryOp, UnaryOp, IntegerLiteral, StringLiteral, Variable, ListAccess
+
+class CodeGenerator:
     """Generates GameBoy Z80 assembly code from Penguin AST."""
     
     def __init__(self):
@@ -69,10 +68,10 @@ class GameBoyCodeGenerator(ASTNode):
     def visit_Declaration(self, node):
         """Visit Declaration node."""
         # Track variable type
-        self.var_types[node.name] = node.type_
+        self.var_types[node.name] = node.var_type
         
         # No actual code generation for declarations
-        self.emit(f"    ; Declaration of {node.name} as {node.type_}")
+        self.emit(f"    ; Declaration of {node.name} as {node.var_type}")
     
     def visit_Assignment(self, node):
         """Visit Assignment node."""
@@ -85,7 +84,7 @@ class GameBoyCodeGenerator(ASTNode):
             
             # Track variable type if not already tracked
             if var_name not in self.var_types:
-                self.var_types[var_name] = "unknown"
+                self.var_types[var_name] = node.target.var_type
             
             # Allocate location for the variable
             location = self.register_allocator.get_variable_location(var_name)
@@ -104,16 +103,38 @@ class GameBoyCodeGenerator(ASTNode):
                 
         elif isinstance(node.target, ListAccess):
             # Handle list access
-            self.emit(f"    ; List assignment not fully implemented")
-            # Would need to calculate offset and store value
+            base_var = node.target.name
+            self.emit(f"    ; List assignment to {base_var}")
             
-        # Free result register if different from target
+            # Load base address
+            location = self.register_allocator.get_variable_location(base_var)
+            if location and location['type'] == 'memory':
+                self.emit(f"    ld hl, {location['location']}")
+            else:
+                self.emit(f"    ld hl, {base_var}") # Assuming it's a global variable
+            
+            # Calculate offset for each index
+            for idx in node.target.indices:
+                # Evaluate index expression
+                idx_reg = self.visit_Expression(idx)
+                
+                # Add offset to base address (would need multiply by element size)
+                self.emit(f"    ld b, 0")
+                self.emit(f"    ld c, {idx_reg}")
+                self.emit("    add hl, bc")
+                
+                self.register_allocator.free_register(idx_reg)
+            
+            # Store the value at the calculated address
+            self.emit(f"    ld [hl], {result_reg}")
+                
+        # Free result register
         self.register_allocator.free_register(result_reg)
             
     def visit_Initialization(self, node):
         """Visit Initialization node."""
         # Track variable type
-        self.var_types[node.name] = node.type_
+        self.var_types[node.name] = node.var_type
         
         # Generate code for the initialization value
         result_reg = self.visit_Expression(node.value)
@@ -133,6 +154,25 @@ class GameBoyCodeGenerator(ASTNode):
         if location['type'] == 'register' and location['location'] != result_reg:
             self.register_allocator.free_register(result_reg)
     
+    def visit_ListInitialization(self, node):
+        """Visit ListInitialization node."""
+        # Allocate memory for the list (implementation depends on runtime)
+        list_size = len(node.values)
+        self.emit(f"    ; Initializing list {node.name} with {list_size} elements")
+        
+        # For simplicity, we'll just generate a global label for the list
+        self.emit(f"{node.name}:")
+        
+        # Emit each value in the list
+        for value in node.values:
+            if isinstance(value, IntegerLiteral):
+                self.emit(f"    db {value.value}  ; Integer literal")
+            elif isinstance(value, StringLiteral):
+                self.emit(f"    db \"{value.value}\", 0  ; String literal with null terminator")
+            else:
+                # For more complex expressions, we'd need to evaluate them at compile time
+                self.emit(f"    db 0  ; Placeholder for complex expression")
+    
     def visit_Conditional(self, node):
         """Visit Conditional node."""
         else_label = self.new_label("else")
@@ -150,15 +190,15 @@ class GameBoyCodeGenerator(ASTNode):
         self.register_allocator.free_register(condition_reg)
         
         # Generate "then" block
-        for stmt in node.then_statements:
+        for stmt in node.then_body:
             self.visit(stmt)
             
         self.emit(f"    jp {end_label}")
         
         # Generate "else" block if it exists
         self.emit(f"{else_label}:")
-        if node.else_statements:
-            for stmt in node.else_statements:
+        if node.else_body:
+            for stmt in node.else_body:
                 self.visit(stmt)
                 
         self.emit(f"{end_label}:")
@@ -182,7 +222,7 @@ class GameBoyCodeGenerator(ASTNode):
         self.register_allocator.free_register(condition_reg)
         
         # Generate loop body
-        for stmt in node.statements:
+        for stmt in node.body:
             self.visit(stmt)
             
         self.emit(f"    jp {loop_start}")
@@ -200,15 +240,15 @@ class GameBoyCodeGenerator(ASTNode):
         self.emit("    push de")
         self.emit("    push hl")
         
-        # Process parameters
-        for i, (param_type, param_name) in enumerate(node.parameters):
+        # Process parameters - in AST, params are stored as tuples (type, name)
+        for param_type, param_name in node.params:
             self.var_types[param_name] = param_type
             
             # Parameters are passed on stack in GB assembly
             # Would need more complex stack frame handling in real implementation
             
-        # Process procedure statements
-        for stmt in node.statements:
+        # Process procedure body
+        for stmt in node.body:
             self.visit(stmt)
         
         # Restore registers
@@ -247,6 +287,8 @@ class GameBoyCodeGenerator(ASTNode):
         # Call the procedure
         if isinstance(node.name, Variable):
             self.emit(f"    call {node.name.name}")
+        elif isinstance(node.name, str):
+            self.emit(f"    call {node.name}")
         else:
             # More complex name resolution needed
             self.emit(f"    ; Complex procedure call not fully implemented")
@@ -271,7 +313,15 @@ class GameBoyCodeGenerator(ASTNode):
             elif node.op == '-':
                 self.emit(f"    ld a, {left_reg}")
                 self.emit(f"    sub {node.right.value}")
-            # Other operations similarly
+            elif node.op == '&':
+                self.emit(f"    ld a, {left_reg}")
+                self.emit(f"    and {node.right.value}")
+            elif node.op == '|':
+                self.emit(f"    ld a, {left_reg}")
+                self.emit(f"    or {node.right.value}")
+            elif node.op == '^':
+                self.emit(f"    ld a, {left_reg}")
+                self.emit(f"    xor {node.right.value}")
             
             self.register_allocator.free_register(left_reg)
             return 'a'
@@ -291,7 +341,51 @@ class GameBoyCodeGenerator(ASTNode):
             self.emit(f"    ld b, {left_reg}")
             self.emit(f"    ld c, {right_reg}")
             self.emit(f"    call Multiply")  # Would need to implement this routine
-        # Handle comparison, logical, and other operators...
+        elif node.op == '/':
+            # GB CPU has no divide instruction, would need a subroutine
+            self.emit(f"    ld b, {left_reg}")
+            self.emit(f"    ld c, {right_reg}")
+            self.emit(f"    call Divide")  # Would need to implement this routine
+        elif node.op == '&':
+            self.emit(f"    ld a, {left_reg}")
+            self.emit(f"    and {right_reg}")
+        elif node.op == '|':
+            self.emit(f"    ld a, {left_reg}")
+            self.emit(f"    or {right_reg}")
+        elif node.op == '^':
+            self.emit(f"    ld a, {left_reg}")
+            self.emit(f"    xor {right_reg}")
+        elif node.op in ['==', '!=', '<', '>', '<=', '>=']:
+            self.emit(f"    ld a, {left_reg}")
+            self.emit(f"    cp {right_reg}")
+            
+            # Set A to 1 (true) or 0 (false) based on the comparison
+            if node.op == '==':
+                self.emit("    ld a, 0")  # Assume result is false
+                self.emit("    jp nz, $+4")  # Skip next instruction if not equal
+                self.emit("    inc a")  # Set A to 1 if equal
+            elif node.op == '!=':
+                self.emit("    ld a, 0")  # Assume result is false
+                self.emit("    jp z, $+4")  # Skip next instruction if equal
+                self.emit("    inc a")  # Set A to 1 if not equal
+            elif node.op == '<':
+                self.emit("    ld a, 0")  # Assume result is false
+                self.emit("    jp nc, $+4")  # Skip next instruction if not carry (>=)
+                self.emit("    inc a")  # Set A to 1 if carry (< condition)
+            elif node.op == '>=':
+                self.emit("    ld a, 0")  # Assume result is false
+                self.emit("    jp c, $+4")  # Skip next instruction if carry (<)
+                self.emit("    inc a")  # Set A to 1 if not carry (>= condition)
+            elif node.op == '>':
+                self.emit("    ld a, 0")  # Assume result is false
+                self.emit("    jp z, $+7")  # Skip to the end if equal
+                self.emit("    jp c, $+4")  # Skip next instruction if carry (<)
+                self.emit("    inc a")  # Set A to 1 if not carry and not zero (> condition)
+            elif node.op == '<=':
+                self.emit("    ld a, 1")  # Assume result is true
+                self.emit("    jp z, $+7")  # Skip to the end if equal (already true)
+                self.emit("    jp nc, $+4")  # Skip next instruction if not carry (>)
+                self.emit("    dec a")  # Set A to 0 if not carry and not zero (> condition)
         
         # Free operand registers
         self.register_allocator.free_register(left_reg)
@@ -303,7 +397,7 @@ class GameBoyCodeGenerator(ASTNode):
     def visit_UnaryOp(self, node):
         """Visit UnaryOp node."""
         # Evaluate operand
-        operand_reg = self.visit_Expression(node.right)
+        operand_reg = self.visit_Expression(node.operand)
         
         # Generate operation code
         if node.op == '-':
@@ -316,7 +410,9 @@ class GameBoyCodeGenerator(ASTNode):
             self.emit("    ld a, 0")  # Assume result is false
             self.emit("    jp nz, $+4")  # Skip next instruction if not zero
             self.emit("    inc a")  # Set A to 1 if operand was zero
-        # Other unary operators...
+        elif node.op == '~':
+            self.emit(f"    ld a, {operand_reg}")
+            self.emit("    cpl")  # Bitwise NOT (one's complement)
         
         # Free operand register
         self.register_allocator.free_register(operand_reg)
@@ -336,8 +432,8 @@ class GameBoyCodeGenerator(ASTNode):
         string_label = self.new_label("string")
         
         # Store string definition for later emission in data section
-        # (This is simplified - would need proper string data handling)
-        self.emit(f"; String literal: {node.value}")
+        self.emit(f"\n{string_label}:")
+        self.emit(f"    db \"{node.value}\", 0  ; String with null terminator")
         
         # Load string address into HL
         self.emit(f"    ld hl, {string_label}")
@@ -377,8 +473,17 @@ class GameBoyCodeGenerator(ASTNode):
             if location and location['type'] == 'memory':
                 self.emit(f"    ld hl, {location['location']}")
             else:
-                self.emit(f"    ; ERROR: Cannot locate list {base_var}")
-                return 'a'
+                self.emit(f"    ld hl, {base_var}")  # Assuming it's a global variable
+        elif isinstance(node.name, str):
+            base_var = node.name
+            self.emit(f"    ; Accessing list {base_var}")
+            
+            # Load base address
+            location = self.register_allocator.get_variable_location(base_var)
+            if location and location['type'] == 'memory':
+                self.emit(f"    ld hl, {location['location']}")
+            else:
+                self.emit(f"    ld hl, {base_var}")  # Assuming it's a global variable
         else:
             # More complex base address calculation
             self.emit(f"    ; Complex list access not fully implemented")
@@ -400,6 +505,55 @@ class GameBoyCodeGenerator(ASTNode):
         self.emit("    ld a, [hl]")
         return 'a'
     
+    def visit_AttributeAccess(self, node):
+        """Visit AttributeAccess node."""
+        # Get the object
+        if isinstance(node.name, str):
+            obj_name = node.name
+        elif isinstance(node.name, Variable):
+            obj_name = node.name.name
+        else:
+            self.emit(f"    ; Complex attribute access not fully implemented")
+            return 'a'
+            
+        self.emit(f"    ; Accessing attribute {node.attribute} of {obj_name}")
+        
+        # For OAM entries like sprite.x, sprite.y, sprite.tile
+        # We'd need to calculate the proper offset based on the attribute
+        if node.attribute == 'x':
+            offset = 0
+        elif node.attribute == 'y':
+            offset = 1
+        elif node.attribute == 'tile':
+            offset = 2
+        else:
+            offset = 0  # Default
+            self.emit(f"    ; Unknown attribute {node.attribute}")
+            
+        # Load base address
+        location = self.register_allocator.get_variable_location(obj_name)
+        if location and location['type'] == 'memory':
+            self.emit(f"    ld hl, {location['location']}")
+        else:
+            self.emit(f"    ld hl, {obj_name}")  # Assuming it's a global variable
+            
+        # Add attribute offset
+        if offset > 0:
+            self.emit(f"    ld bc, {offset}")
+            self.emit("    add hl, bc")
+            
+        # Load the attribute value
+        self.emit("    ld a, [hl]")
+        return 'a'
+    
+    def visit_ProcedureCallStatement(self, node):
+        """Visit ProcedureCallStatement node."""
+        # Call the ProcedureCall visitor on the call attribute
+        result_reg = self.visit_ProcedureCall(node.call)
+        
+        # Free the result register since we're not saving the return value
+        self.register_allocator.free_register(result_reg)
+    
     def visit_Expression(self, node):
         """Visit Expression node by dispatching to appropriate handler."""
         if isinstance(node, BinaryOp):
@@ -420,4 +574,12 @@ class GameBoyCodeGenerator(ASTNode):
             self.emit(f"    ; ERROR: Unknown expression type {type(node)}")
             return 'a'
     
-    # Add visit methods for other AST node types as needed
+    def visit(self, node):
+        """Generic visitor that dispatches to specific visitor methods."""
+        method_name = f"visit_{type(node).__name__}"
+        visitor = getattr(self, method_name, None)
+    
+        if visitor is None:
+            raise ValueError(f"No visitor method found for {type(node).__name__}")
+    
+        return visitor(node)
