@@ -1,10 +1,5 @@
 from RegisterAllocater import RegisterAllocator
-from ast_classes import ASTNode, ProcedureCall, BinaryOp, UnaryOp, IntegerLiteral, StringLiteral, Variable, ListAccess
-
-#NEED TO IMPLEMENT BINARY IMPORTING
-#NEED TO IMPLEMENT LIST HANDLING
-
-
+from ast_classes import ASTNode, ProcedureCall, BinaryOp, UnaryOp, IntegerLiteral, StringLiteral, Variable, ListAccess, AttributeAccess
 
 class CodeGenerator:
     """Generates GameBoy Z80 assembly code from Penguin AST."""
@@ -15,11 +10,18 @@ class CodeGenerator:
         self.label_counter = 0
         self.current_scope = "global"
         self.var_types = {}  # Track variable types
+        self.binary_imports = set()  # Track binary imports
+        self.predefined_macros = {
+            "control.waitforvblank": self._macro_wait_for_vblank,
+            "control.lcdon": self._macro_lcd_on,
+            "control.lcdoff": self._macro_lcd_off
+        }
         
     def generate(self, ast_node):
         """Entry point for code generation."""
         self.emit_header()
         self.visit(ast_node)
+        self.emit_binary_imports()  # Add binary imports section
         self.emit_footer()
         return '\n'.join(self.code)
     
@@ -51,10 +53,119 @@ class CodeGenerator:
         self.emit("    halt")
         self.emit("    jp Halt")
     
+    def emit_binary_imports(self):
+        """Emit binary imports section."""
+        if not self.binary_imports:
+            return
+            
+        self.emit("\n; Binary data imports")
+        for binary_file in self.binary_imports:
+            file_label = self._get_label_from_path(binary_file)
+            self.emit(f"\n{file_label}:")
+            self.emit(f"    INCBIN \"{binary_file}\"")
+            self.emit(f"{file_label}_end:")
+            
+    def _get_label_from_path(self, path):
+        """Convert a file path to a valid assembly label."""
+        # Remove path and extension, replace invalid characters
+        base_name = path.split('/')[-1].split('\\')[-1].split('.')[0]
+        valid_name = ''.join(c if c.isalnum() else '_' for c in base_name)
+        return f"data_{valid_name}"
+    
     def new_label(self, prefix="label"):
         """Generate a new unique label."""
         self.label_counter += 1
         return f"{prefix}_{self.label_counter}"
+    
+    def _macro_wait_for_vblank(self):
+        """Macro for waiting for VBLANK interrupt."""
+        wait_label = self.new_label("wait_vblank")
+        self.emit(f"{wait_label}:")
+        self.emit("    ldh a, [rLY]  ; Load current scanline")
+        self.emit("    cp 144        ; Check if in VBlank (scanline >= 144)")
+        self.emit(f"    jr c, {wait_label}  ; Loop if not in VBlank")
+        return None  # No result register needed
+    
+    def _macro_lcd_on(self):
+        """Macro for turning LCD on."""
+        self.emit("    ldh a, [rLCDC]")
+        self.emit("    or LCDCF_ON   ; Set LCD on bit")
+        self.emit("    ldh [rLCDC], a")
+        return None  # No result register needed
+    
+    def _macro_lcd_off(self):
+        """Macro for turning LCD off."""
+        wait_label = self.new_label("wait_vblank_off")
+        self.emit(f"; Wait for VBlank before turning LCD off")
+        self.emit(f"{wait_label}:")
+        self.emit("    ldh a, [rLY]")
+        self.emit("    cp 144")
+        self.emit(f"    jr c, {wait_label}")
+        self.emit("    ldh a, [rLCDC]")
+        self.emit("    and ~LCDCF_ON ; Clear LCD on bit")
+        self.emit("    ldh [rLCDC], a")
+        return None  # No result register needed
+    
+    def _generate_copy_to_vram_code(self, source_label, dest_address, size_reg=None):
+        """Generate code to copy data from ROM to VRAM."""
+        copy_label = self.new_label("copy_to_vram")
+        end_label = self.new_label("copy_end")
+        
+        # Turn LCD off before VRAM access to avoid conflicts
+        self._macro_lcd_off()
+        
+        # Set up source address
+        self.emit(f"    ld hl, {source_label}  ; Source address")
+        
+        # Set up destination address
+        self.emit(f"    ld de, {dest_address}  ; Destination address in VRAM")
+        
+        # Set up size
+        if size_reg:
+            self.emit(f"    ld bc, {size_reg}  ; Size")
+        else:
+            self.emit(f"    ld bc, {source_label}_end - {source_label}  ; Size")
+        
+        # Copy loop
+        self.emit(f"{copy_label}:")
+        self.emit("    ld a, [hl+]  ; Load byte from ROM and increment")
+        self.emit("    ld [de], a   ; Store byte to VRAM")
+        self.emit("    inc de       ; Next destination byte")
+        self.emit("    dec bc       ; Decrement counter")
+        self.emit("    ld a, b")
+        self.emit("    or c")
+        self.emit(f"    jr nz, {copy_label}  ; Loop until done")
+        
+        # Turn LCD back on
+        self._macro_lcd_on()
+        
+        self.emit(f"{end_label}:")
+    
+    # NEW METHOD: Resolve full qualified name for a variable/attribute/list expression
+    def _resolve_qualified_name(self, node):
+        """Resolve the full qualified name for a variable, attribute access, or list access node."""
+        if isinstance(node, Variable):
+            return node.name
+        elif isinstance(node, AttributeAccess):
+            # Get base name and combine with attribute
+            base_name = self._resolve_qualified_name(node.name) if not isinstance(node.name, str) else node.name
+            return f"{base_name}.{node.attribute}"
+        elif isinstance(node, ListAccess):
+            # Get base name for list
+            base_name = self._resolve_qualified_name(node.name) if not isinstance(node.name, str) else node.name
+            return base_name
+        elif isinstance(node, str):
+            return node
+        else:
+            self.emit(f"    ; WARNING: Unknown node type for name resolution: {type(node)}")
+            return "unknown"
+    
+    # NEW METHOD: Extract indices from a ListAccess node
+    def _extract_indices(self, node):
+        """Extract indices from a ListAccess node."""
+        if isinstance(node, ListAccess):
+            return node.indices
+        return []
     
     # Visit methods for each AST node type
     
@@ -80,24 +191,47 @@ class CodeGenerator:
     
     def visit_Assignment(self, node):
         """Visit Assignment node."""
-        # Generate code for the right-hand side expression
+        # Get the full qualified name for the target
+        qualified_name = self._resolve_qualified_name(node.target)
+        
+        # Handle special case for display.tileset0, display.tilemap0, etc.
+        if qualified_name in ["display.tileset0", "display.tilemap0", "display.sprites"]:
+            if isinstance(node.value, StringLiteral):
+                # This is a binary file path, add to imports
+                self.binary_imports.add(node.value.value)
+                file_label = self._get_label_from_path(node.value.value)
+                
+                # Determine VRAM destination address based on the target
+                if qualified_name == "display.tileset0":
+                    dest_address = "$8000"  # Tile data in VRAM
+                    self.emit(f"    ; Loading tileset from {node.value.value} to VRAM")
+                elif qualified_name == "display.tilemap0":
+                    dest_address = "$9800"  # Background tilemap in VRAM
+                    self.emit(f"    ; Loading tilemap from {node.value.value} to VRAM")
+                elif qualified_name == "display.sprites":
+                    dest_address = "$8000"  # Sprite data in VRAM (same area as tiles)
+                    self.emit(f"    ; Loading sprites from {node.value.value} to VRAM")
+                
+                # Generate code to copy from ROM to VRAM
+                self._generate_copy_to_vram_code(file_label, dest_address)
+                return
+        
+        # Regular assignment handling for other cases
         result_reg = self.visit_Expression(node.value)
         
-        # Handle different target types
+        # Handle different target types based on its structure
         if isinstance(node.target, Variable):
-            var_name = node.target.name
-            
             # Track variable type if not already tracked
-            if var_name not in self.var_types:
-                self.var_types[var_name] = node.target.var_type
+            if qualified_name not in self.var_types:
+                self.var_types[qualified_name] = node.target.var_type
             
             # Allocate location for the variable
-            location = self.register_allocator.get_variable_location(var_name)
+            location = self.register_allocator.get_variable_location(qualified_name)
             
             if not location:
                 # First time assignment, try to keep in register
-                self.register_allocator.allocate_register(var_name)
-                location = self.register_allocator.get_variable_location(var_name)
+                self.register_allocator.allocate_register(qualified_name)
+                location = self.register_allocator.get_variable_location(qualified_name)
             
             if location['type'] == 'register':
                 if location['location'] != result_reg:
@@ -106,20 +240,20 @@ class CodeGenerator:
                 self.emit(f"    ld hl, {location['location']}")
                 self.emit(f"    ld [hl], {result_reg}")
                 
-        elif isinstance(node.target, ListAccess):
-            # Handle list access
-            base_var = node.target.name
-            self.emit(f"    ; List assignment to {base_var}")
+        elif isinstance(node.target, ListAccess) or isinstance(node.target, AttributeAccess):
+            indices = self._extract_indices(node.target)
+            
+            self.emit(f"    ; Assignment to {qualified_name}")
             
             # Load base address
-            location = self.register_allocator.get_variable_location(base_var)
+            location = self.register_allocator.get_variable_location(qualified_name)
             if location and location['type'] == 'memory':
                 self.emit(f"    ld hl, {location['location']}")
             else:
-                self.emit(f"    ld hl, {base_var}") # Assuming it's a global variable
+                self.emit(f"    ld hl, {qualified_name}")  # Assuming it's a global variable
             
-            # Calculate offset for each index
-            for idx in node.target.indices:
+            # Calculate offset for each index if this is a list access
+            for idx in indices:
                 # Evaluate index expression
                 idx_reg = self.visit_Expression(idx)
                 
@@ -134,14 +268,37 @@ class CodeGenerator:
             self.emit(f"    ld [hl], {result_reg}")
                 
         # Free result register
-        self.register_allocator.free_register(result_reg)
+        if result_reg:  # Only free if a register was allocated
+            self.register_allocator.free_register(result_reg)
             
     def visit_Initialization(self, node):
         """Visit Initialization node."""
         # Track variable type
         self.var_types[node.name] = node.var_type
         
-        # Generate code for the initialization value
+        # Handle special case for display resources
+        if node.name in ["display.tileset0", "display.tilemap0", "display.sprites"]:
+            if isinstance(node.value, StringLiteral):
+                # This is a binary file path, add to imports
+                self.binary_imports.add(node.value.value)
+                file_label = self._get_label_from_path(node.value.value)
+                
+                # Determine VRAM destination address based on the target
+                if node.name == "display.tileset0":
+                    dest_address = "$8000"  # Tile data in VRAM
+                    self.emit(f"    ; Loading tileset from {node.value.value} to VRAM")
+                elif node.name == "display.tilemap0":
+                    dest_address = "$9800"  # Background tilemap in VRAM
+                    self.emit(f"    ; Loading tilemap from {node.value.value} to VRAM")
+                elif node.name == "display.sprites":
+                    dest_address = "$8000"  # Sprite data in VRAM (same area as tiles)
+                    self.emit(f"    ; Loading sprites from {node.value.value} to VRAM")
+                
+                # Generate code to copy from ROM to VRAM
+                self._generate_copy_to_vram_code(file_label, dest_address)
+                return
+        
+        # Regular initialization for other cases
         result_reg = self.visit_Expression(node.value)
         
         # Allocate location for the variable
@@ -156,7 +313,7 @@ class CodeGenerator:
             self.emit(f"    ld [hl], {result_reg}")
             
         # Free result register if different from target
-        if location['type'] == 'register' and location['location'] != result_reg:
+        if result_reg and location['type'] == 'register' and location['location'] != result_reg:
             self.register_allocator.free_register(result_reg)
     
     def visit_ListInitialization(self, node):
@@ -192,7 +349,8 @@ class CodeGenerator:
         self.emit(f"    jp z, {else_label}")
         
         # Free condition register
-        self.register_allocator.free_register(condition_reg)
+        if condition_reg:
+            self.register_allocator.free_register(condition_reg)
         
         # Generate "then" block
         for stmt in node.then_body:
@@ -224,7 +382,8 @@ class CodeGenerator:
         self.emit(f"    jp z, {loop_end}")
         
         # Free condition register
-        self.register_allocator.free_register(condition_reg)
+        if condition_reg:
+            self.register_allocator.free_register(condition_reg)
         
         # Generate loop body
         for stmt in node.body:
@@ -269,11 +428,12 @@ class CodeGenerator:
         result_reg = self.visit_Expression(node.value)
         
         # Move result to accumulator (a typical convention for return values)
-        if result_reg != 'a':
+        if result_reg and result_reg != 'a':
             self.emit(f"    ld a, {result_reg}")
         
         # Free result register
-        self.register_allocator.free_register(result_reg)
+        if result_reg:
+            self.register_allocator.free_register(result_reg)
         
         # Return from procedure
         self.emit("    pop hl")
@@ -283,20 +443,23 @@ class CodeGenerator:
     
     def visit_ProcedureCall(self, node):
         """Visit ProcedureCall node."""
+        # Get the full qualified name for the procedure
+        procedure_name = self._resolve_qualified_name(node.name)
+            
+        # Handle predefined macros
+        if procedure_name in self.predefined_macros:
+            self.emit(f"    ; Predefined function: {procedure_name}")
+            return self.predefined_macros[procedure_name]()
+            
         # Evaluate and push arguments (in reverse order for stack)
         for arg in reversed(node.args):
             arg_reg = self.visit_Expression(arg)
-            self.emit(f"    push {arg_reg}")
-            self.register_allocator.free_register(arg_reg)
+            if arg_reg:
+                self.emit(f"    push {arg_reg}")
+                self.register_allocator.free_register(arg_reg)
         
         # Call the procedure
-        if isinstance(node.name, Variable):
-            self.emit(f"    call {node.name.name}")
-        elif isinstance(node.name, str):
-            self.emit(f"    call {node.name}")
-        else:
-            # More complex name resolution needed
-            self.emit(f"    ; Complex procedure call not fully implemented")
+        self.emit(f"    call {procedure_name}")
         
         # Clean up stack if needed
         if node.args:
@@ -328,7 +491,8 @@ class CodeGenerator:
                 self.emit(f"    ld a, {left_reg}")
                 self.emit(f"    xor {node.right.value}")
             
-            self.register_allocator.free_register(left_reg)
+            if left_reg:
+                self.register_allocator.free_register(left_reg)
             return 'a'
         
         # General case: evaluate right operand
@@ -393,8 +557,10 @@ class CodeGenerator:
                 self.emit("    dec a")  # Set A to 0 if not carry and not zero (> condition)
         
         # Free operand registers
-        self.register_allocator.free_register(left_reg)
-        self.register_allocator.free_register(right_reg)
+        if left_reg:
+            self.register_allocator.free_register(left_reg)
+        if right_reg:
+            self.register_allocator.free_register(right_reg)
         
         # Result is in register A
         return 'a'
@@ -420,7 +586,8 @@ class CodeGenerator:
             self.emit("    cpl")  # Bitwise NOT (one's complement)
         
         # Free operand register
-        self.register_allocator.free_register(operand_reg)
+        if operand_reg:
+            self.register_allocator.free_register(operand_reg)
         
         # Result is in register A
         return 'a'
@@ -446,7 +613,11 @@ class CodeGenerator:
     
     def visit_Variable(self, node):
         """Visit Variable node."""
-        var_name = node.name
+        # Get the full qualified name
+        var_name = self._resolve_qualified_name(node)
+        
+        self.emit(f"    ; Accessing variable {var_name}")
+        
         location = self.register_allocator.get_variable_location(var_name)
         
         if not location:
@@ -468,34 +639,21 @@ class CodeGenerator:
     
     def visit_ListAccess(self, node):
         """Visit ListAccess node."""
-        # Calculate base address
-        if isinstance(node.name, Variable):
-            base_var = node.name.name
-            self.emit(f"    ; Accessing list {base_var}")
-            
-            # Load base address
-            location = self.register_allocator.get_variable_location(base_var)
-            if location and location['type'] == 'memory':
-                self.emit(f"    ld hl, {location['location']}")
-            else:
-                self.emit(f"    ld hl, {base_var}")  # Assuming it's a global variable
-        elif isinstance(node.name, str):
-            base_var = node.name
-            self.emit(f"    ; Accessing list {base_var}")
-            
-            # Load base address
-            location = self.register_allocator.get_variable_location(base_var)
-            if location and location['type'] == 'memory':
-                self.emit(f"    ld hl, {location['location']}")
-            else:
-                self.emit(f"    ld hl, {base_var}")  # Assuming it's a global variable
+        # Get the base qualified name
+        base_var = self._resolve_qualified_name(node)
+        
+        self.emit(f"    ; Accessing list {base_var}")
+        
+        # Load base address
+        location = self.register_allocator.get_variable_location(base_var)
+        if location and location['type'] == 'memory':
+            self.emit(f"    ld hl, {location['location']}")
         else:
-            # More complex base address calculation
-            self.emit(f"    ; Complex list access not fully implemented")
-            return 'a'
+            self.emit(f"    ld hl, {base_var}")  # Assuming it's a global variable
         
         # Calculate offset for each index
-        for idx in node.indices:
+        indices = self._extract_indices(node)
+        for idx in indices:
             # Evaluate index expression
             idx_reg = self.visit_Expression(idx)
             
@@ -504,7 +662,8 @@ class CodeGenerator:
             self.emit(f"    ld c, {idx_reg}")
             self.emit("    add hl, bc")
             
-            self.register_allocator.free_register(idx_reg)
+            if idx_reg:
+                self.register_allocator.free_register(idx_reg)
         
         # Load value from calculated address
         self.emit("    ld a, [hl]")
@@ -512,52 +671,67 @@ class CodeGenerator:
     
     def visit_AttributeAccess(self, node):
         """Visit AttributeAccess node."""
-        # Get the object
-        if isinstance(node.name, str):
-            obj_name = node.name
-        elif isinstance(node.name, Variable):
-            obj_name = node.name.name
-        else:
-            self.emit(f"    ; Complex attribute access not fully implemented")
-            return 'a'
-            
-        self.emit(f"    ; Accessing attribute {node.attribute} of {obj_name}")
+        # Get the full qualified name
+        qualified_name = self._resolve_qualified_name(node)
         
-        # For OAM entries like sprite.x, sprite.y, sprite.tile
-        # We'd need to calculate the proper offset based on the attribute
-        if node.attribute == 'x':
+        self.emit(f"    ; Accessing attribute {qualified_name}")
+        
+        # For hardware-specific attributes like OAM entries (sprites)
+        parts = qualified_name.split('.')
+        if len(parts) > 1:
+            obj_name = parts[0]
+            attr_name = parts[-1]
+            
+            # For OAM entries like sprite.x, sprite.y, sprite.tile
+            # We'd need to calculate the proper offset based on the attribute
             offset = 0
-        elif node.attribute == 'y':
-            offset = 1
-        elif node.attribute == 'tile':
-            offset = 2
+            if attr_name == 'x':
+                offset = 0
+            elif attr_name == 'y':
+                offset = 1
+            elif attr_name == 'tile':
+                offset = 2
+            else:
+                self.emit(f"    ; Unknown attribute {attr_name}")
+            
+            # Load base address
+            location = self.register_allocator.get_variable_location(obj_name)
+            if location and location['type'] == 'memory':
+                self.emit(f"    ld hl, {location['location']}")
+            else:
+                self.emit(f"    ld hl, {obj_name}")  # Assuming it's a global variable
+                
+            # Add attribute offset
+            if offset > 0:
+                self.emit(f"    ld bc, {offset}")
+                self.emit("    add hl, bc")
+                
+            # Load the attribute value
+            self.emit("    ld a, [hl]")
+            return 'a'
         else:
-            offset = 0  # Default
-            self.emit(f"    ; Unknown attribute {node.attribute}")
-            
-        # Load base address
-        location = self.register_allocator.get_variable_location(obj_name)
-        if location and location['type'] == 'memory':
-            self.emit(f"    ld hl, {location['location']}")
-        else:
-            self.emit(f"    ld hl, {obj_name}")  # Assuming it's a global variable
-            
-        # Add attribute offset
-        if offset > 0:
-            self.emit(f"    ld bc, {offset}")
-            self.emit("    add hl, bc")
-            
-        # Load the attribute value
-        self.emit("    ld a, [hl]")
-        return 'a'
+            # Just a simple variable reference
+            return self.visit_Variable(Variable(qualified_name))
     
     def visit_ProcedureCallStatement(self, node):
         """Visit ProcedureCallStatement node."""
+        # Get the procedure call's full qualified name
+        procedure_name = self._resolve_qualified_name(node.call.name) if not isinstance(node.call.name, str) else node.call.name
+            
+        # Handle predefined macros
+        if procedure_name in self.predefined_macros:
+            self.emit(f"    ; Predefined function: {procedure_name}")
+            result_reg = self.predefined_macros[procedure_name]()
+            if result_reg:
+                self.register_allocator.free_register(result_reg)
+            return
+            
         # Call the ProcedureCall visitor on the call attribute
         result_reg = self.visit_ProcedureCall(node.call)
         
         # Free the result register since we're not saving the return value
-        self.register_allocator.free_register(result_reg)
+        if result_reg:
+            self.register_allocator.free_register(result_reg)
     
     def visit_Expression(self, node):
         """Visit Expression node by dispatching to appropriate handler."""
@@ -575,6 +749,8 @@ class CodeGenerator:
             return self.visit_ListAccess(node)
         elif isinstance(node, ProcedureCall):
             return self.visit_ProcedureCall(node)
+        elif isinstance(node, AttributeAccess):
+            return self.visit_AttributeAccess(node) 
         else:
             self.emit(f"    ; ERROR: Unknown expression type {type(node)}")
             return 'a'
