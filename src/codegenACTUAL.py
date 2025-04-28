@@ -81,7 +81,12 @@ class CodeGenerator:
         self.emit("    ret")
 
     def visit_Declaration(self, node):
+        #Add variable to symbol table
+        #Dont do anything code wise
     def visit_Assignment(self, node):
+        #Find variable
+        #Find expressions
+        #Assign variable
     def visit_Initialization(self, node):
     def visit_ListInitialization(self, node):
     def visit_Conditional(self, node):
