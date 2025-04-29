@@ -89,7 +89,6 @@ class CodeGenerator:
     def visit_Initialization(self, node):
     def visit_ListInitialization(self, node):
     def visit_Conditional(self, node):
-
     def visit_Loop(self, node):
     def visit_ProcedureDef(self, node):     
     def visit_Return(self, node):
