@@ -64,6 +64,9 @@ pytest -q tests/tester.py
 ```
 
 ## CLI
+```bash
+py cli COMMAND [option] ...
+```
 
 ## Flake8 error codes
 https://pycodestyle.pycqa.org/en/latest/intro.html#error-codes
