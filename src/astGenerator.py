@@ -38,13 +38,13 @@ from generated.penguinParser import penguinParser
 from generated.penguinVisitor import penguinVisitor
 
 # Custom modules
-from ast_classes import ASTNode, \
+from src.astClasses import ASTNode, \
     Program, \
     Declaration, Assignment, Initialization, ListInitialization, Conditional, Loop, Return, ProcedureCallStatement, \
     BinaryOp, UnaryOp, IntegerLiteral, StringLiteral, ProcedureCall, Variable, ListAccess, AttributeAccess, \
     ProcedureDef
 
-from custom_errors import UnknownExpressionTypeError, UnknownValueTypeError, UnknowninitializationTypeError, UnknownLiteralTypeError
+from src.customErrors import UnknownExpressionTypeError, UnknownValueTypeError, UnknowninitializationTypeError, UnknownLiteralTypeError
 
 # Typing modules
 from typing import List, Tuple, Union, Any 

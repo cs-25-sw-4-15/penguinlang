@@ -6,21 +6,21 @@ Traverses an AST and verifies type correctness according to language rules.
 from ast import *
 
 # Generated modules
-from generated.penguinParser import penguinParser
-from generated.penguinVisitor import penguinVisitor
+from src.generated.penguinParser import penguinParser
+from src.generated.penguinVisitor import penguinVisitor
 
 # Custom modules
-from ast_classes import ASTNode, \
+from src.astClasses import ASTNode, \
     Program, \
     Declaration, Assignment, Initialization, ListInitialization, Conditional, Loop, Return, ProcedureCallStatement, \
     BinaryOp, UnaryOp, IntegerLiteral, StringLiteral, ProcedureCall, Variable, ListAccess, AttributeAccess, \
     ProcedureDef
 
-from asttypes import IntType, StringType, VoidType, ListType, TilesetType, TileMapType, SpriteType, OAMEntryType    
+from src.astTypes import IntType, StringType, VoidType, ListType, TilesetType, TileMapType, SpriteType, OAMEntryType    
 
-from predefined_F_and_v import initialize_hardware_elements
+from src.predefinesVnF import initialize_hardware_elements
 
-from custom_errors import *
+from src.customErrors import *
 
 
 

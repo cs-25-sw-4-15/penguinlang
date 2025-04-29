@@ -67,6 +67,7 @@ def taast(input_path: Annotated[str, typer.Argument(help="Input file path")]):
     taast = typed_abstact_syntax_tree(ast)
     
     print_tree(taast)
+    print(taast.statements[0])
 
 if __name__ == "__main__":
     # Run the CLI application

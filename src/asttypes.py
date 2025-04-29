@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any, Optional
 if TYPE_CHECKING:
     # Stops Pylance from complaining about the import. 
     # Recursive import, but only for type checking.
-    from asttypes import IntType
+    from astTypes import IntType
 
 
 class Type:

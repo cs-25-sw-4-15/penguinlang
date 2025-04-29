@@ -14,9 +14,9 @@ from generated.penguinParser import penguinParser
 
 
 # custom modules
-from ast_classes import ASTNode
-from ast_generator import ASTGenerator
-from asttype_checker import TypeChecker
+from src.astClasses import ASTNode
+from src.astGenerator import ASTGenerator
+from src.astTypeChecker import TypeChecker
 
 
 # other modules
@@ -111,8 +111,9 @@ def typed_abstact_syntax_tree(ast: str):
     
     print("Generating typed abstract syntax tree...")
     
+    tree = ast
     typechecker = TypeChecker()
-    tree = typechecker.check_program(tree)
+    typechecker.check_program(tree)
     
     return tree
 

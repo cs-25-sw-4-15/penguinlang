@@ -11,7 +11,7 @@ from typing import Optional, Union, List, Tuple, TYPE_CHECKING
 if TYPE_CHECKING:
     # Stops Pylance from complaining about the import. 
     # Recursive import, but only for type checking.
-    from ast_classes import ProcedureCall
+    from src.astClasses import ProcedureCall
 
 
 class ASTNode():
