@@ -34,17 +34,12 @@ Note til gruppemedlemmer fra Naitsa:
 
 
 # Generated modules
-from generated.penguinParser import penguinParser
-from generated.penguinVisitor import penguinVisitor
+from src.generated.penguinParser import penguinParser
+from src.generated.penguinVisitor import penguinVisitor
 
 # Custom modules
-from src.astClasses import ASTNode, \
-    Program, \
-    Declaration, Assignment, Initialization, ListInitialization, Conditional, Loop, Return, ProcedureCallStatement, \
-    BinaryOp, UnaryOp, IntegerLiteral, StringLiteral, ProcedureCall, Variable, ListAccess, AttributeAccess, \
-    ProcedureDef
-
-from src.customErrors import UnknownExpressionTypeError, UnknownValueTypeError, UnknowninitializationTypeError, UnknownLiteralTypeError
+from src.astClasses import *
+from src.customErrors import *
 
 # Typing modules
 from typing import List, Tuple, Union, Any 

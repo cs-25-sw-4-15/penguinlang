@@ -9,15 +9,13 @@ from antlr4 import FileStream, CommonTokenStream
 
 
 # antl4 generated modules
-from generated.penguinLexer import penguinLexer
-from generated.penguinParser import penguinParser
-
+from src.generated.penguinLexer import penguinLexer
+from src.generated.penguinParser import penguinParser
 
 # custom modules
 from src.astClasses import ASTNode
 from src.astGenerator import ASTGenerator
 from src.astTypeChecker import TypeChecker
-
 
 # other modules
 import json

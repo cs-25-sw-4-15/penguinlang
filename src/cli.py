@@ -14,16 +14,13 @@ Help:
     py src/cli.py COMMAND --help
 """
 
+# Import compiler functions
+from src.compiler import print_tree, read_input_file, \
+    concrete_syntax_tree, abstact_syntax_tree, typed_abstact_syntax_tree
 
 # Import the necessary modules
 import typer
 from typing_extensions import Annotated
-
-
-# Import compiler functions
-from compiler import print_tree, read_input_file, \
-    concrete_syntax_tree, abstact_syntax_tree, typed_abstact_syntax_tree
-
 
 # Create instance of Typer
 app = typer.Typer()
