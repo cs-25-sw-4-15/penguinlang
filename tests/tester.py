@@ -8,10 +8,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from antlr4 import InputStream, CommonTokenStream
 from generated.penguinLexer import penguinLexer
 from generated.penguinParser import penguinParser
-from ast_generator import (ASTGenerator, Program, Assignment, Declaration, Initialization, ListInitialization,
-    Conditional, Loop, Return, ProcedureCallStatement, ProcedureDef, BinaryOp, UnaryOp,
-    IntegerLiteral, StringLiteral, ProcedureCall, Variable, ListAccess, AttributeAccess)
-
+from ast_generator import *
+from asttypes import *
+from compiler import *
 
 
 def build_ast(source_code):
@@ -24,6 +23,21 @@ def build_ast(source_code):
     visitor = ASTGenerator()
     return visitor.visit(parse_tree)
 
+
+def build_taast(source_code):
+    input_stream = InputStream(source_code)
+    lexer = penguinLexer(input_stream)
+    token_stream = CommonTokenStream(lexer)
+    parser = penguinParser(token_stream)
+    parse_tree = parser.program()
+    
+    visitor = ASTGenerator()
+    ast = visitor.visit(parse_tree)
+    
+    type_checker = TypeChecker()
+    taast = type_checker.check_program(ast)
+    
+    return taast
 
 # Fixture for AST generator
 @pytest.fixture
@@ -385,8 +399,18 @@ def test_complex_nested_structure():
 
 
 
-###########################################################################
-######################## BELOW ARE TESTS FOR THE TYPE CHECKING ############
-###########################################################################
+""" 
+Typechecking and scope
+"""
+
+def test_declaration_type():
+    """Test declaration type"""
+    taast = build_taast("int x;")
+    
+    assert isinstance(taast.statements[0], INT), "int declaration should be of type INT"
+
+def test_declaration_type():
+    """Test declaration type"""
+    ...
 
 

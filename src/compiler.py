@@ -95,7 +95,7 @@ def abstact_syntax_tree(cst: str):
     print("Generating abstract syntax tree...")
     
     ast_gen = ASTGenerator()
-    tree: str = ast_gen.visit(cst)
+    tree: ASTNode = ast_gen.visit(cst)
     
     return tree
     
@@ -111,9 +111,8 @@ def typed_abstact_syntax_tree(ast: str):
     
     print("Generating typed abstract syntax tree...")
     
-    tree = ast
     typechecker = TypeChecker()
-    typechecker.check_program(tree)
+    tree = typechecker.check_program(tree)
     
     return tree
 
@@ -136,8 +135,8 @@ def main(input_file: str, output_file: str = "out.gb"):
     
     # Frontend
     
-    cst = concrete_syntax_tree(input_stream)
-    ast: str = abstact_syntax_tree(cst)
+    cst: str = concrete_syntax_tree(input_stream)
+    ast: ASTNode = abstact_syntax_tree(cst)
     taast: str = typed_abstact_syntax_tree(ast)
     
     # Backend
