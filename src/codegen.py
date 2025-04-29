@@ -62,7 +62,7 @@ class CodeGenerator:
         for binary_file in self.binary_imports:
             file_label = self._get_label_from_path(binary_file)
             self.emit(f"\n{file_label}:")
-            self.emit(f"    INCBIN \"{binary_file}\"")
+            self.emit(f"    INCBIN {binary_file}")
             self.emit(f"{file_label}_end:")
             
     def _get_label_from_path(self, path):
@@ -141,7 +141,6 @@ class CodeGenerator:
         
         self.emit(f"{end_label}:")
     
-    # NEW METHOD: Resolve full qualified name for a variable/attribute/list expression
     def _resolve_qualified_name(self, node):
         """Resolve the full qualified name for a variable, attribute access, or list access node."""
         if isinstance(node, Variable):
@@ -160,7 +159,6 @@ class CodeGenerator:
             self.emit(f"    ; WARNING: Unknown node type for name resolution: {type(node)}")
             return "unknown"
     
-    # NEW METHOD: Extract indices from a ListAccess node
     def _extract_indices(self, node):
         """Extract indices from a ListAccess node."""
         if isinstance(node, ListAccess):
@@ -276,28 +274,6 @@ class CodeGenerator:
         # Track variable type
         self.var_types[node.name] = node.var_type
         
-        # Handle special case for display resources
-        if node.name in ["display.tileset0", "display.tilemap0", "display.sprites"]:
-            if isinstance(node.value, StringLiteral):
-                # This is a binary file path, add to imports
-                self.binary_imports.add(node.value.value)
-                file_label = self._get_label_from_path(node.value.value)
-                
-                # Determine VRAM destination address based on the target
-                if node.name == "display.tileset0":
-                    dest_address = "$8000"  # Tile data in VRAM
-                    self.emit(f"    ; Loading tileset from {node.value.value} to VRAM")
-                elif node.name == "display.tilemap0":
-                    dest_address = "$9800"  # Background tilemap in VRAM
-                    self.emit(f"    ; Loading tilemap from {node.value.value} to VRAM")
-                elif node.name == "display.sprites":
-                    dest_address = "$8000"  # Sprite data in VRAM (same area as tiles)
-                    self.emit(f"    ; Loading sprites from {node.value.value} to VRAM")
-                
-                # Generate code to copy from ROM to VRAM
-                self._generate_copy_to_vram_code(file_label, dest_address)
-                return
-        
         # Regular initialization for other cases
         result_reg = self.visit_Expression(node.value)
         
@@ -329,11 +305,8 @@ class CodeGenerator:
         for value in node.values:
             if isinstance(value, IntegerLiteral):
                 self.emit(f"    db {value.value}  ; Integer literal")
-            elif isinstance(value, StringLiteral):
-                self.emit(f"    db \"{value.value}\", 0  ; String literal with null terminator")
             else:
-                # For more complex expressions, we'd need to evaluate them at compile time
-                self.emit(f"    db 0  ; Placeholder for complex expression")
+                self.emit(f"    db 0  ; Variables currently not supported in lists")
     
     def visit_Conditional(self, node):
         """Visit Conditional node."""
