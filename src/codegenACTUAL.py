@@ -1,5 +1,7 @@
 from RegisterAllocater import RegisterAllocator
-from ast_classes import ASTNode, ProcedureCall, BinaryOp, UnaryOp, IntegerLiteral, StringLiteral, Variable, ListAccess
+from ast_classes import ASTNode, ProcedureCall, BinaryOp, UnaryOp, IntegerLiteral, StringLiteral, Variable, ListAccess, AttributeAccess
+from asttypes import SpriteType, TileMapType, TilesetType
+
 
 #NEED TO IMPLEMENT BINARY IMPORTING
 #NEED TO IMPLEMENT LIST HANDLING
@@ -81,15 +83,13 @@ class CodeGenerator:
         self.emit("    ret")
 
     def visit_Declaration(self, node):
-        #Add variable to symbol table
-        #Dont do anything code wise
+
     def visit_Assignment(self, node):
-        #Find variable
-        #Find expressions
-        #Assign variable
+
     def visit_Initialization(self, node):
     def visit_ListInitialization(self, node):
     def visit_Conditional(self, node):
+
     def visit_Loop(self, node):
     def visit_ProcedureDef(self, node):     
     def visit_Return(self, node):
@@ -103,3 +103,23 @@ class CodeGenerator:
     def visit_AttributeAccess(self, node):
     def visit_ProcedureCallStatement(self, node):
     def visit_Expression(self, node):
+        """Visit Expression node by dispatching to appropriate handler."""
+        if isinstance(node, BinaryOp):
+            return self.visit_BinaryOp(node)
+        elif isinstance(node, UnaryOp):
+            return self.visit_UnaryOp(node)
+        elif isinstance(node, IntegerLiteral):
+            return self.visit_IntegerLiteral(node)
+        elif isinstance(node, StringLiteral):
+            return self.visit_StringLiteral(node)
+        elif isinstance(node, Variable):
+            return self.visit_Variable(node)
+        elif isinstance(node, ListAccess):
+            return self.visit_ListAccess(node)
+        elif isinstance(node, ProcedureCall):
+            return self.visit_ProcedureCall(node)
+        elif isinstance(node, AttributeAccess):
+            return self.visit_AttributeAccess(node) 
+        else:
+            self.emit(f"    ; ERROR: Unknown expression type {type(node)}")
+            return 'a'
