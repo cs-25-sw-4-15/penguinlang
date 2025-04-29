@@ -26,7 +26,7 @@ assignment
 
 initialization
     : type name '=' expression ';'
-    | 'list' name '=' '[' expressions ']' ';'
+    | 'list' name '=' LBRACK expressions RBRACK ';'
     ;
 
 expression
@@ -39,7 +39,7 @@ expression
     | expression ('<' | '>' | '<=' | '>=') expression // Comparison operationer - relationer
     | expression ('==' | '!=') expression   // Lighed og ulighed - relationer
     | expression '&' expression             // Bitwise and 
-    | expression 'xor' expression           // Bitwise xor
+    | expression '^' expression             // Bitwise xor
     | expression '|' expression             // Bitwise or
     | expression 'and' expression           // Logisk and
     | expression 'or' expression            // Logisk or
@@ -49,9 +49,9 @@ expr_val
     : literal           // numre
     | name              // variabler
     | listAccess        // værdier i lister
-    | attributeAccess   // værdi af attribut i struct
     | procedureCall     // værdi af procedure
-    | '(' expression ')'// parenteser
+    | attributeAccess   // værdi af attribut i struct
+    | LPAREN expression RPAREN // parenteser
     ;
 
 expressions
@@ -59,7 +59,7 @@ expressions
     ;
 
 listAccess
-    : name ('[' expression ']')+
+    : name (LBRACK expression RBRACK)+
     ;
 
 attributeAccess
@@ -67,7 +67,7 @@ attributeAccess
     ;
 
 conditionalStatement
-    : 'if' '(' expression ')' statementBlock conditionalStatementElse?
+    : 'if' LPAREN expression RPAREN statementBlock conditionalStatementElse?
     ;
 
 conditionalStatementElse
@@ -75,11 +75,11 @@ conditionalStatementElse
     ;
 
 procedureDeclaration
-    : 'procedure' (type)? IDENTIFIER '(' parameterList? ')' statementBlock
+    : 'procedure' (type)? IDENTIFIER LPAREN parameterList? RPAREN statementBlock
     ;
 
 procedureCall
-    : name '(' argumentList? ')'
+    : name LPAREN argumentList? RPAREN
     ;
 
 parameterList
@@ -99,15 +99,15 @@ procedureCallStatement
     ;
 
 loop
-    : 'loop' '(' expression ')' statementBlock
+    : 'loop' LPAREN expression RPAREN statementBlock
     ;
 
 statementBlock
-    : '{' statement* '}'
+    : LBRACE statement* RBRACE
     ;
 
 name
-    : IDENTIFIER ('.' IDENTIFIER | '[' expression ']')*
+    : IDENTIFIER ('.' IDENTIFIER | LBRACK expression RBRACK)*
     ;
 
 literal
@@ -129,6 +129,41 @@ comment
     ;
 
 // Lexer Rules
+LPAREN          : '(';
+RPAREN          : ')';
+LBRACK          : '[';
+RBRACK          : ']';
+LBRACE          : '{';
+RBRACE          : '}';
+//DOT             : '.';
+//COMMA           : ',';
+//SEMICOLON       : ';';
+//ASSIGN          : '=';
+
+//EQUAL           : '==';
+//NOTEQUAL        : '!=';
+//LE              : '<=';
+//GE              : '>=';
+//GT              : '>';
+//LT              : '<';
+//PLUS             : '+';
+//MINUS            : '-';
+//MUL             : '*';
+//LSHIFT          : '<<';
+//RSHIFT          : '>>';
+//BAND             : '&';
+//BOR             : '|';
+//BXOR            : '^';
+//BCOM             : '~';
+//AND            : 'and';
+//OR             : 'or';
+//NOT            : 'not';
+
+//INT            : 'int';
+//SPRITE         : 'sprite';
+//TILESET        : 'tileset';
+//TILEMAP       : 'tilemap';
+
 IDENTIFIER
     : [a-zA-Z_][a-zA-Z0-9_]*
     ;
@@ -152,6 +187,7 @@ STRING
 COMMENT
     : '//' ~[\r\n]* -> skip
     ;
+
 
 WS
     : [ \t\r\n]+ -> skip

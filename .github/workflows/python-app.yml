@@ -33,7 +33,7 @@ jobs:
         rm src/rgbds/rgbds-0.9.1-linux-x86_64.tar.xz
     - name : Generate lexer/parser with ANTLR
       run: |
-        antlr4 -Dlanguage=Python3 -o src/generated/ src/grammar/penguin.g4
+        antlr4 -Dlanguage=Python3 -visitor -o src/generated/ src/grammar/penguin.g4
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
