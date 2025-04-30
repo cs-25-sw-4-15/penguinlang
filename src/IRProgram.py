@@ -410,6 +410,10 @@ class IRGenerator:
             else:
                 # Normal variable assignment
                 self.add_instruction(IRAssign(target_name, value_temp))
+
+        elif isinstance(node.target, (TileMapType, TilesetType, SpriteType)):
+            ##Do code here
+            print("oogabooge")
         elif isinstance(node.target, ListAccess):
             # List/array assignment
             base_name = node.target.name

@@ -115,12 +115,11 @@ def ir(input_path: Annotated[str, typer.Argument(help="Input file path")]):
     typechecker = TypeChecker()
     typechecker.check_program(ast)
     
-    # Generate IR
     ir_generator = IRGenerator()
     ir_program = ir_generator.generate(ast)
     
     print("IR STARTS HERE")
-    print(ir_program)
+    print(ir_program)  # This will call __str__ on the IRProgram object
     print("DONE")
 
 
