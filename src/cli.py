@@ -17,13 +17,12 @@ import json
 
 
 
-
 # Import the necessary modules
 import typer
 from typing_extensions import Annotated
 from ast_classes import ASTNode
 from asttype_checker import TypeChecker
-from codegen import CodeGenerator
+from ir_implementation import IRGenerator
 
 # Import compiler functions
 from compiler import read_input_file, \
@@ -102,13 +101,28 @@ def codegen(input_path: Annotated[str, typer.Argument(help="Input file path")]):
     ast = abstact_syntax_tree(cst)
     typechecker = TypeChecker()
     typechecker.check_program(ast)
-    codegen = CodeGenerator()
-    codetext = codegen.generate(ast)
-    print("CODE STARTS HERE")
-    print(codetext)
-    #print("JSON STARTS HERE")
-    #print(json.dumps(ast, cls=ASTEncoder))
-    #print("DONE")
+
+
+@app.command()
+def ir(input_path: Annotated[str, typer.Argument(help="Input file path")]):
+    """Generate and display intermediate representation (IR) for the input file."""
+    print("Generating IR for input:", input_path)
+    input_stream = read_input_file(input_path)
+    cst = concrete_syntax_tree(input_stream)
+    ast = abstact_syntax_tree(cst)
+    
+    # Type check the AST
+    typechecker = TypeChecker()
+    typechecker.check_program(ast)
+    
+    # Generate IR
+    ir_generator = IRGenerator()
+    ir_program = ir_generator.generate(ast)
+    
+    print("IR STARTS HERE")
+    print(ir_program)
+    print("DONE")
+
 
 if __name__ == "__main__":
     # Run the CLI application
