@@ -183,6 +183,7 @@ class IRHardwareIndexedWrite(IRInstruction):
         return f"hw_indexed_write({self.register}, {self.index}, {self.value})"
 
 class IRHardwareCall(IRInstruction):
+
     """Call a hardware function (like control.LCDon())"""
     def __init__(self, module: str, function: str, args: List[str] = None):
         self.module = module
@@ -192,6 +193,16 @@ class IRHardwareCall(IRInstruction):
     def __str__(self) -> str:
         args_str = ", ".join(self.args)
         return f"hw_call({self.module}.{self.function}, [{args_str}])"
+
+class IRHardwareMemCpy(IRInstruction):
+    """Copy memory from one hardware register to another"""
+    def __init__(self, dest: str, src: str, size: str):
+        self.dest = dest
+        self.src = src
+        self.size = size
+    
+    def __str__(self) -> str:
+        return f"hw_memcpy({self.dest}, {self.src}, {self.size})"
 
 class IRProcedure:
     """Procedure in IR"""
@@ -322,22 +333,22 @@ class IRGenerator:
     def initialize_hardware_registers(self):
         """Initialize the set of hardware registers"""
         # Display subsystem registers
-        self.hardware_registers.add("display.tileset0")
-        self.hardware_registers.add("display.tilemap0")
+        self.hardware_registers.add("display_tileset0")
+        self.hardware_registers.add("display_tilemap0")
         
         # OAM (Object Attribute Memory) registers
         # This is handled as a special case for array/list-like access
-        self.hardware_registers.add("display.oam")
+        self.hardware_registers.add("display_oam")
         
         # Input state registers
-        self.hardware_registers.add("input.Right")
-        self.hardware_registers.add("input.Left")
-        self.hardware_registers.add("input.Up")
-        self.hardware_registers.add("input.Down")
-        self.hardware_registers.add("input.A")
-        self.hardware_registers.add("input.B")
-        self.hardware_registers.add("input.Start")
-        self.hardware_registers.add("input.Select")
+        self.hardware_registers.add("input_Right")
+        self.hardware_registers.add("input_Left")
+        self.hardware_registers.add("input_Up")
+        self.hardware_registers.add("input_Down")
+        self.hardware_registers.add("input_A")
+        self.hardware_registers.add("input_B")
+        self.hardware_registers.add("input_Start")
+        self.hardware_registers.add("input_Select")
     
     def is_hardware_register(self, name: str) -> bool:
         """Check if a name refers to a hardware register"""
