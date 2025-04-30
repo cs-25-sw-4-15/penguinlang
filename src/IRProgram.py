@@ -316,6 +316,8 @@ class IRGenerator:
                 procedure = IRProcedure(statement.name, params, return_type)
                 self.program.add_procedure(procedure)
             elif isinstance(statement, (Declaration, Initialization)):
+                if isinstance(statement.var_type, (TileMapType, TilesetType, SpriteType)) and isinstance(statement, Initialization):
+                    continue;
                 # Register globals
                 type_ = None
                 if isinstance(statement, Declaration):
@@ -418,9 +420,13 @@ class IRGenerator:
                 # Writing to a hardware register
                 self.add_instruction(IRHardwareWrite(target_name, value_temp))
             else:
-                # Normal variable assignment
-                self.add_instruction(IRAssign(target_name, value_temp))
-
+                # Check if it's a global variable
+                if target_name in self.program.globals:
+                    # For globals, we need to explicitly store to memory
+                    self.add_instruction(IRStore(target_name, value_temp))
+                else:
+                    # For locals, simple assignment (potentially register to register)
+                    self.add_instruction(IRAssign(target_name, value_temp))
         elif isinstance(node.target, (TileMapType, TilesetType, SpriteType)):
             ##Do code here
             print("oogabooge")
@@ -440,32 +446,30 @@ class IRGenerator:
             else:
                 # Normal indexed store
                 self.add_instruction(IRIndexedStore(base_name, index_temp, value_temp))
-        elif isinstance(node.target, AttributeAccess):
-            # Handle attribute access (for OAM entries, etc.)
-            base_name = node.target.name
-            if isinstance(base_name, Variable):
-                base_name = base_name.name
-            
-            full_name = f"{base_name}.{node.target.attribute}"
-            
-            # Check if this is a hardware register
-            if self.is_hardware_register(full_name) or base_name == "display.oam":
-                # Hardware register write
-                self.add_instruction(IRHardwareWrite(full_name, value_temp))
-            else:
-                # Normal attribute store
-                self.add_instruction(IRStore(full_name, value_temp))
-    
+        
     def visit_Initialization(self, node: Initialization) -> None:
         """Visit an Initialization node"""
         value_temp = self.visit(node.value)
         
+        if isinstance(node.value, (StringLiteral)):
+            # If the value is a string, it is an import initialization
+            value_temp = self.new_temp()
+            self.add_instruction(IRIncBin(node.name, value_temp))
+            return
+
         # If in a procedure, generate assignment; otherwise, it's a global initialization
         if self.current_procedure:
+            # Local variable initialization
             self.add_instruction(IRAssign(node.name, value_temp))
         else:
-            # For global initializations, add to main section
-            self.add_instruction(IRAssign(node.name, value_temp))
+            # For global initializations, add to main section with explicit store to memory
+            # First register it as a global if not already done
+            if node.name not in self.program.globals and hasattr(node, 'var_type'):
+                type_ = self.string_to_type(node.var_type)
+                self.program.add_global(node.name, type_)
+            
+            # Use IRStore to explicitly indicate memory storage for globals
+            self.add_instruction(IRStore(node.name, value_temp))
     
     def visit_ListInitialization(self, node: ListInitialization) -> None:
         """Visit a ListInitialization node"""
@@ -577,13 +581,11 @@ class IRGenerator:
     
     def visit_StringLiteral(self, node: StringLiteral) -> str:
         """Visit a StringLiteral node and return the temp var holding the value"""
-        result_temp = self.new_temp()
-        self.add_instruction(IRConstant(result_temp, node.value))
         
-        return result_temp
+        return node.value
     
     def visit_Variable(self, node: Variable) -> str:
-        """Visit a Variable node and return the variable name or a temp var for hardware registers"""
+        """Visit a Variable node and return the variable name or a temp var"""
         if isinstance(node.name, str):
             var_name = node.name
             
@@ -593,8 +595,15 @@ class IRGenerator:
                 self.add_instruction(IRHardwareRead(result_temp, var_name))
                 return result_temp
             
-            # Regular variable
-            return var_name
+            # Check if it's a global variable
+            if var_name in self.program.globals:
+                # For globals, we need to explicitly load from memory
+                result_temp = self.new_temp()
+                self.add_instruction(IRLoad(result_temp, var_name))
+                return result_temp
+            else:
+                # For locals, return the variable name (for register allocation phase)
+                return var_name
         else:
             # Handle case where Variable contains an object (e.g., AttributeAccess)
             return self.visit(node.name)
