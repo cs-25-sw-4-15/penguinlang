@@ -206,13 +206,12 @@ class IRHardwareCall(IRInstruction):
 
 class IRHardwareMemCpy(IRInstruction):
     """Copy memory from one hardware register to another"""
-    def __init__(self, dest: str, src: str, size: str):
+    def __init__(self, dest: str, src: str):
         self.dest = dest
         self.src = src
-        self.size = size
     
     def __str__(self) -> str:
-        return f"hw_memcpy({self.dest}, {self.src}, {self.size})"
+        return f"hw_memcpy({self.dest}, {self.src})"
 
 class IRProcedure:
     """Procedure in IR"""
@@ -418,7 +417,10 @@ class IRGenerator:
             target_name = node.target.name
             if self.is_hardware_register(target_name):
                 # Writing to a hardware register
-                self.add_instruction(IRHardwareWrite(target_name, value_temp))
+                if isinstance(node.var_type, (TilesetType, TileMapType, SpriteType)):
+                    self.add_instruction(IRHardwareMemCpy(target_name, value_temp))
+                else:
+                    self.add_instruction(IRHardwareWrite(target_name, value_temp))
             else:
                 # Check if it's a global variable
                 if target_name in self.program.globals:
@@ -454,7 +456,7 @@ class IRGenerator:
         if isinstance(node.value, (StringLiteral)):
             # If the value is a string, it is an import initialization
             value_temp = self.new_temp()
-            self.add_instruction(IRIncBin(node.name, value_temp))
+            self.add_instruction(IRIncBin(node.name, node.value.value))
             return
 
         # If in a procedure, generate assignment; otherwise, it's a global initialization
