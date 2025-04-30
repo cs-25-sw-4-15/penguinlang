@@ -36,6 +36,16 @@ class IRUnaryOp(IRInstruction):
     
     def __str__(self) -> str:
         return f"{self.dest} = {self.op} {self.operand}"
+    
+
+class IRIncBin(IRInstruction):
+    """Binary inc in IR"""
+    def __init__(self, varname: str, filepath: str):
+        self.varname = varname
+        self.filepath = filepath
+    
+    def __str__(self) -> str:
+        return f"INCBIN {self.varname} {self.filepath}"
 
 class IRAssign(IRInstruction):
     """Assignment in IR"""
