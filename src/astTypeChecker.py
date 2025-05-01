@@ -108,7 +108,7 @@ class TypeChecker:
         elif type_str == "void":
             return VoidType()
         else:
-            raise InvalidTypeError(f"Invalid type: {type_str}")
+            raise InvalidTypeError(f"Invalid type: {type_str} --- {type(type_str)}")
     
     def check_node(self, node: ASTNode) -> Type:
         """Type check an AST node by dispatching to the appropriate method."""
@@ -550,6 +550,9 @@ class TypeChecker:
         # Convert the return type string to a Type object
         return_type = self.string_to_type(node.return_type) if node.return_type else VoidType()
         
+        logger.debug(f"########### return_type: {node.return_type} --- {type(node.return_type)} --- {return_type} --- {type(return_type)}")
+        node.return_type = return_type
+        
         # Save the previous return type (in case we're in a nested procedure)
         prev_return_type = self.current_return_type
         self.current_return_type = return_type
@@ -558,13 +561,16 @@ class TypeChecker:
         old_symbol_table = self.symbol_table.copy()
         
         # Process the parameters
+        # parametres are declarations of varaibles
+        for param in node.params:
+            self.check_node(param)
         param_types = []
-        for param_name, param_type_str in node.params:
-            param_type = self.string_to_type(param_type_str)
-            param_types.append((param_name, param_type))
+        for param in node.params:
+            #param.var_type = self.string_to_type(param.var_type)
+            param_types.append((param.name, param.var_type))
             
             # Add the parameter to the symbol table
-            self.symbol_table[param_name] = param_type
+            #self.symbol_table[param.name] = param.var_type
         
         # Add the procedure to the procedure table
         self.procedure_table[node.name] = (param_types, return_type)

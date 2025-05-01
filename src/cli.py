@@ -14,6 +14,11 @@ Help:
     py src/cli.py COMMAND --help
 """
 
+import sys
+import os
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 # Import compiler functions
 from src.compiler import print_tree, read_input_file, \
     concrete_syntax_tree, abstact_syntax_tree, typed_abstact_syntax_tree

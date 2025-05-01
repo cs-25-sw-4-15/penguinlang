@@ -156,7 +156,7 @@ class TestASTLiterals:
         assert ast.statements[0].value.value == 42  # 0b101010 = 42
 
 
-class TestASTConidionals:
+class TestASTConditionals:
     def test_conditional_statement(self):
         ast = build_ast("if (x > 0) { y = 1; }")
         
@@ -235,8 +235,10 @@ class TestASTProcedures:
         assert ast.statements[0].return_type == "int"
         assert ast.statements[0].name == "add"
         assert len(ast.statements[0].params) == 2
-        assert ast.statements[0].params[0] == ("a", "int")
-        assert ast.statements[0].params[1] == ("b", "int")
+        assert ast.statements[0].params[0].name == "a"
+        assert ast.statements[0].params[0].var_type == "int"
+        assert ast.statements[0].params[1].name == "b"
+        assert ast.statements[0].params[1].var_type == "int"
         assert len(ast.statements[0].body) == 1
         assert isinstance(ast.statements[0].body[0], Return)
         assert isinstance(ast.statements[0].body[0].value, BinaryOp)

@@ -241,7 +241,9 @@ class ASTGenerator(penguinVisitor):
             parametres_raw = self.visitParameterList(context.parameterList())
             assert parametres_raw, "Procedure declaration missing parameters"
             
-            for i in range(len(parametres_raw)):
+            parametres = parametres_raw
+            
+            """ for i in range(len(parametres_raw)):
                 logger.debug(f"Visiting parameter {i}: {parametres_raw[i].name}")
                 
                 parametre_type_: str = parametres_raw[i].var_type
@@ -252,7 +254,7 @@ class ASTGenerator(penguinVisitor):
                 
                 parametres.append((parametre_type_, parametre_name))
             
-            assert parametres, "Procedure declaration missing parameters"
+            assert parametres, "Procedure declaration missing parameters" """
             logger.debug(f"Procedure declaration parameters: {parametres}")
             
         statements: List[ASTNode] = self.visit(context.statementBlock())
@@ -573,7 +575,7 @@ class ASTGenerator(penguinVisitor):
         # Zip de to lister sammen, så vi kan få fat i type og navn på samme tid
         for t, i in zip(context.type_(), context.IDENTIFIER()):
             # Besøg type og navn og lav en ny node Variable for hver parameter
-            parametres.append(Variable(i.getText(), t.getText()))
+            parametres.append(Declaration(name=i.getText(), var_type=t.getText()))
         
         assert all(isinstance(param, ASTNode) for param in parametres), "Not all parameters are ASTNodes"
         logger.debug(f"Parameter list: {parametres}")
