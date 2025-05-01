@@ -623,7 +623,7 @@ class IRGenerator:
         result_temp = self.new_temp()
         
         # Check if this is a hardware register array
-        if base_name == "display.oam" or self.is_hardware_register(base_name):
+        if base_name == "display_oam" or self.is_hardware_register(base_name):
             # Hardware indexed read
             self.add_instruction(IRHardwareIndexedRead(result_temp, base_name, index_temp))
         else:
