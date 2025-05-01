@@ -407,6 +407,7 @@ class IRGenerator:
         if self.current_procedure:
             # Add local variable initialization if inside a procedure
             pass
+        # todo: add handling of in-procedure declarations
     
     def visit_Assignment(self, node: Assignment) -> None:
         """Visit an Assignment node"""
