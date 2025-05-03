@@ -18,21 +18,16 @@ class ASTNode():
     """AST Base Class.
     
     Attributes:
-        type (str): The type of the node.
-        children (list[ASTNode]): The children of the node.
-        value (Any): The value of the node.
+        None
     
     Update:
         Constructor does not get used by any class idealy.
         The constructor is used for the base class ASTNode.
     """
     
-    def __init__(self, type, children=None, value=None) -> None:
+    def __init__(self) -> None:
         """AST Node Constructor"""
-        
-        self.type = type
-        self.children = children or []
-        self.value = value
+        ...
 
     def __repr__(self) -> str:
         """___repr__ method
