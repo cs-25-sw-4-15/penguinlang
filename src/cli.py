@@ -23,6 +23,7 @@ from typing_extensions import Annotated
 from ast_classes import ASTNode
 from asttype_checker import TypeChecker
 from IRProgram import IRGenerator
+from RegisterAllocator import RegisterAllocator
 
 # Import compiler functions
 from compiler import read_input_file, \
@@ -121,6 +122,33 @@ def ir(input_path: Annotated[str, typer.Argument(help="Input file path")]):
     print("IR STARTS HERE")
     print(ir_program)  # This will call __str__ on the IRProgram object
     print("DONE")
+
+
+
+
+@app.command()
+def ra(input_path: Annotated[str, typer.Argument(help="Input file path")]):
+    """Generate and display intermediate representation (IR) for the input file."""
+    print("Generating IR for input:", input_path)
+    input_stream = read_input_file(input_path)
+    cst = concrete_syntax_tree(input_stream)
+    ast = abstact_syntax_tree(cst)
+    
+    # Type check the AST
+    typechecker = TypeChecker()
+    typechecker.check_program(ast)
+    
+    ir_generator = IRGenerator()
+    ir_program = ir_generator.generate(ast)
+
+    register_allocator = RegisterAllocator(num_registers=4)
+    rewritten_program = register_allocator.allocate_registers(ir_program)
+    
+    print("RA STARTS HERE")
+    print(rewritten_program)  # This will call __str__ on the IRProgram object
+    print("DONE")
+
+
 
 
 if __name__ == "__main__":
