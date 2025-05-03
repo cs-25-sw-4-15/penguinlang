@@ -212,6 +212,15 @@ class IRHardwareMemCpy(IRInstruction):
     
     def __str__(self) -> str:
         return f"hw_memcpy({self.dest}, {self.src})"
+    
+class IRArgLoad(IRInstruction):
+    """Load argument in IR"""
+    def __init__(self, dest: str, arg_index: int):
+        self.dest = dest
+        self.arg_index = arg_index
+    
+    def __str__(self) -> str:
+        return f"{self.dest} = arg[{self.arg_index}]"
 
 class IRProcedure:
     """Procedure in IR"""
@@ -307,7 +316,7 @@ class IRGenerator:
         for statement in ast.statements:
             if isinstance(statement, ProcedureDef):
                 # Just register the procedure signature first
-                params = [param[1] for param in statement.params]  # Extract parameter names
+                params = [param[0] for param in statement.params]  # Extract parameter names
                 return_type = None
                 if statement.return_type and statement.return_type != "void":
                     return_type = self.string_to_type(statement.return_type)
@@ -332,6 +341,18 @@ class IRGenerator:
                 # Now generate the procedure body
                 procedure = self.program.procedures[statement.name]
                 self.current_procedure = procedure
+                count = 0
+                for param_name in statement.params:
+                    new_temp = self.new_temp()
+                    # Load argument into a temporary
+                    self.current_procedure.add_instruction(IRArgLoad(new_temp, count))
+                    # Add assignment from temporary to parameter name
+                    if isinstance(param_name, tuple):  # Handle (name, type) format
+                        param_var_name = param_name[0]
+                    else:
+                        param_var_name = param_name
+                    self.current_procedure.add_instruction(IRAssign(param_var_name, new_temp))
+                    count += 1
                 for stmt in statement.body:
                     self.visit(stmt)
                 self.current_procedure = None
