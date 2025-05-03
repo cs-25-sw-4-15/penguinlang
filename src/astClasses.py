@@ -15,19 +15,7 @@ if TYPE_CHECKING:
 
 
 class ASTNode():
-    """AST Base Class.
-    
-    Attributes:
-        None
-    
-    Update:
-        Constructor does not get used by any class idealy.
-        The constructor is used for the base class ASTNode.
-    """
-    
-    def __init__(self) -> None:
-        """AST Node Constructor"""
-        ...
+    """AST Base Class."""
 
     def __repr__(self) -> str:
         """___repr__ method
