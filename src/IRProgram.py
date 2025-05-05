@@ -370,7 +370,9 @@ class IRGenerator:
         
         # OAM (Object Attribute Memory) registers
         # This is handled as a special case for array/list-like access
-        self.hardware_registers.add("display_oam")
+        self.hardware_registers.add("display_oam_x")
+        self.hardware_registers.add("display_oam_y")
+        self.hardware_registers.add("display_oam_tile")
         
         # Input state registers
         self.hardware_registers.add("input_Right")
