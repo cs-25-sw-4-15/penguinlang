@@ -272,7 +272,7 @@ class LinearScanner:
             A string representing a memory location
         """
         loc = f"[sp+{self.spill_counter}]"
-        self.spill_counter += 1  # Increment by 2 bytes (word size)
+        self.spill_counter += 1  # Increment by 1 byte (word size)
         return loc
     
     def is_register(self, allocation: str) -> bool:
