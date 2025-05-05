@@ -31,6 +31,7 @@ initialization
 
 expression
     : expr_val                              // En value
+    | ('-' | '+') expression                // Unary plus/minus
     | '~' expression                        // Unary bitwise not
     | 'not' expression                      // Unary logical not
     | expression ('*') expression           // Gange

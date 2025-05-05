@@ -12,8 +12,8 @@ tileset arkenoidtileset = "arkanoid_tiles.bin";
 tilemap arkenoidtilemap = "arkanoid_tilemap.bin";
 
 // Set onto display backround
-display.tileset0[0] = arkenoidtileset;
-display.tilemap0[0][0] = arkenoidtilemap;
+display.tileset0 = arkenoidtileset;
+display.tilemap0 = arkenoidtilemap;
 
 sprite paddle = "paddle.bin";
 sprite ball = "ball.bin";

@@ -426,30 +426,61 @@ class ASTGenerator(penguinVisitor):
     def visitName(self, context: penguinParser.NameContext) -> Union[AttributeAccess, Variable, ListAccess]:
         """Visits the name context and creates a Variable, AttributeAccess, or ListAccess AST node."""
         logger.info(f"Visiting name: {context.getText()}")
-        
         assert context.IDENTIFIER(), "Name node has no identifiers"
         
-        current_name: ASTNode = context.IDENTIFIER(0).getText()
-        logger.debug(f"Base variable: {current_name}")
+        # Start with the base variable
+        current_node = Variable(None, context.IDENTIFIER(0).getText())
+        logger.debug(f"Base variable: {current_node}")
         
-        for i in range(1, len(context.IDENTIFIER())):
-            # Wrap current_name with an AttributeAccess node
-            current_name = AttributeAccess(current_name, context.IDENTIFIER(i).getText())
-            logger.debug(f"Wrapped in AttributeAccess: {current_name}")
+        # Parse the context to build up the access chain
+        i = 1  # Start from the first token after the initial identifier
         
-        if context.expression():
-            indices = []
-            for expression_context in context.expression():
-                index_expression: ASTNode = self.visit(expression_context)
-                indices.append(index_expression)
+        # Count how many expressions we've processed
+        expression_idx = 0
+        identifier_idx = 1  # Skip the first identifier which was already processed
+        
+        while i < len(context.children):
+            child = context.children[i]
+            token_text = child.getText()
             
-            if indices:
-                current_name = ListAccess(current_name, indices)
-                logger.debug(f"Created ListAccess with all indices: {current_name}")
+            if token_text == '.':
+                # Attribute access: get the next identifier
+                if identifier_idx < len(context.IDENTIFIER()):
+                    attr_name = context.IDENTIFIER(identifier_idx).getText()
+                    current_node = AttributeAccess(current_node, attr_name)
+                    logger.debug(f"Created AttributeAccess: {current_node}")
+                    identifier_idx += 1
+                i += 2  # Skip the '.' and the identifier
             
-            return current_name
+            elif token_text == '[':
+                # List access: collect all consecutive indices
+                indices = []
+                
+                # Process this index
+                if expression_idx < len(context.expression()):
+                    index_expr = self.visit(context.expression(expression_idx))
+                    indices.append(index_expr)
+                    expression_idx += 1
+                
+                i += 3  # Skip '[', expression, and ']'
+                
+                # Look ahead for consecutive list accesses to flatten
+                while i < len(context.children) and context.children[i].getText() == '[':
+                    if expression_idx < len(context.expression()):
+                        index_expr = self.visit(context.expression(expression_idx))
+                        indices.append(index_expr)
+                        expression_idx += 1
+                    i += 3  # Skip '[', expression, and ']'
+                
+                # Create a single ListAccess with all the indices
+                current_node = ListAccess(current_node, indices)
+                logger.debug(f"Created ListAccess with indices: {current_node}")
+            
+            else:
+                # Skip any other tokens
+                i += 1
         
-        return Variable(None, current_name)
+        return current_node
     
     def visitListAccess(self, context: penguinParser.ListAccessContext) -> ListAccess:
         """visit the list access context and creates a ListAccess AST node with flattened indices."""
