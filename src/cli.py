@@ -17,12 +17,12 @@ import json
 
 
 
-
 # Import the necessary modules
 import typer
 from typing_extensions import Annotated
 from ast_classes import ASTNode
-
+from asttype_checker import TypeChecker
+from IRProgram import IRGenerator
 
 # Import compiler functions
 from compiler import read_input_file, \
@@ -39,6 +39,10 @@ class ASTEncoder(json.JSONEncoder):
             for key, value in obj.__dict__.items():
                 result[key] = value
             return result
+        # Special case for Type objects including VoidType, IntType, etc.
+        elif obj.__class__.__name__ in ['VoidType', 'IntType', 'StringType', 'TilesetType', 
+                                       'TileMapType', 'SpriteType', 'OAMEntryType', 'ListType']:
+            return {"__class__": obj.__class__.__name__}
         # Let the base class handle other types
         return super().default(obj)
 
@@ -78,8 +82,45 @@ def ast(input_path: Annotated[str, typer.Argument(help="Input file path")]):
 
 
 @app.command()
-def tast(input_path: Annotated[str, typer.Argument(help="Input file path")]):
+def taast(input_path: Annotated[str, typer.Argument(help="Input file path")]):
     print("Typed AST function called with input:", input_path)
+    input_stream = read_input_file(input_path)
+    cst = concrete_syntax_tree(input_stream)
+    ast = abstact_syntax_tree(cst)
+    typechecker = TypeChecker()
+    typechecker.check_program(ast)
+    print("JSON STARTS HERE")
+    print(json.dumps(ast, cls=ASTEncoder))
+    print("DONE")
+
+@app.command()
+def codegen(input_path: Annotated[str, typer.Argument(help="Input file path")]):
+    print("Typed AST function called with input:", input_path)
+    input_stream = read_input_file(input_path)
+    cst = concrete_syntax_tree(input_stream)
+    ast = abstact_syntax_tree(cst)
+    typechecker = TypeChecker()
+    typechecker.check_program(ast)
+
+
+@app.command()
+def ir(input_path: Annotated[str, typer.Argument(help="Input file path")]):
+    """Generate and display intermediate representation (IR) for the input file."""
+    print("Generating IR for input:", input_path)
+    input_stream = read_input_file(input_path)
+    cst = concrete_syntax_tree(input_stream)
+    ast = abstact_syntax_tree(cst)
+    
+    # Type check the AST
+    typechecker = TypeChecker()
+    typechecker.check_program(ast)
+    
+    ir_generator = IRGenerator()
+    ir_program = ir_generator.generate(ast)
+    
+    print("IR STARTS HERE")
+    print(ir_program)  # This will call __str__ on the IRProgram object
+    print("DONE")
 
 
 if __name__ == "__main__":

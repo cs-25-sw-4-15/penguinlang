@@ -378,3 +378,12 @@ def test_complex_nested_structure():
     assert isinstance(ast.statements[0].then_body[0].body[1], Conditional)
     assert len(ast.statements[0].else_body) == 1
     assert isinstance(ast.statements[0].else_body[0], ProcedureCallStatement)
+
+
+
+
+###########################################################################
+######################## BELOW ARE TESTS FOR THE TYPE CHECKING ############
+###########################################################################
+
+
