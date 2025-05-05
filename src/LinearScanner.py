@@ -7,7 +7,7 @@ allocates registers to variables in a single pass through the code.
 """
 
 from typing import Dict, List, Set, Tuple, Optional
-from IRProgram import IRInstruction, IRProgram, IRProcedure
+from IRProgram import IRInstruction, IRProgram, IRProcedure, IRArgLoad
 from LivenessAnalyzer import LivenessAnalyzer
 
 class LiveRange:
@@ -38,7 +38,7 @@ class LinearScanner:
     Linear scan is simpler than graph coloring but generally effective for register allocation.
     """
     
-    def __init__(self, num_registers: int = 6):
+    def __init__(self, num_registers: int = 4):
         """
         Initialize the linear scanner.
         
@@ -94,9 +94,9 @@ class LinearScanner:
         return result
     
     def allocate_procedure(self, 
-                          proc_name: str, 
-                          instructions: List[IRInstruction], 
-                          liveness_info: Dict[int, Set[str]]) -> Dict[str, str]:
+                        proc_name: str, 
+                        instructions: List[IRInstruction], 
+                        liveness_info: Dict[int, Set[str]]) -> Dict[str, str]:
         """
         Allocate registers for a single procedure.
         
@@ -112,14 +112,39 @@ class LinearScanner:
         self.allocation = {}
         self.spill_counter = 0
         
+        # Find parameter variables by looking for IRArgLoad instructions
+        param_vars = []
+        for i, instr in enumerate(instructions):
+            if isinstance(instr, IRArgLoad):
+                param_vars.append((instr.dest, instr.arg_index))
+        
+        # Sort parameters by their argument index
+        param_vars.sort(key=lambda x: x[1])
+        
+        # Allocate parameters to specific registers (b, c, d, e)
+        register_order = ['b', 'c', 'd', 'e']
+        for i, (param_var, _) in enumerate(param_vars):
+            if i < len(register_order):
+                self.allocation[param_var] = register_order[i]
+        
         # Build live ranges from liveness information
         self.build_live_ranges(instructions, liveness_info)
+        
+        # Filter out parameters from live ranges to prevent them from being reallocated
+        self.live_ranges = [lr for lr in self.live_ranges if lr.var_name not in self.allocation]
         
         # Sort live ranges by start point
         self.live_ranges.sort()
         
-        # Perform linear scan
+        # Adjust number of available registers
+        original_num_registers = self.num_registers
+        self.num_registers = original_num_registers - len(param_vars)
+        
+        # Perform linear scan with remaining registers
         self.linear_scan()
+        
+        # Restore original number of registers
+        self.num_registers = original_num_registers
         
         return self.allocation
     

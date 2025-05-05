@@ -19,7 +19,7 @@ class RegisterAllocator:
     and IR rewriting to perform register allocation for the entire program.
     """
     
-    def __init__(self, num_registers: int = 6):
+    def __init__(self, num_registers: int = 4):
         """
         Initialize the register allocator.
         
