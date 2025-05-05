@@ -329,17 +329,117 @@ class TestTypeProcedureDef:
             assert False, "child scope in formal param not overwriting parent scope"
 
 
-class TestBinaryOp:
+class TestBinaryOp: #TODO
     def test_arithmetic_binary_op(self):
         taast = build_taast("int x = 1 + 2")
-        
-        assert isinstance(taast.statements[0].value, BinaryOp), "binary op -> binary op"
         assert taast.statements[0].value == "+"
-        assert isinstance(taast.statements[0].value.var_type, IntType), "binary op -> int"
-        assert isinstance(taast.statements[0].value.left.var_type, IntType), "binary op left -> int"
-        assert isinstance(taast.statements[0].value.right.var_type, IntType), "binary op right -> int"
+        assert isinstance(taast.statements[0].value.var_type, IntType), "arithmetic op -> int"
+        assert isinstance(taast.statements[0].value.left.var_type, IntType), "arithmetic op left -> int"
+        assert isinstance(taast.statements[0].value.right.var_type, IntType), "arithmetic op right -> int"
+        
+        taast = build_taast("int x = 1 - 2")
+        assert isinstance(taast.statements[0].value.var_type, IntType), "arithmetic op -> int"
+        assert isinstance(taast.statements[0].value.left.var_type, IntType), "arithmetic op left -> int"
+        assert isinstance(taast.statements[0].value.right.var_type, IntType), "arithmetic op right -> int"
+        
+        taast = build_taast("int x = 1 * 2")
+        assert isinstance(taast.statements[0].value.var_type, IntType), "arithmetic op -> int"
+        assert isinstance(taast.statements[0].value.left.var_type, IntType), "arithmetic op left -> int"
+        assert isinstance(taast.statements[0].value.right.var_type, IntType), "arithmetic op right -> int"
+        
+        taast = build_taast("int x = 1 << 2")
+        assert isinstance(taast.statements[0].value.var_type, IntType), "bitwise arithmetic op -> int"
+        assert isinstance(taast.statements[0].value.left.var_type, IntType), "bitwise arithmetic op left -> int"
+        assert isinstance(taast.statements[0].value.right.var_type, IntType), "bitwise arithmetic op right -> int"
+        
+        taast = build_taast("int x = 1 >> 2")
+        assert isinstance(taast.statements[0].value.var_type, IntType), "bitwise arithmetic op -> int"
+        assert isinstance(taast.statements[0].value.left.var_type, IntType), "bitwise arithmetic op left -> int"
+        assert isinstance(taast.statements[0].value.right.var_type, IntType), "bitwise arithmetic op right -> int"
+        
+    
+    def test_logical_and_bitwise_binary_op(self):
+        taast = build_taast("int x = 1 & 2")
+        assert isinstance(taast.statements[0].value.var_type, IntType), "bitwise op -> int"
+        assert isinstance(taast.statements[0].value.left.var_type, IntType), "bitwise op left -> int"
+        assert isinstance(taast.statements[0].value.right.var_type, IntType), "bitwise op right -> int"
+        
+        taast = build_taast("int x = 1 | 2")
+        assert isinstance(taast.statements[0].value.var_type, IntType), "bitwise op -> int"
+        assert isinstance(taast.statements[0].value.left.var_type, IntType), "bitwise op left -> int"
+        assert isinstance(taast.statements[0].value.right.var_type, IntType), "bitwise op right -> int"
+        
+        taast = build_taast("int x = 1 ^ 2")
+        assert isinstance(taast.statements[0].value.var_type, IntType), "bitwise op -> int"
+        assert isinstance(taast.statements[0].value.left.var_type, IntType), "bitwise op left -> int"
+        assert isinstance(taast.statements[0].value.right.var_type, IntType), "bitwise op right -> int"
+        
+        taast = build_taast("int x = 1 and 2")
+        assert isinstance(taast.statements[0].value.var_type, IntType), "logical op -> int"
+        assert isinstance(taast.statements[0].value.left.var_type, IntType), "logical op left -> int"
+        assert isinstance(taast.statements[0].value.right.var_type, IntType), "logical op right -> int"
+        
+        taast = build_taast("int x = 1 or 2")
+        assert isinstance(taast.statements[0].value.var_type, IntType), "logical op -> int"
+        assert isinstance(taast.statements[0].value.left.var_type, IntType), "logical op left -> int"
+        assert isinstance(taast.statements[0].value.right.var_type, IntType), "logical op right -> int"
+        
+        
+        
+    def test_comparison_binary_op(self):
+        taast = build_taast("int x = 1 < 2")
+        assert isinstance(taast.statements[0].value.var_type, IntType), "comparison op -> int"
+        assert isinstance(taast.statements[0].value.left.var_type, IntType), "comparison op left -> int"
+        assert isinstance(taast.statements[0].value.right.var_type, IntType), "comparison op right -> int"
+        
+        taast = build_taast("int x = 1 > 2")
+        assert isinstance(taast.statements[0].value.var_type, IntType), "comparison op -> int"
+        assert isinstance(taast.statements[0].value.left.var_type, IntType), "comparison op left -> int"
+        assert isinstance(taast.statements[0].value.right.var_type, IntType), "comparison op right -> int"
+        
+        taast = build_taast("int x = 1 <= 2")
+        assert isinstance(taast.statements[0].value.var_type, IntType), "comparison op -> int"
+        assert isinstance(taast.statements[0].value.left.var_type, IntType), "comparison op left -> int"
+        assert isinstance(taast.statements[0].value.right.var_type, IntType), "comparison op right -> int"
+        
+        taast = build_taast("int x = 1 >= 2")
+        assert isinstance(taast.statements[0].value.var_type, IntType), "comparison op -> int"
+        assert isinstance(taast.statements[0].value.left.var_type, IntType), "comparison op left -> int"
+        assert isinstance(taast.statements[0].value.right.var_type, IntType), "comparison op right -> int"
+        
+        taast = build_taast("int x = 1 == 2")
+        assert isinstance(taast.statements[0].value.var_type, IntType), "comparison op -> int"
+        assert isinstance(taast.statements[0].value.left.var_type, IntType), "comparison op left -> int"
+        assert isinstance(taast.statements[0].value.right.var_type, IntType), "comparison op right -> int"
+        
+        taast = build_taast("int x = 1 != 2")
+        assert isinstance(taast.statements[0].value.var_type, IntType), "comparison op -> int"
+        assert isinstance(taast.statements[0].value.left.var_type, IntType), "comparison op left -> int"
+        assert isinstance(taast.statements[0].value.right.var_type, IntType), "comparison op right -> int"
 
 
+class TestUnaryOp:
+    def test_aritmetic_unary_op(self):
+        taast = build_taast("int x = -1")
+        assert isinstance(taast.statements[0].value.var_type, IntType), "unary arithmetic op -> int"
+        
+        taast = build_taast("int x = +1")
+        assert isinstance(taast.statements[0].value.var_type, IntType), "unary arithmetic op -> int"
+    
+    def test_logical_unary_op(self):
+        taast = build_taast("int x = not 1")
+        assert isinstance(taast.statements[0].value.var_type, IntType), "unary logical op -> int"
+        
+        taast = build_taast("int x = not (1 and 2)")
+        assert isinstance(taast.statements[0].value.var_type, IntType), "unary logical op -> int"
+        
+        taast = build_taast("int x = ~ 1;")
+        assert isinstance(taast.statements[0].value.var_type, IntType), "unary bitwise op -> int"
+        
+        taast = build_taast("int x = ~ (1 & 2);")
+        assert isinstance(taast.statements[0].value.var_type, IntType), "unary bitwise op -> int"
+        
+    
 class TestTypeIntegerLiteral:
     def test_integer_literal_type(self):
         # Test basic integer literal
@@ -395,31 +495,124 @@ class TestTypeStringLiteral:
 
 
 class TestTypeVariable:
-    def test_varaible_type(self):
+    def test_varaible_scope(self):
         # regular variable case
-        ...
+        taast = build_taast("int x = 2; x = 1;")
+        assert isinstance(taast.statements[0], Initialization), "stmt init -> init"
+        assert isinstance(taast.statements[0].var_type, IntType), "var scope -> int"
+        assert isinstance(taast.statements[0].value.var_type, IntType), "var scope -> int"
+        assert isinstance(taast.statements[1], Assignment), "stmt assignment -> assignment"
+        assert isinstance(taast.statements[1].target.var_type, IntType), "var scope -> int"
+        assert isinstance(taast.statements[1].value.var_type, IntType), "var scope -> int"
         
+        try:
+            taast = build_taast("x = 3;")
+        except Exception as e:
+            assert isinstance(e, UndeclaredVariableError), "UndeclaredVariableError #1 -x-> undeclared"
     
-    def test_variable_type2(self):
+    def test_variable_scope2(self):
         # attribute access case
         # this has been removed from use, and new dots cannot be made
-        ...
+        try: 
+            taast = build_taast("int x; x.x = 2;")
+        except Exception as e:
+            assert isinstance(e, UndeclaredVariableError), "UndeclaredVariableError #1 -x-> undeclared"
+        
+        taast = build_taast("display.oam[1].x = 1;")
+        
+        assert isinstance(taast.statements[0], Assignment), "stmt assignment -> assignment"
+        assert isinstance(taast.statements[0].var_type, IntType), "var scope -> int"
+
+
+class testTypeAttributeAccess:
+    def test_attribute_access_type(self):
+        taast = build_taast("display.oam[1].x = 1;")
+        assert isinstance(taast.statements[0], Assignment), "stmt assignment -> assignment"
+        assert isinstance(taast.statements[0].target.var_type, IntType), "var scope -> int"
+        
+        taast = build_taast("int x = display.oam[1].y;")
+        assert isinstance(taast.statements[0], Initialization), "stmt init -> init"
+        assert isinstance(taast.statements[0].var_type, IntType), "var scope -> int"
+        assert isinstance(taast.statements[0].value.var_type, IntType), "var scope -> int"
+        
+        taast = build_taast("int x = display.oam[1].x;")
+        assert isinstance(taast.statements[0], Initialization), "stmt init -> init"
+        assert isinstance(taast.statements[0].var_type, IntType), "var scope -> int"
+        assert isinstance(taast.statements[0].value.var_type, IntType), "var scope -> int"
+        
+        taast = build_taast("int x; x = display.oam[1].y;")
+        assert isinstance(taast.statements[1], Initialization), "stmt init -> init"
+        assert isinstance(taast.statements[1].var_type, IntType), "var scope -> int"
+        assert isinstance(taast.statements[1].value.var_type, IntType), "var scope -> int"
+        
+        taast = build_taast("int x; x = display.oam[1].x;")
+        assert isinstance(taast.statements[1], Initialization), "stmt init -> init"
+        assert isinstance(taast.statements[1].var_type, IntType), "var scope -> int"
+        assert isinstance(taast.statements[1].value.var_type, IntType), "var scope -> int"
+        
+        #TODO tjek for OAMEntryType
+        
+
+class TestTypeListAccess:
+    def test_list_access(self):
+        taast = build_taast("list x = [1, 2, 3]; x[0] = 5;")
+        assert isinstance(taast.statements[0], ListInitialization), "stmt init -> init"
+        assert isinstance(taast.statements[0].var_type, ListType), "var scope -> list"
+        assert isinstance(taast.statements[1], Assignment), "stmt assignment -> assignment"
+        assert isinstance(taast.statements[1].target.var_type, IntType), "var scope -> int"
+        assert isinstance(taast.statements[1].value.var_type, IntType), "var scope -> int"
+        
+        taast = build_taast("list x = [1, 2, 3]; int y = x[0];")
+        assert isinstance(taast.statements[1], Initialization), "stmt init -> init"
+        assert isinstance(taast.statements[1].var_type, IntType), "var scope -> int"
+        assert isinstance(taast.statements[1].value, ListAccess), "var scope -> list access"
+        assert isinstance(taast.statements[1].value.var_type, IntType), "var scope -> int"
+        assert isinstance(taast.statements[1].value.name, ListType), "var scope -> list"
+        assert isinstance(taast.statements[1].value.indices.var_type, IntType), "var scope -> int"
+
 
 class TestTypeProcedureCallStatement:
-    def test_procedure_call_statement(self):
-        # Test basic procedure call with no parameters
+    def test_procedure_call_statement_scope(self):
         taast = build_taast("""procedure foo() { int x = 1; } foo();""")
         
-        assert isinstance(taast.statements[0], ProcedureDef), "First statement -> proc def"
-        assert isinstance(taast.statements[1], ProcedureCallStatement), "Second statement -> proc call"
+        assert isinstance(taast.statements[0], ProcedureDef), "proc def -> ProcedureDef"
+        assert isinstance(taast.statements[0].return_type, VoidType), "proc def return_type -> void"
+        assert isinstance(taast.statements[1], ProcedureCallStatement), "proc call -> ProcedureCallStatement"
         
-        # Test procedure call with parameters
-        taast = build_taast("""procedure bar(int a, int b) { int sum = a + b; } bar(5, 10);""")
+        # Procedure is defined after it is called, should raise error
+        try:
+            taast = build_taast("""foo(1); procedure foo(int y) { int x = 1; }""")
+            assert False, "Expected error for calling before declaration"
+        except Exception as e:
+            assert isinstance(e, UndeclaredVariableError), "undeclared proc error (called before declared)"
+
+        # Procedure with no parameters called before it's declared, should raise error
+        try:
+            taast = build_taast("""foo(); procedure foo() { int x = 1; }""")
+            assert False, "Expected error for calling before declaration"
+        except Exception as e:
+            assert isinstance(e, UndeclaredVariableError), "undeclared proc error (called before declared)"
+
         
-        assert isinstance(taast.statements[0], ProcedureDef), "First statement -> proc def"
-        assert isinstance(taast.statements[1], ProcedureCallStatement), "Second statement -> proc call"
+class TestTypeProcedureCallInExpression:
+    def test_preocedurecallinexpression_type(self):
+        taast = build_taast("""procedure int foo() { return 1; } int x = foo();""")
+        # exp type, return type, foo exp type
+        assert isinstance(taast.statements[0], ProcedureDef), "proc def -> ProcedureDef"
+        assert isinstance(taast.statements[0].return_type, IntType), "proc def return_type -> int"
+        assert isinstance(taast.statements[1], Initialization), "init = proc call -> Initialization"
+        assert isinstance(taast.statements[1].var_type, IntType), "init -> int"
+        assert isinstance(taast.statements[1].value, ProcedureCall), "init -> ProcedureCall"
+        assert isinstance(taast.statements[1].value.var_type, IntType), "proc call -> int"
         
+        taast = build_taast("""procedure int foo(int x) { return x+1; } int x = foo(1);""")
+        # exp type, return type, type of return expression, foo exp type, param type
+        assert isinstance(taast.statements[0], ProcedureDef), "proc def -> ProcedureDef"
+        assert isinstance(taast.statements[0].return_type, IntType), "proc def return_type -> int"
+        assert isinstance(taast.statements[0].params[0].var_type, IntType), "proc def param -> int"
+        assert isinstance(taast.statements[0].body [0].var_type, IntType), "proc def body -> int"
+        assert isinstance(taast.statements[1].var_type, IntType), "init -> int"
+        assert isinstance(taast.statements[1].value, ProcedureCall), "init -> ProcedureCall"
+        assert isinstance(taast.statements[1].value.var_type, IntType), "proc call -> int"
+        assert isinstance(taast.statements[1].value.params[0].var_type, IntType), "proc call param (Variable) -> int"
         
-    ...
-    
-    

@@ -17,6 +17,7 @@ Help:
 import sys
 import os
 
+# add the src directory to the system path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Import compiler functions
@@ -49,6 +50,7 @@ def cst(input_path: Annotated[str, typer.Argument(help="Input file path")]):
     print("AST function called with input:", input_path)
     input_stream = read_input_file(input_path)
     cst = concrete_syntax_tree(input_stream, p=True)
+    print("made cst : " + type(cst))
     
 
 @app.command()
@@ -70,6 +72,7 @@ def taast(input_path: Annotated[str, typer.Argument(help="Input file path")]):
     
     print_tree(taast)
     print(taast.statements[0])
+
 
 if __name__ == "__main__":
     # Run the CLI application

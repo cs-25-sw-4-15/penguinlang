@@ -19,7 +19,7 @@ from src.astTypeChecker import TypeChecker
 
 # other modules
 import json
-import pprint
+
 
 class ASTEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -34,7 +34,7 @@ class ASTEncoder(json.JSONEncoder):
             return result
         # Special case for Type objects including VoidType, IntType, etc.
         elif obj.__class__.__name__ in ['VoidType', 'IntType', 'StringType', 'TilesetType', 
-                                       'TileMapType', 'SpriteType', 'OAMEntryType', 'ListType']:
+                                        'TileMapType', 'SpriteType', 'OAMEntryType', 'ListType']:
             return {"__class__": obj.__class__.__name__}
         # Let the base class handle other types
         return super().default(obj)
@@ -115,6 +115,7 @@ def typed_abstact_syntax_tree(ast: str):
     
     return tree
 
+
 def print_tree(tree: str) -> None:
     """Prints the tree in a readable format.
     
@@ -137,6 +138,8 @@ def main(input_file: str, output_file: str = "out.gb"):
     cst: str = concrete_syntax_tree(input_stream)
     ast: ASTNode = abstact_syntax_tree(cst)
     taast: str = typed_abstact_syntax_tree(ast)
+    
+    print("made taast: " + type(taast))
     
     # Backend
     # RGBDS

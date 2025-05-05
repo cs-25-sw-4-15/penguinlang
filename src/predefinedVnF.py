@@ -2,7 +2,7 @@
 Predefined hardware registers and functions for the Penguin language.
 This file defines built-in hardware elements that are available to all programs.
 """
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple
 # Import the type classes from the main type checker
 from src.astTypes import *
 
