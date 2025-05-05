@@ -52,7 +52,7 @@ class IRRewriter:
         # Rewrite main section
         if ir_program.main_instructions:
             self.proc_name = "main"
-            self.current_allocations = allocations.get("main", {})
+            self.current_allocations = allocations.get("_global", {})
             self.spill_slots = {}
             self.next_spill_slot = 0
             

@@ -48,8 +48,8 @@ class LivenessAnalyzer:
         
         # Analyze main section
         if ir_program.main_instructions:
-            self.proc_name = "main"
-            result["main"] = self.analyze_instructions(ir_program.main_instructions)
+            self.proc_name = "_global"
+            result["_global"] = self.analyze_instructions(ir_program.main_instructions)
         
         # Analyze each procedure
         for proc_name, procedure in ir_program.procedures.items():
@@ -198,19 +198,15 @@ class LivenessAnalyzer:
             
         elif isinstance(instr, IRLoad):
             self.def_vars[idx].add(instr.dest)
-            self._add_if_var(self.use_vars[idx], instr.addr)
             
         elif isinstance(instr, IRStore):
-            self._add_if_var(self.use_vars[idx], instr.addr)
             self._add_if_var(self.use_vars[idx], instr.value)
             
         elif isinstance(instr, IRIndexedLoad):
             self.def_vars[idx].add(instr.dest)
-            self._add_if_var(self.use_vars[idx], instr.base)
             self._add_if_var(self.use_vars[idx], instr.index)
             
         elif isinstance(instr, IRIndexedStore):
-            self._add_if_var(self.use_vars[idx], instr.base)
             self._add_if_var(self.use_vars[idx], instr.index)
             self._add_if_var(self.use_vars[idx], instr.value)
             

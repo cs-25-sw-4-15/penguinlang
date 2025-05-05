@@ -83,8 +83,8 @@ class LinearScanner:
         
         # Allocate registers for main section
         if ir_program.main_instructions:
-            result["main"] = self.allocate_procedure(
-                "main", ir_program.main_instructions, liveness_info["main"])
+            result["_global"] = self.allocate_procedure(
+                "_global", ir_program.main_instructions, liveness_info["_global"])
         
         # Allocate registers for each procedure
         for proc_name, procedure in ir_program.procedures.items():
