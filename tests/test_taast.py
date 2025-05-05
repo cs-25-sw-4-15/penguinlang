@@ -1,4 +1,8 @@
 import pytest
+import sys
+import os
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from antlr4 import InputStream, CommonTokenStream
 from src.generated.penguinLexer import penguinLexer
@@ -329,9 +333,11 @@ class TestBinaryOp:
     def test_arithmetic_binary_op(self):
         taast = build_taast("int x = 1 + 2")
         
-        assert isinstance(taast.statements[0].value, BinaryOp)
+        assert isinstance(taast.statements[0].value, BinaryOp), "binary op -> binary op"
         assert taast.statements[0].value == "+"
-        assert isinstance(taast.statements[0].value.var_type, IntType) 
+        assert isinstance(taast.statements[0].value.var_type, IntType), "binary op -> int"
+        assert isinstance(taast.statements[0].value.left.var_type, IntType), "binary op left -> int"
+        assert isinstance(taast.statements[0].value.right.var_type, IntType), "binary op right -> int"
 
 
 class TestTypeIntegerLiteral:
@@ -397,5 +403,23 @@ class TestTypeVariable:
     def test_variable_type2(self):
         # attribute access case
         # this has been removed from use, and new dots cannot be made
-        pass
+        ...
+
+class TestTypeProcedureCallStatement:
+    def test_procedure_call_statement(self):
+        # Test basic procedure call with no parameters
+        taast = build_taast("""procedure foo() { int x = 1; } foo();""")
+        
+        assert isinstance(taast.statements[0], ProcedureDef), "First statement -> proc def"
+        assert isinstance(taast.statements[1], ProcedureCallStatement), "Second statement -> proc call"
+        
+        # Test procedure call with parameters
+        taast = build_taast("""procedure bar(int a, int b) { int sum = a + b; } bar(5, 10);""")
+        
+        assert isinstance(taast.statements[0], ProcedureDef), "First statement -> proc def"
+        assert isinstance(taast.statements[1], ProcedureCallStatement), "Second statement -> proc call"
+        
+        
+    ...
+    
     
