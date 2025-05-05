@@ -697,7 +697,7 @@ class IRRewriter:
                 if '[sp+' in alloc:
                     offset = int(alloc.split('[sp+')[1].split(']')[0])
                     spill_slots[var] = offset
-                    spill_count = max(spill_count, offset + 2)  # +2 for word size
+                    spill_count = max(spill_count, offset + 1)  # +2 for word size
         
         if spill_count > 0:
             # Generate code to allocate space on the stack
@@ -718,7 +718,7 @@ class IRRewriter:
                 # Extract the offset from the allocation string ([sp+X])
                 if '[sp+' in alloc:
                     offset = int(alloc.split('[sp+')[1].split(']')[0])
-                    spill_count = max(spill_count, offset + 2)  # +2 for word size
+                    spill_count = max(spill_count, offset + 1)  # +2 for word size
         
         if spill_count > 0:
             # Generate code to deallocate space from the stack
