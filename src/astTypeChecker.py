@@ -26,42 +26,28 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-#Start med at modtage det tree som vi har lavet i AST generator
+# Start med at modtage det tree som vi har lavet i AST generator
 
-#Vi skal også imens vi gennemløber, tjekke om typerne i procedure kald er OK, og om variablerne er defineret / erklæret. Aka, liste over alle de forskellige variabler, lister, attributes (Gælder kun registers)
-#Det samme gælder funktioner, men vi skal nok løbe dem igennem først, da funktionskald gerne skulle kunne placeres hvor end.
+# Vi skal også imens vi gennemløber, tjekke om typerne i procedure kald er OK, og om variablerne er defineret / erklæret. 
+# Aka, liste over alle de forskellige variabler, lister, attributes (Gælder kun registers)
+# Det samme gælder funktioner, men vi skal nok løbe dem igennem først, da funktionskald gerne skulle kunne placeres hvor end.
 
-#Den skal nok køre et loop igennem de forskellige statements? Det giver ikke mening at lade tjekke om program er OK ud fra de forskellige statements, ikke engang alle statements behøver at blie tjekket
-#Brug visitor pattern eller generic recursive function til at besøge alle noderne, 
+# Den skal nok køre et loop igennem de forskellige statements? Det giver ikke mening at lade tjekke om program er 
+#   OK ud fra de forskellige statements, ikke engang alle statements behøver at blie tjekket
+# Brug visitor pattern eller generic recursive function til at besøge alle noderne, 
 # og fra bunden så finde den nuværende nodes typer, underliggende, på den vis at lade typen florere op
 
-#I løbet af denne process, bliver semantikken tjekket om den er OK, 
-#ift. godtagning af de forskellige nodes der tjekkes, efter alle childrens typer er gået op i træet
+# I løbet af denne process, bliver semantikken tjekket om den er OK, 
+# ift. godtagning af de forskellige nodes der tjekkes, efter alle childrens typer er gået op i træet
 
-#Efter denne gennemløbning, kan vi returnere det samme træ som vi arbejdede på, da vi kun ændrer typerne på det.
-#Kører det igennem uden fejl, er der ingen semantiske fejl, og det er nu et TAAST
-
-
-
-#OKAY MERE KONKRET
-
-#Gennemløb erklæringer / definitioner af variabler og funktioner, og tilføj dem til en liste der OGSÅ indeholder hardware registers
-#Typetjek dem imens?
+# Efter denne gennemløbning, kan vi returnere det samme træ som vi arbejdede på, da vi kun ændrer typerne på det.
+# Kører det igennem uden fejl, er der ingen semantiske fejl, og det er nu et TAAST
 
 
+# OKAY MERE KONKRET
 
-class Type:
-    """Base class for all types in the type system."""
-    
-    def __eq__(self, other):
-        """Check if two types are equal."""
-        if not isinstance(other, Type):
-            return False
-        return type(self) == type(other)
-    
-    def __repr__(self):
-        """String representation of the type."""
-        return self.__class__.__name__
+# Gennemløb erklæringer / definitioner af variabler og funktioner, og tilføj dem til en liste der OGSÅ indeholder hardware registers
+# Typetjek dem imens?
 
 
 class TypeChecker:
@@ -162,13 +148,13 @@ class TypeChecker:
         # Store the type in the node for later use
         # Check if the types match
         if target_type != value_type:   
-            if(value_type == SpriteType() and target_type == IntType()):
+            if (value_type == SpriteType() and target_type == IntType()):
                 return
             logger.error(f"Type mismatch in assignment: expected {target_type}, got {value_type}")
             raise TypeMismatchError(f"Type mismatch in assignment: expected {target_type}, got {value_type}")
 
-        if(target_type == (TileMapType, TilesetType, SpriteType)):
-            #Special case, where the above types cannot be reassigned at runtime
+        if (target_type == (TileMapType, TilesetType, SpriteType)):
+            # Special case, where the above types cannot be reassigned at runtime
             logger.error(f"Cannot reassign {target_type} at runtime")
             raise TypeMismatchError(f"Cannot reassign {target_type} at runtime")
         
@@ -194,8 +180,7 @@ class TypeChecker:
         # Check if the types match
         if var_type != value_type:
             # Special case for Tileset, TileMap, and Sprite which must be assigned strings
-            if (isinstance(var_type, (TilesetType, TileMapType, SpriteType)) and 
-                isinstance(value_type, StringType)):
+            if (isinstance(var_type, (TilesetType, TileMapType, SpriteType)) and isinstance(value_type, StringType)):
                 return
             
             logger.error(f"Type mismatch in initialization: expected {var_type}, got {value_type}")
@@ -421,7 +406,6 @@ class TypeChecker:
         
         # Return the type of element that we get when indexing this type
         return base_type.index_result_type()
-
     
     def check_AttributeAccess(self, node: AttributeAccess) -> Type:
         """Type check an AttributeAccess node."""
@@ -518,7 +502,6 @@ class TypeChecker:
         if proc_name not in self.procedure_table:
             logger.error(f"Undeclared procedure: {proc_name}, Type: {type(node.name)}")
             raise UndeclaredVariableError(f"Undeclared procedure: {proc_name}")
-    
         
         # Continue with the original implementation for argument checking
         param_types, return_type = self.procedure_table[proc_name]
@@ -566,11 +549,11 @@ class TypeChecker:
             self.check_node(param)
         param_types = []
         for param in node.params:
-            #param.var_type = self.string_to_type(param.var_type)
+            # param.var_type = self.string_to_type(param.var_type)
             param_types.append((param.name, param.var_type))
             
             # Add the parameter to the symbol table
-            #self.symbol_table[param.name] = param.var_type
+            # self.symbol_table[param.name] = param.var_type
         
         # Add the procedure to the procedure table
         self.procedure_table[node.name] = (param_types, return_type)

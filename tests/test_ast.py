@@ -13,8 +13,6 @@ from src.astGenerator import ASTGenerator
 from src.customErrors import *
 
 
-
-
 def build_ast(source_code):
     input_stream = InputStream(source_code)
     lexer = penguinLexer(input_stream)
@@ -24,6 +22,7 @@ def build_ast(source_code):
     
     visitor = ASTGenerator()
     return visitor.visit(parse_tree)
+
 
 class TestASTDeclarations:
     def test_declaration(self):

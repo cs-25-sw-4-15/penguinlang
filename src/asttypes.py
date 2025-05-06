@@ -20,10 +20,11 @@ class Type:
     def __eq__(self, other: Any) -> bool:
         """Check if two types are equal."""
         
-        if not isinstance(other, Type):
-            return False
-        
-        return type(self) == type(other)
+        return isinstance(other, Type)
+        # jeg beholder den nedrestående kode, da det er et fantastisk masterpeice af wtf'ness
+        # if not isinstance(other, Type):
+        #     return False
+        # return type(self) == type(other)
     
     def __repr__(self) -> str:
         """Type representation.
