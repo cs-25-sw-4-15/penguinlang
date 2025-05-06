@@ -195,7 +195,8 @@ class CodeGenerator:
         returnstr = ""
         returnstr += f"call PenguinPush\n"
         #Placer variables
-        #Call den reele'
+        #Call den reele funktion
+        #Result er i A
         returnstr += f"call PenguinPop\n"
 
     def generate_Return(instruction: IRReturn) -> str:
@@ -237,3 +238,4 @@ class CodeGenerator:
     def generate_ArgLoad(instruction: IRArgLoad) -> str:
         # Implementation to be filled in
         returnstr = ""
+        return "; Arg was loaded"
