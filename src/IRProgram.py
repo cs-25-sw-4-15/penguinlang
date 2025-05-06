@@ -245,6 +245,8 @@ class IRProgram:
     def __init__(self):
         self.procedures: Dict[str, IRProcedure] = {}
         self.globals: Dict[str, Type] = {}
+        self.global_address = {}
+        self.ram_address = 0xC000
         self.main_instructions: List[IRInstruction] = []
     
     def add_procedure(self, procedure: IRProcedure) -> None:
@@ -252,6 +254,8 @@ class IRProgram:
     
     def add_global(self, name: str, type_: Type) -> None:
         self.globals[name] = type_
+        self.global_address[name] = self.ram_address
+        self.ram_address += 1  
     
     def add_main_instruction(self, instruction: IRInstruction) -> None:
         self.main_instructions.append(instruction)
