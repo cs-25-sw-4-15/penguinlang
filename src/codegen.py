@@ -68,7 +68,7 @@ class CodeGenerator:
         # Implementation to be filled in
         returnstr = ""
 
-        # PLUS
+        # +
         if instruction.op == '+':
             #if register a is already involved
             if instruction.src1 == 'a' or instruction.src2 == 'a':
@@ -84,7 +84,9 @@ class CodeGenerator:
             if instruction.dest != 'a':
                 returnstr += f"ld {instruction.dest}, a\n"
 
-        # MINUS
+            return returnstr
+
+        # -
         elif instruction.op == '-':
             #if register a is already involved
             if instruction.src1 == 'a' or instruction.src2 == 'a':
@@ -92,6 +94,7 @@ class CodeGenerator:
                     returnstr += f"DEC {instruction.src1}, {instruction.src2}\n"
                 else:
                     returnstr += f"DEC {instruction.src2}, {instruction.src1}\n"
+
             #Case when a is not involved
             else:
                 returnstr += f"ld a, {instruction.src1}\n"
@@ -100,7 +103,9 @@ class CodeGenerator:
             if instruction.dest != 'a':
                 returnstr += f"ld {instruction.dest}, a\n"
 
-        # MULTIPLY
+            return returnstr
+
+        # *
         elif instruction.op == '*':
             """GB DOES NOT HAVE MULTIPLY, USE HELPER FUNCTION IN FOOTER"""
             #PUSH REGISTERS
@@ -109,6 +114,22 @@ class CodeGenerator:
             #POP REGISTERS
             #STORE RESULT
             returnstr += f"TEMP MULTIPLY\n"
+
+
+
+        # ==
+        # !=
+        # <
+        # >
+        # <=
+        # >=
+        # and
+        # or
+        # ^
+        # & 
+        # |
+        # <<
+        # >>
         
             
         
@@ -117,21 +138,39 @@ class CodeGenerator:
         # Implementation to be filled in
         returnstr = ""
 
+        #~
+        #not
+
     def generate_IncBin(instruction: IRIncBin) -> str:
         # Implementation to be filled in
         returnstr = ""
 
+        returnstr += f"Label{instruction.varname}Start\n"
+        returnstr += f"INCBIN {instruction.filepath}\n"
+        returnstr += f"Label{instruction.varname}End\n"
+
+        return returnstr
+
+
+
     def generate_Assign(instruction: IRAssign) -> str:
         # Implementation to be filled in
         returnstr = ""
+        returnstr += f"ld {instruction.dest}, {instruction.src}\n"
+        return returnstr
 
     def generate_Constant(instruction: IRConstant) -> str:
         # Implementation to be filled in
-        returnstr = ""
+        returnstr = f"ld {instruction.dest}, {instruction.value}"
+        return returnstr
 
     def generate_Load(instruction: IRLoad) -> str:
         # Implementation to be filled in
         returnstr = ""
+        returnstr += f"ld hl, {instruction.addr}\n"
+        returnstr += f"ld a, [hl]\n"
+        returnstr += f"ld {instruction.dest}, a\n"
+        return returnstr
 
     def generate_Store(instruction: IRStore) -> str:
         # Implementation to be filled in
@@ -139,11 +178,13 @@ class CodeGenerator:
 
     def generate_Label(instruction: IRLabel) -> str:
         # Implementation to be filled in
-        returnstr = ""
+        returnstr = f"{instruction.name}"
+        return returnstr
 
     def generate_Jump(instruction: IRJump) -> str:
         # Implementation to be filled in
-        returnstr = ""
+        returnstr = f"jp {instruction.label}"
+        return returnstr
 
     def generate_CondJump(instruction: IRCondJump) -> str:
         # Implementation to be filled in
@@ -152,6 +193,10 @@ class CodeGenerator:
     def generate_Call(instruction: IRCall) -> str:
         # Implementation to be filled in
         returnstr = ""
+        returnstr += f"call PenguinPush\n"
+        #Placer variables
+        #Call den reele'
+        returnstr += f"call PenguinPop\n"
 
     def generate_Return(instruction: IRReturn) -> str:
         # Implementation to be filled in
