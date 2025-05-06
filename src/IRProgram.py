@@ -154,43 +154,43 @@ class IRIndexedStore(IRInstruction):
     def __str__(self) -> str:
         return f"{self.base}[{self.index}] = {self.value}"
 
-class IRHardwareRead(IRInstruction):
-    """Read from a hardware register"""
+class IRHardwareLoad(IRInstruction):
+    """Load from a hardware register"""
     def __init__(self, dest: str, register: str):
         self.dest = dest
         self.register = register
     
     def __str__(self) -> str:
-        return f"{self.dest} = hw_read({self.register})"
+        return f"{self.dest} = hw_load({self.register})"
 
-class IRHardwareWrite(IRInstruction):
-    """Write to a hardware register"""
+class IRHardwareStore(IRInstruction):
+    """Store to a hardware register"""
     def __init__(self, register: str, value: str):
         self.register = register
         self.value = value
     
     def __str__(self) -> str:
-        return f"hw_write({self.register}, {self.value})"
+        return f"hw_store({self.register}, {self.value})"
 
-class IRHardwareIndexedRead(IRInstruction):
-    """Read from an indexed hardware register (like display.oam[i])"""
+class IRHardwareIndexedLoad(IRInstruction):
+    """Load from an indexed hardware register (like display.oam[i])"""
     def __init__(self, dest: str, register: str, index: str):
         self.dest = dest
         self.register = register
         self.index = index
     
     def __str__(self) -> str:
-        return f"{self.dest} = hw_indexed_read({self.register}, {self.index})"
+        return f"{self.dest} = hw_indexed_load({self.register}, {self.index})"
 
-class IRHardwareIndexedWrite(IRInstruction):
-    """Write to an indexed hardware register (like display.oam[i])"""
+class IRHardwareIndexedStore(IRInstruction):
+    """Store to an indexed hardware register (like display.oam[i])"""
     def __init__(self, register: str, index: str, value: str):
         self.register = register
         self.index = index
         self.value = value
     
     def __str__(self) -> str:
-        return f"hw_indexed_write({self.register}, {self.index}, {self.value})"
+        return f"hw_indexed_store({self.register}, {self.index}, {self.value})"
 
 class IRHardwareCall(IRInstruction):
 
@@ -448,7 +448,7 @@ class IRGenerator:
                 if isinstance(node.var_type, (TilesetType, TileMapType, SpriteType)):
                     self.add_instruction(IRHardwareMemCpy(target_name, value_temp))
                 else:
-                    self.add_instruction(IRHardwareWrite(target_name, value_temp))
+                    self.add_instruction(IRHardwareStore(target_name, value_temp))
             else:
                 # Check if it's a global variable
                 if target_name in self.program.globals:
@@ -471,8 +471,8 @@ class IRGenerator:
             
             # Check if this is a hardware register array
             if base_name == "display.oam" or self.is_hardware_register(base_name):
-                # Hardware indexed write
-                self.add_instruction(IRHardwareIndexedWrite(base_name, index_temp, value_temp))
+                # Hardware indexed store
+                self.add_instruction(IRHardwareIndexedStore(base_name, index_temp, value_temp))
             else:
                 # Normal indexed store
                 self.add_instruction(IRIndexedStore(base_name, index_temp, value_temp))
@@ -622,7 +622,7 @@ class IRGenerator:
             # Handle hardware registers
             if self.is_hardware_register(var_name):
                 result_temp = self.new_temp()
-                self.add_instruction(IRHardwareRead(result_temp, var_name))
+                self.add_instruction(IRHardwareLoad(result_temp, var_name))
                 return result_temp
             
             # Check if it's a global variable
@@ -651,8 +651,8 @@ class IRGenerator:
         
         # Check if this is a hardware register array
         if base_name == "display_oam" or self.is_hardware_register(base_name):
-            # Hardware indexed read
-            self.add_instruction(IRHardwareIndexedRead(result_temp, base_name, index_temp))
+            # Hardware indexed load
+            self.add_instruction(IRHardwareIndexedLoad(result_temp, base_name, index_temp))
         else:
             # Normal indexed load
             self.add_instruction(IRIndexedLoad(result_temp, base_name, index_temp))
@@ -675,8 +675,8 @@ class IRGenerator:
             pass
         # Check if this is a hardware register
         elif self.is_hardware_register(full_name) or base_name == "display.oam":
-            # Hardware register read
-            self.add_instruction(IRHardwareRead(result_temp, full_name))
+            # Hardware register load
+            self.add_instruction(IRHardwaLoad(result_temp, full_name))
         else:
             # Normal attribute load
             self.add_instruction(IRLoad(result_temp, full_name))
