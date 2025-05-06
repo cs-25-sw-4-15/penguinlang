@@ -261,6 +261,7 @@ SECTION "Header", ROM0[$100]
         # Implementation to be filled in
         returnstr = ""
         returnstr += f"call PenguinPush\n"
+        returnstr += f"call {instruction.proc_name}\n"
         #Placer variables
         #Call den reele funktion
         #Result er i A
@@ -300,12 +301,6 @@ SECTION "Header", ROM0[$100]
     def generate_HardwareIndexedStore(self, instruction: IRHardwareIndexedStore) -> str:
         # Implementation to be filled in
         returnstr = ""
-
-    def generate_HardwareCall(self,instruction: IRHardwareCall) -> str:
-        # Implementation to be filled in
-        returnstr = ""
-        returnstr = f"call {instruction.module}_{instruction.function}\n"
-        return returnstr
 
     def generate_HardwareMemCpy(self,instruction: IRHardwareMemCpy) -> str:
         # Implementation to be filled in

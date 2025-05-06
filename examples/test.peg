@@ -1,2 +1,1 @@
-
-display_oam_x[1] = 2;
+control_LCDon();
