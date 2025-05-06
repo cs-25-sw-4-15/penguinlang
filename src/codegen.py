@@ -24,17 +24,27 @@ class CodeGenerator:
         assembly_code += self.header()
 
         # Iterate over each instruction in the IR program
-        for instruction in ir_program.instructions:
+        for instruction in ir_program.main_instructions:
             # Convert the instruction to assembly code
             assembly_line = self.generate(instruction)
             # Append the assembly line to the code string
-            assembly_code += assembly_line + "\n"
+            if assembly_line:
+                assembly_code += assembly_line + "\n"
+
+        for procedure in ir_program.procedures.items():
+            #add label for procedure
+            assembly_code += f"Label{procedure[0]}:"
+            for instruction in procedure[1].instructions:
+                assembly_line = self.generate(instruction)
+                if assembly_line:
+                    assembly_code += assembly_line
+            
 
         assembly_code += self.footer()
         
         return assembly_code
 
-    def header() -> str:
+    def header(self) -> str:
         """
         Generate the header for the assembly code.
         
@@ -44,7 +54,7 @@ class CodeGenerator:
         return "header"
 
 
-    def footer() -> str:
+    def footer(self) -> str:
         """
         Generate the footer for the assembly code.
         
@@ -53,33 +63,32 @@ class CodeGenerator:
         """
         return "footer" 
 
-    def generate(instruction: IRInstruction) -> str:
-        """Generate code for the given IR instruction by dispatching to the appropriate generator"""
+    def generate(self, instruction: IRInstruction) -> str:
         class_name = instruction.__class__.__name__
         generator_name = f"generate_{class_name[2:]}"  # Remove the 'IR' prefix
-        generator = globals().get(generator_name)
         
-        if generator is None:
+        if hasattr(self, generator_name):
+            generator = getattr(self, generator_name)
+            return generator(instruction)
+        else:
             raise ValueError(f"No generator found for instruction type: {class_name}")
-        
-        return generator(instruction)
 
-    def generate_BinaryOp(instruction: IRBinaryOp) -> str:
+    def generate_BinaryOp(self,instruction: IRBinaryOp) -> str:
         # Implementation to be filled in
         returnstr = ""
 
         # +
         if instruction.op == '+':
             #if register a is already involved
-            if instruction.src1 == 'a' or instruction.src2 == 'a':
-                if instruction.src1 == 'a':
-                    returnstr += f"add {instruction.src1}, {instruction.src2}\n"
+            if instruction.left == 'a' or instruction.right == 'a':
+                if instruction.left == 'a':
+                    returnstr += f"add {instruction.left}, {instruction.right}\n"
                 else:
-                    returnstr += f"add {instruction.src2}, {instruction.src1}\n"
+                    returnstr += f"add {instruction.right}, {instruction.left}\n"
             #Case when a is not involved
             else:
-                returnstr += f"ld a, {instruction.src1}\n"
-                returnstr += f"add a, {instruction.src2}\n"
+                returnstr += f"ld a, {instruction.left}\n"
+                returnstr += f"add a, {instruction.right}\n"
             
             if instruction.dest != 'a':
                 returnstr += f"ld {instruction.dest}, a\n"
@@ -89,17 +98,17 @@ class CodeGenerator:
         # -
         elif instruction.op == '-':
             #if register a is already involved
-            if instruction.src1 == 'a' or instruction.src2 == 'a':
-                if instruction.src1 == 'a':
-                    returnstr += f"dec {instruction.src1}, {instruction.src2}\n"
+            if instruction.left == 'a' or instruction.right == 'a':
+                if instruction.left == 'a':
+                    returnstr += f"dec {instruction.left}, {instruction.right}\n"
                 else:
                     returnstr += f""
-                    returnstr += f"dec {instruction.src2}, {instruction.src1}\n"
+                    returnstr += f"dec {instruction.right}, {instruction.left}\n"
 
             #Case when a is not involved
             else:
-                returnstr += f"ld a, {instruction.src1}\n"
-                returnstr += f"sub a, {instruction.src2}\n"
+                returnstr += f"ld a, {instruction.left}\n"
+                returnstr += f"sub a, {instruction.right}\n"
             
             if instruction.dest != 'a':
                 returnstr += f"ld {instruction.dest}, a\n"
@@ -135,7 +144,7 @@ class CodeGenerator:
             
         
 
-    def generate_UnaryOp(instruction: IRUnaryOp) -> str:
+    def generate_UnaryOp(self,instruction: IRUnaryOp) -> str:
         # Implementation to be filled in
         returnstr = ""
 
@@ -150,7 +159,7 @@ class CodeGenerator:
         return returnstr
         
 
-    def generate_IncBin(instruction: IRIncBin) -> str:
+    def generate_IncBin(self,instruction: IRIncBin) -> str:
         # Implementation to be filled in
         returnstr = ""
 
@@ -162,18 +171,18 @@ class CodeGenerator:
 
 
 
-    def generate_Assign(instruction: IRAssign) -> str:
+    def generate_Assign(self,instruction: IRAssign) -> str:
         # Implementation to be filled in
         returnstr = ""
         returnstr += f"ld {instruction.dest}, {instruction.src}\n"
         return returnstr
 
-    def generate_Constant(instruction: IRConstant) -> str:
+    def generate_Constant(self,instruction: IRConstant) -> str:
         # Implementation to be filled in
         returnstr = f"ld {instruction.dest}, {instruction.value}"
         return returnstr
 
-    def generate_Load(instruction: IRLoad) -> str:
+    def generate_Load(self,instruction: IRLoad) -> str:
         # Implementation to be filled in
         returnstr = ""
         returnstr += f"ld hl, {instruction.addr}\n"
@@ -181,7 +190,7 @@ class CodeGenerator:
         returnstr += f"ld {instruction.dest}, a\n"
         return returnstr
 
-    def generate_Store(instruction: IRStore) -> str:
+    def generate_Store(self,instruction: IRStore) -> str:
         # Implementation to be filled in
         returnstr = ""
 
@@ -191,21 +200,21 @@ class CodeGenerator:
         return returnstr
 
 
-    def generate_Label(instruction: IRLabel) -> str:
+    def generate_Label(self,instruction: IRLabel) -> str:
         # Implementation to be filled in
         returnstr = f"{instruction.name}"
         return returnstr
 
-    def generate_Jump(instruction: IRJump) -> str:
+    def generate_Jump(self,instruction: IRJump) -> str:
         # Implementation to be filled in
         returnstr = f"jp {instruction.label}"
         return returnstr
 
-    def generate_CondJump(instruction: IRCondJump) -> str:
+    def generate_CondJump(self,instruction: IRCondJump) -> str:
         # Implementation to be filled in
         returnstr = ""
 
-    def generate_Call(instruction: IRCall) -> str:
+    def generate_Call(self,instruction: IRCall) -> str:
         # Implementation to be filled in
         returnstr = ""
         returnstr += f"call PenguinPush\n"
@@ -213,44 +222,45 @@ class CodeGenerator:
         #Call den reele funktion
         #Result er i A
         returnstr += f"call PenguinPop\n"
+        return returnstr
 
-    def generate_Return(instruction: IRReturn) -> str:
+    def generate_Return(self,instruction: IRReturn) -> str:
         # Implementation to be filled in
         returnstr = ""
 
-    def generate_IndexedLoad(instruction: IRIndexedLoad) -> str:
+    def generate_IndexedLoad(self,instruction: IRIndexedLoad) -> str:
         # Implementation to be filled in
         returnstr = ""
 
-    def generate_IndexedStore(instruction: IRIndexedStore) -> str:
+    def generate_IndexedStore(self, instruction: IRIndexedStore) -> str:
         # Implementation to be filled in
         returnstr = ""
 
-    def generate_HardwareRead(instruction: IRHardwareRead) -> str:
+    def generate_HardwareRead(self,instruction: IRHardwareRead) -> str:
         # Implementation to be filled in
         returnstr = ""
 
-    def generate_HardwareWrite(instruction: IRHardwareWrite) -> str:
+    def generate_HardwareWrite(self,instruction: IRHardwareWrite) -> str:
         # Implementation to be filled in
         returnstr = ""
 
-    def generate_HardwareIndexedRead(instruction: IRHardwareIndexedRead) -> str:
+    def generate_HardwareIndexedRead(self,instruction: IRHardwareIndexedRead) -> str:
         # Implementation to be filled in
         returnstr = ""
 
-    def generate_HardwareIndexedWrite(instruction: IRHardwareIndexedWrite) -> str:
+    def generate_HardwareIndexedWrite(self,instruction: IRHardwareIndexedWrite) -> str:
         # Implementation to be filled in
         returnstr = ""
 
-    def generate_HardwareCall(instruction: IRHardwareCall) -> str:
+    def generate_HardwareCall(self,instruction: IRHardwareCall) -> str:
         # Implementation to be filled in
         returnstr = ""
 
-    def generate_HardwareMemCpy(instruction: IRHardwareMemCpy) -> str:
+    def generate_HardwareMemCpy(self,instruction: IRHardwareMemCpy) -> str:
         # Implementation to be filled in
         returnstr = ""
 
-    def generate_ArgLoad(instruction: IRArgLoad) -> str:
+    def generate_ArgLoad(self,instruction: IRArgLoad) -> str:
         # Implementation to be filled in
         returnstr = ""
         return "; Arg was loaded"
