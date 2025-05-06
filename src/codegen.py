@@ -115,60 +115,80 @@ class CodeGenerator:
 
     def generate_UnaryOp(instruction: IRUnaryOp) -> str:
         # Implementation to be filled in
+        returnstr = ""
 
     def generate_IncBin(instruction: IRIncBin) -> str:
         # Implementation to be filled in
+        returnstr = ""
 
     def generate_Assign(instruction: IRAssign) -> str:
         # Implementation to be filled in
+        returnstr = ""
 
     def generate_Constant(instruction: IRConstant) -> str:
         # Implementation to be filled in
+        returnstr = ""
 
     def generate_Load(instruction: IRLoad) -> str:
         # Implementation to be filled in
+        returnstr = ""
 
     def generate_Store(instruction: IRStore) -> str:
         # Implementation to be filled in
+        returnstr = ""
 
     def generate_Label(instruction: IRLabel) -> str:
         # Implementation to be filled in
+        returnstr = ""
 
     def generate_Jump(instruction: IRJump) -> str:
         # Implementation to be filled in
+        returnstr = ""
 
     def generate_CondJump(instruction: IRCondJump) -> str:
         # Implementation to be filled in
+        returnstr = ""
 
     def generate_Call(instruction: IRCall) -> str:
         # Implementation to be filled in
+        returnstr = ""
 
     def generate_Return(instruction: IRReturn) -> str:
         # Implementation to be filled in
+        returnstr = ""
 
     def generate_IndexedLoad(instruction: IRIndexedLoad) -> str:
         # Implementation to be filled in
+        returnstr = ""
 
     def generate_IndexedStore(instruction: IRIndexedStore) -> str:
         # Implementation to be filled in
+        returnstr = ""
 
     def generate_HardwareRead(instruction: IRHardwareRead) -> str:
         # Implementation to be filled in
+        returnstr = ""
 
     def generate_HardwareWrite(instruction: IRHardwareWrite) -> str:
         # Implementation to be filled in
+        returnstr = ""
 
     def generate_HardwareIndexedRead(instruction: IRHardwareIndexedRead) -> str:
         # Implementation to be filled in
+        returnstr = ""
 
     def generate_HardwareIndexedWrite(instruction: IRHardwareIndexedWrite) -> str:
         # Implementation to be filled in
+        returnstr = ""
 
     def generate_HardwareCall(instruction: IRHardwareCall) -> str:
         # Implementation to be filled in
+        returnstr = ""
 
     def generate_HardwareMemCpy(instruction: IRHardwareMemCpy) -> str:
         # Implementation to be filled in
+        returnstr = ""
 
     def generate_ArgLoad(instruction: IRArgLoad) -> str:
         # Implementation to be filled in
+        returnstr = ""
