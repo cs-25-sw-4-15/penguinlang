@@ -185,6 +185,12 @@ class CodeGenerator:
         # Implementation to be filled in
         returnstr = ""
 
+        returnstr += f"ld a, {instruction.value}\n"
+        returnstr += f"ld hl, {instruction.addr}\n"
+        returnstr += f"ld [hl], a\n"
+        return returnstr
+
+
     def generate_Label(instruction: IRLabel) -> str:
         # Implementation to be filled in
         returnstr = f"{instruction.name}"
