@@ -698,7 +698,7 @@ class IRGenerator:
             
             function_name = proc_name.attribute
             
-            # Special case for hardware functions
+            # Special case attribute access for hardware functions
             if module_name == "control" and function_name in ["LCDon", "LCDoff", "waitVBlank", "updateInput"]:
                 self.add_instruction(IRHardwareCall(module_name, function_name, arg_temps))
                 return None  # These functions don't return a value
