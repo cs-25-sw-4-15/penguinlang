@@ -61,7 +61,24 @@ class CodeGenerator:
         Returns:
             A string containing the footer
         """
-        return "footer\n" 
+        footerstr = """
+        PenguinPush:
+        push bc
+        push de
+        push hl
+        ret
+
+        PenguinPop:
+        pop bc
+        pop de
+        pop hl
+        ret
+
+        PenguinMult:
+        ;not implemented
+        """
+
+        return footerstr 
 
     def generate(self, instruction: IRInstruction) -> str:
         class_name = instruction.__class__.__name__
@@ -179,7 +196,7 @@ class CodeGenerator:
 
     def generate_Constant(self,instruction: IRConstant) -> str:
         # Implementation to be filled in
-        returnstr = f"ld {instruction.dest}, {instruction.value}"
+        returnstr = f"ld {instruction.dest}, {instruction.value}\n"
         return returnstr
 
     def generate_Load(self,instruction: IRLoad) -> str:
