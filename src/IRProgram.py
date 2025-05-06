@@ -536,7 +536,7 @@ class IRGenerator:
         else:
             # Jump to end_label if condition is false
             self.add_instruction(IRCondJump(condition_temp, true_label))
-            
+            self.add_instruction(IRJump(end_label))
             # True branch (executed only if condition is true)
             self.add_instruction(IRLabel(true_label))
             for stmt in node.then_body:
