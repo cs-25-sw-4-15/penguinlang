@@ -6,6 +6,7 @@ class CodeGenerator:
         """
         Initialize the code generator.
         """
+        self.variable_address_dict = {}
         pass
 
     def generate_code(self, ir_program: IRProgram) -> str:
@@ -18,6 +19,7 @@ class CodeGenerator:
         Returns:
             A string containing the generated assembly code
         """
+        self.variable_address_dict = ir_program.global_address
         # Initialize the assembly code string
         assembly_code = ""
         
@@ -219,7 +221,7 @@ SECTION "Header", ROM0[$100]
     def generate_Load(self,instruction: IRLoad) -> str:
         # Implementation to be filled in
         returnstr = ""
-        returnstr += f"ld hl, {instruction.addr}\n"
+        returnstr += f"ld hl, {self.variable_address_dict[instruction.addr]}\n"
         returnstr += f"ld a, [hl]\n"
         returnstr += f"ld {instruction.dest}, a\n"
         return returnstr
@@ -229,7 +231,7 @@ SECTION "Header", ROM0[$100]
         returnstr = ""
 
         returnstr += f"ld a, {instruction.value}\n"
-        returnstr += f"ld hl, {instruction.addr}\n"
+        returnstr += f"ld hl, {self.variable_address_dict[instruction.addr]}\n"
         returnstr += f"ld [hl], a\n"
         return returnstr
 
