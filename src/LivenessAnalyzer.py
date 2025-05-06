@@ -7,12 +7,7 @@ to enable efficient register allocation.
 
 from typing import Dict, List, Set, Tuple
 from IRProgram import IRInstruction, IRProgram, IRProcedure
-from IRProgram import (
-    IRAssign, IRBinaryOp, IRCall, IRCondJump, IRConstant, IRJump, IRLabel,
-    IRLoad, IRReturn, IRStore, IRUnaryOp, IRIndexedLoad, IRIndexedStore,
-    IRHardwareCall, IRHardwareRead, IRHardwareWrite, IRArgLoad,
-    IRHardwareIndexedRead, IRHardwareIndexedWrite
-)
+from IRProgram import *
 
 class LivenessAnalyzer:
     """
@@ -226,17 +221,17 @@ class LivenessAnalyzer:
             if instr.value:
                 self._add_if_var(self.use_vars[idx], instr.value)
                 
-        elif isinstance(instr, IRHardwareRead):
+        elif isinstance(instr, IRHardwareLoad):
             self.def_vars[idx].add(instr.dest)
             
-        elif isinstance(instr, IRHardwareWrite):
+        elif isinstance(instr, IRHardwareStore):
             self._add_if_var(self.use_vars[idx], instr.value)
             
-        elif isinstance(instr, IRHardwareIndexedRead):
+        elif isinstance(instr, IRHardwareIndexedLoad):
             self.def_vars[idx].add(instr.dest)
             self._add_if_var(self.use_vars[idx], instr.index)
             
-        elif isinstance(instr, IRHardwareIndexedWrite):
+        elif isinstance(instr, IRHardwareIndexedStore):
             self._add_if_var(self.use_vars[idx], instr.index)
             self._add_if_var(self.use_vars[idx], instr.value)
             

@@ -6,13 +6,7 @@ registers and handle spilled variables.
 """
 
 from typing import Dict, List, Set, Tuple, Optional
-from IRProgram import IRInstruction, IRProgram, IRProcedure
-from IRProgram import (
-    IRAssign, IRBinaryOp, IRCall, IRCondJump, IRConstant, IRJump, IRLabel,
-    IRLoad, IRReturn, IRStore, IRUnaryOp, IRIndexedLoad, IRIndexedStore,
-    IRHardwareCall, IRHardwareRead, IRHardwareWrite, IRArgLoad,
-    IRHardwareIndexedRead, IRHardwareIndexedWrite, IRIncBin, IRHardwareMemCpy
-)
+from IRProgram import *
 
 class IRRewriter:
     """
@@ -520,7 +514,7 @@ class IRRewriter:
         
         return result
     
-    def _rewrite_IRHardwareRead(self, instr: IRHardwareRead) -> List[IRInstruction]:
+    def _rewrite_IRHardwareLoad(self, instr: IRHardwareLoad) -> List[IRInstruction]:
         """Rewrite an IRHardwareRead instruction."""
         result = []
         
@@ -530,11 +524,11 @@ class IRRewriter:
         if dest_alloc:
             if self._is_register(dest_alloc):
                 # Read directly to register
-                result.append(IRHardwareRead(dest_alloc, instr.register))
+                result.append(IRHardwareLoad(dest_alloc, instr.register))
             else:
                 # Read to a temporary, then store
                 temp_reg = 'a'
-                result.append(IRHardwareRead(temp_reg, instr.register))
+                result.append(IRHardwareLoad(temp_reg, instr.register))
                 result.append(IRStore(dest_alloc, temp_reg))
         else:
             # No allocation for destination - keep original
@@ -542,7 +536,7 @@ class IRRewriter:
         
         return result
     
-    def _rewrite_IRHardwareWrite(self, instr: IRHardwareWrite) -> List[IRInstruction]:
+    def _rewrite_IRHardwareStore(self, instr: IRHardwareStore) -> List[IRInstruction]:
         """Rewrite an IRHardwareWrite instruction."""
         result = []
         
@@ -553,16 +547,16 @@ class IRRewriter:
             # Load value from spill slot to a temporary
             temp_reg = 'a'
             result.append(IRLoad(temp_reg, value_alloc))
-            result.append(IRHardwareWrite(instr.register, temp_reg))
+            result.append(IRHardwareStore(instr.register, temp_reg))
         elif value_alloc:
-            result.append(IRHardwareWrite(instr.register, value_alloc))
+            result.append(IRHardwareStore(instr.register, value_alloc))
         else:
             # No allocation for value - keep original
             result.append(instr)
         
         return result
     
-    def _rewrite_IRHardwareIndexedRead(self, instr: IRHardwareIndexedRead) -> List[IRInstruction]:
+    def _rewrite_IRHardwareIndexedLoad(self, instr: IRHardwareIndexedLoad) -> List[IRInstruction]:
         """Rewrite an IRHardwareIndexedRead instruction."""
         result = []
         
@@ -583,11 +577,11 @@ class IRRewriter:
         if dest_alloc:
             if self._is_register(dest_alloc):
                 # Read directly to register
-                result.append(IRHardwareIndexedRead(dest_alloc, instr.register, index_alloc))
+                result.append(IRHardwareIndexedLoad(dest_alloc, instr.register, index_alloc))
             else:
                 # Read to a temporary, then store
                 temp_reg = 'a'
-                result.append(IRHardwareIndexedRead(temp_reg, instr.register, index_alloc))
+                result.append(IRHardwareIndexedLoad(temp_reg, instr.register, index_alloc))
                 result.append(IRStore(dest_alloc, temp_reg))
         else:
             # No allocation for destination - keep original
@@ -595,7 +589,7 @@ class IRRewriter:
         
         return result
     
-    def _rewrite_IRHardwareIndexedWrite(self, instr: IRHardwareIndexedWrite) -> List[IRInstruction]:
+    def _rewrite_IRHardwareIndexedStore(self, instr: IRHardwareIndexedStore) -> List[IRInstruction]:
         """Rewrite an IRHardwareIndexedWrite instruction."""
         result = []
         
@@ -622,7 +616,7 @@ class IRRewriter:
             value_alloc = instr.value
         
         # Create the hardware indexed write
-        result.append(IRHardwareIndexedWrite(instr.register, index_alloc, value_alloc))
+        result.append(IRHardwareIndexedStore(instr.register, index_alloc, value_alloc))
         
         return result
     

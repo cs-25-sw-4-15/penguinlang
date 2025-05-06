@@ -22,7 +22,7 @@ import typer
 from typing_extensions import Annotated
 from ast_classes import ASTNode
 from asttype_checker import TypeChecker
-from IRProgram import IRGenerator
+from IRProgram import *
 from RegisterAllocator import RegisterAllocator
 from codegen import *
 

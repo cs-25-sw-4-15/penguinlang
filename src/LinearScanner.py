@@ -7,7 +7,7 @@ allocates registers to variables in a single pass through the code.
 """
 
 from typing import Dict, List, Set, Tuple, Optional
-from IRProgram import IRInstruction, IRProgram, IRProcedure, IRArgLoad
+from IRProgram import *
 from LivenessAnalyzer import LivenessAnalyzer
 
 class LiveRange:

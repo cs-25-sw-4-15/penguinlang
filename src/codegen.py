@@ -51,7 +51,7 @@ class CodeGenerator:
         Returns:
             A string containing the header
         """
-        return "header"
+        return "header\n"
 
 
     def footer(self) -> str:
@@ -61,7 +61,7 @@ class CodeGenerator:
         Returns:
             A string containing the footer
         """
-        return "footer" 
+        return "footer\n" 
 
     def generate(self, instruction: IRInstruction) -> str:
         class_name = instruction.__class__.__name__
@@ -150,11 +150,11 @@ class CodeGenerator:
 
         #~
         if instruction.op == '~':
-            returnstr += 'temp'
+            returnstr += 'temp\n'
 
         #not
         elif instruction.op == 'not':
-            returnstr += 'temp'
+            returnstr += 'temp\n'
 
         return returnstr
         
@@ -202,12 +202,12 @@ class CodeGenerator:
 
     def generate_Label(self,instruction: IRLabel) -> str:
         # Implementation to be filled in
-        returnstr = f"{instruction.name}"
+        returnstr = f"{instruction.name}\n"
         return returnstr
 
     def generate_Jump(self,instruction: IRJump) -> str:
         # Implementation to be filled in
-        returnstr = f"jp {instruction.label}"
+        returnstr = f"jp {instruction.label}\n"
         return returnstr
 
     def generate_CondJump(self,instruction: IRCondJump) -> str:
@@ -236,22 +236,22 @@ class CodeGenerator:
         # Implementation to be filled in
         returnstr = ""
 
-    def generate_HardwareLoad(instruction: IRHardwareLoad) -> str:
+    def generate_HardwareLoad(self, instruction: IRHardwareLoad) -> str:
         # Implementation to be filled in
         returnstr = ""
         returnstr += f"ld a, [{instruction.register}]\n"
         returnstr += f"ld {instruction.dest}, a\n"
         return returnstr
 
-    def generate_HardwareStore(instruction: IRHardwareStore) -> str:
+    def generate_HardwareStore(self, instruction: IRHardwareStore) -> str:
         # Implementation to be filled in
         returnstr = ""
 
-    def generate_HardwareIndexedLoad(instruction: IRHardwareIndexedLoad) -> str:
+    def generate_HardwareIndexedLoad(self, instruction: IRHardwareIndexedLoad) -> str:
         # Implementation to be filled in
         returnstr = ""
 
-    def generate_HardwareIndexedStore(instruction: IRHardwareIndexedStore) -> str:
+    def generate_HardwareIndexedStore(self, instruction: IRHardwareIndexedStore) -> str:
         # Implementation to be filled in
         returnstr = ""
 

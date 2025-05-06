@@ -6,7 +6,7 @@ interfacing between the liveness analysis, linear scanner, and IR rewriter.
 """
 
 from typing import Dict, List, Set, Tuple, Optional
-from IRProgram import IRInstruction, IRProgram, IRProcedure
+from IRProgram import *
 from LivenessAnalyzer import LivenessAnalyzer
 from LinearScanner import LinearScanner
 from IRRewriter import IRRewriter
