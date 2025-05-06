@@ -236,22 +236,22 @@ class CodeGenerator:
         # Implementation to be filled in
         returnstr = ""
 
-    def generate_HardwareRead(instruction: IRHardwareRead) -> str:
+    def generate_HardwareLoad(instruction: IRHardwareLoad) -> str:
         # Implementation to be filled in
         returnstr = ""
         returnstr += f"ld a, [{instruction.register}]\n"
         returnstr += f"ld {instruction.dest}, a\n"
         return returnstr
 
-    def generate_HardwareWrite(instruction: IRHardwareWrite) -> str:
+    def generate_HardwareStore(instruction: IRHardwareStore) -> str:
         # Implementation to be filled in
         returnstr = ""
 
-    def generate_HardwareIndexedRead(instruction: IRHardwareIndexedRead) -> str:
+    def generate_HardwareIndexedLoad(instruction: IRHardwareIndexedLoad) -> str:
         # Implementation to be filled in
         returnstr = ""
 
-    def generate_HardwareIndexedWrite(instruction: IRHardwareIndexedWrite) -> str:
+    def generate_HardwareIndexedStore(instruction: IRHardwareIndexedStore) -> str:
         # Implementation to be filled in
         returnstr = ""
 

@@ -676,7 +676,7 @@ class IRGenerator:
         # Check if this is a hardware register
         elif self.is_hardware_register(full_name) or base_name == "display.oam":
             # Hardware register load
-            self.add_instruction(IRHardwaLoad(result_temp, full_name))
+            self.add_instruction(IRHardwareLoad(result_temp, full_name))
         else:
             # Normal attribute load
             self.add_instruction(IRLoad(result_temp, full_name))
