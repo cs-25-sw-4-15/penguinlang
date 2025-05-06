@@ -354,9 +354,9 @@ class ProcedureCall(ASTNode):
         args (list[ASTNode]): The arguments to pass to the procedure.
     """
     
-    def __init__(self, name: str, args: List[ASTNode]) -> None:
+    def __init__(self, name: str, params: List[ASTNode]) -> None:
         self.name = name
-        self.args = args
+        self.params = params
 
 
 """Procedures"""

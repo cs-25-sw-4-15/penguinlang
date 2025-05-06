@@ -219,9 +219,9 @@ class TestASTProcedures:
         assert isinstance(ast.statements[0].call, ProcedureCall)
         assert isinstance(ast.statements[0].call.name, Variable)
         assert ast.statements[0].call.name.name == "print"
-        assert len(ast.statements[0].call.args) == 1
-        assert isinstance(ast.statements[0].call.args[0], IntegerLiteral)
-        assert ast.statements[0].call.args[0].value == 42
+        assert len(ast.statements[0].call.params) == 1
+        assert isinstance(ast.statements[0].call.params[0], IntegerLiteral)
+        assert ast.statements[0].call.params[0].value == 42
 
     def test_procedure_call_multiple_args(self):
         ast = build_ast("print(42, x);")
@@ -229,9 +229,9 @@ class TestASTProcedures:
         assert len(ast.statements) == 1
         assert isinstance(ast.statements[0], ProcedureCallStatement)
         assert isinstance(ast.statements[0].call, ProcedureCall)
-        assert len(ast.statements[0].call.args) == 2
-        assert isinstance(ast.statements[0].call.args[0], IntegerLiteral)
-        assert isinstance(ast.statements[0].call.args[1], Variable)
+        assert len(ast.statements[0].call.params) == 2
+        assert isinstance(ast.statements[0].call.params[0], IntegerLiteral)
+        assert isinstance(ast.statements[0].call.params[1], Variable)
 
     def test_procedure_definition(self):
         ast = build_ast("procedure int add(int a, int b) { return a + b; }")

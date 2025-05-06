@@ -524,12 +524,12 @@ class TypeChecker:
         param_types, return_type = self.procedure_table[proc_name]
         
         # Check if the number of arguments matches the number of parameters
-        if len(node.args) != len(param_types):
-            logger.error(f"Procedure '{proc_name}' expects {len(param_types)} arguments, got {len(node.args)}")
-            raise TypeMismatchError(f"Procedure '{proc_name}' expects {len(param_types)} arguments, got {len(node.args)}")
+        if len(node.params) != len(param_types):
+            logger.error(f"Procedure '{proc_name}' expects {len(param_types)} arguments, got {len(node.params)}")
+            raise TypeMismatchError(f"Procedure '{proc_name}' expects {len(param_types)} arguments, got {len(node.params)}")
         
         # Type check each argument
-        for i, (arg, (_, param_type)) in enumerate(zip(node.args, param_types)):
+        for i, (arg, (_, param_type)) in enumerate(zip(node.params, param_types)):
             arg_type = self.check_node(arg)
             if arg_type != param_type:
                 logger.error(f"Type mismatch in argument {i+1} of procedure '{proc_name}': expected {param_type}, got {arg_type}")
