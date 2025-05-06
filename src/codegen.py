@@ -73,13 +73,13 @@ class CodeGenerator:
             #if register a is already involved
             if instruction.src1 == 'a' or instruction.src2 == 'a':
                 if instruction.src1 == 'a':
-                    returnstr += f"ADD {instruction.src1}, {instruction.src2}\n"
+                    returnstr += f"add {instruction.src1}, {instruction.src2}\n"
                 else:
-                    returnstr += f"ADD {instruction.src2}, {instruction.src1}\n"
+                    returnstr += f"add {instruction.src2}, {instruction.src1}\n"
             #Case when a is not involved
             else:
                 returnstr += f"ld a, {instruction.src1}\n"
-                returnstr += f"ADD a, {instruction.src2}\n"
+                returnstr += f"add a, {instruction.src2}\n"
             
             if instruction.dest != 'a':
                 returnstr += f"ld {instruction.dest}, a\n"
@@ -91,14 +91,14 @@ class CodeGenerator:
             #if register a is already involved
             if instruction.src1 == 'a' or instruction.src2 == 'a':
                 if instruction.src1 == 'a':
-                    returnstr += f"DEC {instruction.src1}, {instruction.src2}\n"
+                    returnstr += f"dec {instruction.src1}, {instruction.src2}\n"
                 else:
-                    returnstr += f"DEC {instruction.src2}, {instruction.src1}\n"
+                    returnstr += f"dec {instruction.src2}, {instruction.src1}\n"
 
             #Case when a is not involved
             else:
                 returnstr += f"ld a, {instruction.src1}\n"
-                returnstr += f"DEC a, {instruction.src2}\n"
+                returnstr += f"dec a, {instruction.src2}\n"
             
             if instruction.dest != 'a':
                 returnstr += f"ld {instruction.dest}, a\n"
