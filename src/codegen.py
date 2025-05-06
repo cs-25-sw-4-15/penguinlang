@@ -76,6 +76,11 @@ class CodeGenerator:
 
         PenguinMult:
         ;not implemented
+
+        PenguinCalcOffset:
+
+        PenguinMemCopy:
+        
         """
 
         return footerstr 
