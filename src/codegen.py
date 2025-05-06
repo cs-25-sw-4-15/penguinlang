@@ -23,6 +23,8 @@ class CodeGenerator:
         
         assembly_code += self.header()
 
+        assembly_code += "PenguinEntry:\n"
+
         # Iterate over each instruction in the IR program
         for instruction in ir_program.main_instructions:
             # Convert the instruction to assembly code
@@ -51,7 +53,17 @@ class CodeGenerator:
         Returns:
             A string containing the header
         """
-        return "header\n"
+
+        headerstr = """
+SECTION "Header", ROM0[$100]
+
+    jp PenguinEntry
+
+    ds $150 - @, 0 ; Make room for the header
+
+"""
+
+        return headerstr
 
 
     def footer(self) -> str:
@@ -80,7 +92,7 @@ class CodeGenerator:
         PenguinCalcOffset:
 
         PenguinMemCopy:
-        
+
         """
 
         return footerstr 
