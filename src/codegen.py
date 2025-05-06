@@ -247,8 +247,10 @@ SECTION "Header", ROM0[$100]
         return returnstr
 
     def generate_CondJump(self,instruction: IRCondJump) -> str:
-        # Implementation to be filled in
-        returnstr = ""
+        returnstr = f"cp 0\n"
+        returnstr += f"jp nz, {instruction.true_label}\n"
+
+        return returnstr
 
     def generate_Call(self,instruction: IRCall) -> str:
         # Implementation to be filled in
