@@ -268,6 +268,9 @@ class CodeGenerator:
     def generate_HardwareStore(self, instruction: IRHardwareStore) -> str:
         # Implementation to be filled in
         returnstr = ""
+        returnstr += f"ld a, {instruction.value}\n"
+        returnstr += f"ld [{instruction.register}], a\n"
+        return returnstr
 
     def generate_HardwareIndexedLoad(self, instruction: IRHardwareIndexedLoad) -> str:
         # Implementation to be filled in
