@@ -93,12 +93,13 @@ class CodeGenerator:
                 if instruction.src1 == 'a':
                     returnstr += f"dec {instruction.src1}, {instruction.src2}\n"
                 else:
+                    returnstr += f""
                     returnstr += f"dec {instruction.src2}, {instruction.src1}\n"
 
             #Case when a is not involved
             else:
                 returnstr += f"ld a, {instruction.src1}\n"
-                returnstr += f"dec a, {instruction.src2}\n"
+                returnstr += f"sub a, {instruction.src2}\n"
             
             if instruction.dest != 'a':
                 returnstr += f"ld {instruction.dest}, a\n"
@@ -139,7 +140,15 @@ class CodeGenerator:
         returnstr = ""
 
         #~
+        if instruction.op == '~':
+            returnstr += 'temp'
+
         #not
+        elif instruction.op == 'not':
+            returnstr += 'temp'
+
+        return returnstr
+        
 
     def generate_IncBin(instruction: IRIncBin) -> str:
         # Implementation to be filled in
