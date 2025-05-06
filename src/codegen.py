@@ -93,12 +93,13 @@ class CodeGenerator:
                 if instruction.src1 == 'a':
                     returnstr += f"dec {instruction.src1}, {instruction.src2}\n"
                 else:
+                    returnstr += f""
                     returnstr += f"dec {instruction.src2}, {instruction.src1}\n"
 
             #Case when a is not involved
             else:
                 returnstr += f"ld a, {instruction.src1}\n"
-                returnstr += f"dec a, {instruction.src2}\n"
+                returnstr += f"sub a, {instruction.src2}\n"
             
             if instruction.dest != 'a':
                 returnstr += f"ld {instruction.dest}, a\n"
@@ -139,7 +140,15 @@ class CodeGenerator:
         returnstr = ""
 
         #~
+        if instruction.op == '~':
+            returnstr += 'temp'
+
         #not
+        elif instruction.op == 'not':
+            returnstr += 'temp'
+
+        return returnstr
+        
 
     def generate_IncBin(instruction: IRIncBin) -> str:
         # Implementation to be filled in
@@ -176,6 +185,12 @@ class CodeGenerator:
         # Implementation to be filled in
         returnstr = ""
 
+        returnstr += f"ld a, {instruction.value}\n"
+        returnstr += f"ld hl, {instruction.addr}\n"
+        returnstr += f"ld [hl], a\n"
+        return returnstr
+
+
     def generate_Label(instruction: IRLabel) -> str:
         # Implementation to be filled in
         returnstr = f"{instruction.name}"
@@ -195,7 +210,8 @@ class CodeGenerator:
         returnstr = ""
         returnstr += f"call PenguinPush\n"
         #Placer variables
-        #Call den reele'
+        #Call den reele funktion
+        #Result er i A
         returnstr += f"call PenguinPop\n"
 
     def generate_Return(instruction: IRReturn) -> str:
@@ -240,3 +256,4 @@ class CodeGenerator:
     def generate_ArgLoad(instruction: IRArgLoad) -> str:
         # Implementation to be filled in
         returnstr = ""
+        return "; Arg was loaded"
