@@ -95,6 +95,11 @@ SECTION "Header", ROM0[$100]
 
         PenguinMemCopy:
 
+
+        control_LCDon:
+        ld a, $91
+        ld [$FF40], a
+        ret
         """
 
         return footerstr 
@@ -299,6 +304,8 @@ SECTION "Header", ROM0[$100]
     def generate_HardwareCall(self,instruction: IRHardwareCall) -> str:
         # Implementation to be filled in
         returnstr = ""
+        returnstr = f"call {instruction.module}_{instruction.function}\n"
+        return returnstr
 
     def generate_HardwareMemCpy(self,instruction: IRHardwareMemCpy) -> str:
         # Implementation to be filled in
@@ -307,4 +314,4 @@ SECTION "Header", ROM0[$100]
     def generate_ArgLoad(self,instruction: IRArgLoad) -> str:
         # Implementation to be filled in
         returnstr = ""
-        return "; Arg was loaded"
+        return "; Arg was loaded"   
