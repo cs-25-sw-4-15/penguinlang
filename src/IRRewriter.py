@@ -600,7 +600,7 @@ class IRRewriter:
         # Handle index
         if index_alloc and not self._is_register(index_alloc):
             # Load from spill slot to a temporary register
-            temp_reg = 'b'
+            temp_reg = 'h'
             result.append(IRLoad(temp_reg, index_alloc))
             index_alloc = temp_reg
         elif not index_alloc:
