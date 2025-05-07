@@ -328,12 +328,12 @@ SECTION "Header", ROM0[$100]
     def generate_HardwareMemCpy(self,instruction: IRHardwareMemCpy) -> str:
         # Implementation to be filled in
         returnstr = ""
-        returnstr += f"call PenguinPush"
-        returnstr += f"ld de, {instruction.src}Start"
-        returnstr += f"ld hl, {instruction.dest}"
-        returnstr += f"ld bc, {instruction.src}End - {instruction.src}Start"
-        returnstr += f"call PenguinMemCopy"
-        returnstr += f"call PenguinPop"
+        returnstr += f"call PenguinPush\n"
+        returnstr += f"ld de, Label{instruction.src}Start\n"
+        returnstr += f"ld hl, {instruction.dest}\n"
+        returnstr += f"ld bc, Label{instruction.src}End - {instruction.src}Start\n"
+        returnstr += f"call PenguinMemCopy\n"
+        returnstr += f"call PenguinPop\n"
         returnstr += f""
         return returnstr
 
