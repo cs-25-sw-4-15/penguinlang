@@ -44,6 +44,7 @@ class IRRewriter:
         new_program.globals = ir_program.globals.copy()
         new_program.global_address = ir_program.global_address.copy()
         
+        
         # Rewrite main section
         if ir_program.main_instructions:
             self.proc_name = "main"
