@@ -496,6 +496,9 @@ class TypeChecker:
         """Type check an AttributeAccess node."""
         logger.info(f"Type checking attribute access: {node.attribute} on {node.name}")
         
+        # get the base type of the attribute access (most leftside of the access)
+        base_type = self.check_node(node.name)
+        
         # Attributes can ahve complex paths, like a.b.c, so we need to handle that
         # to handle this we make the helper funcion that constructs the path
         def construct_path(name_path) -> str:
@@ -554,8 +557,8 @@ class TypeChecker:
                 return attr_type
         
         # For attributes that aren't predefined, report an error
-        logger.error(f"Undeclared attribute: {node.attribute} on object of type {base_obj}")
-        raise UndeclaredVariableError(f"Undeclared attribute: {node.attribute} on object of type {base_obj}")
+        logger.error(f"Invalid attribute: {node.attribute} on object of type {base_obj}")
+        raise InvalidAttributeError(f"Invalid attribute: {node.attribute} on object of type {base_obj}")
     
     def check_ProcedureCallStatement(self, node: ProcedureCallStatement) -> Type:
         """Type check a ProcedureCallStatement node."""

@@ -491,11 +491,12 @@ class TestTypeStringLiteral:
         # Test string in return statement
         taast = build_taast("""procedure sprite test() { return "hello"; }""")
         assert isinstance(taast.statements[0].body[0].value.var_type, StringType), "sprite in return -> StringType"
+        # øvre, er badshit crazy
         
         # Test string in assignment
-        taast = build_taast("""sprite a; a = "hello";""")
-        assert isinstance(taast.statements[1].value.var_type, StringType), "sprite in assignment -> StringType"
-
+        # taast = build_taast("""sprite a; a = "hello";""")
+        # assert isinstance(taast.statements[1].value.var_type, StringType), "sprite in assignment -> StringType"
+        # øvre er udkomemnnteret, da der ikke må laves assignments af sprites osv. kun initialization
 
 class TestTypeVariable:
     def test_varaible_scope(self):
@@ -519,7 +520,7 @@ class TestTypeVariable:
         try: 
             taast = build_taast("int x; x.x = 2;")
         except Exception as e:
-            assert isinstance(e, UndeclaredVariableError), "UndeclaredVariableError #1 -x-> undeclared"
+            assert isinstance(e, InvalidAttributeError), "InvalidAttributeError #1 -x-> invalid"
         
         taast = build_taast("display.oam[1].x = 1;")
         

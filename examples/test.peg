@@ -1,5 +1,1 @@
-procedure int foo(int x, int y) { int a; return 1; }
-
-foo(1, (3+5));
-
-int b = foo(1, (3+5));
+int z; procedure foo() { z = 6; }
