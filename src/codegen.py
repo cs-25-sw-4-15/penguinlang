@@ -203,31 +203,22 @@ SECTION "Header", ROM0[$100]
             return returnstr
         # !=
         elif instruction.op == '!=':
-            # Not-equal: set dest = 1 if left != right, else 0.
             true_lbl = f"NE_TRUE_{self.cmp_counter}"
             end_lbl  = f"NE_END_{self.cmp_counter}"
             self.cmp_counter += 1
 
-            # load left into accumulator and compare to right
-            returnstr += f"ld a, {instruction.left}\n"
+            if instruction.left != 'a':
+                returnstr += f"ld a, {instruction.left}\n"
             returnstr += f"cp {instruction.right}\n"
-
-            # they are equal
             returnstr += f"ld {instruction.dest}, 0\n"
-            # if Z flag = 0 then not equal → jump to true
             returnstr += f"jp nz, {true_lbl}\n"
-            # else jump to end
             returnstr += f"jp {end_lbl}\n"
-
-            # true branch: set dest = 1
             returnstr += f"{true_lbl}:\n"
             returnstr += f"ld {instruction.dest}, 1\n"
-            # end label
             returnstr += f"{end_lbl}:\n"
-
             return returnstr
         # and, &
-        elif instruction.op == ('and', '&'):
+        elif instruction.op in ('and', '&'):
             # If the left operand is already in the accumulator, we can skip loading and directly do 'and' on the right.
             if instruction.left == 'a':
                 returnstr += f"and {instruction.right}\n"
@@ -245,7 +236,7 @@ SECTION "Header", ROM0[$100]
             return returnstr
         
         # or, |
-        elif instruction.op == ('or', '|'):
+        elif instruction.op in ('or', '|'):
             # If the left operand is already in the accumulator, we can skip loading and directly do 'or' on the right.
             if instruction.left == 'a':
                 returnstr += f"or {instruction.right}\n"
@@ -279,15 +270,159 @@ SECTION "Header", ROM0[$100]
             if instruction.dest != 'a':
                 returnstr += f"ld {instruction.dest}, a\n"
             return returnstr
-        # <
-        # >
-        # <=
-        # >=
-        # <<
-        # >>
-        
-            
-        
+        # > greater than
+        elif instruction.op == '>':
+            # If the left operand is not already in the accumulator, load it into A.
+            true_lbl = f"GT_TRUE_{self.cmp_counter}"
+            end_lbl  = f"GT_END_{self.cmp_counter}"
+            self.cmp_counter += 1
+
+            # Load left into the accumulator if needed, then compare to right
+            if instruction.left != 'a':
+                returnstr += f"ld a, {instruction.left}\n"
+            returnstr += f"cp {instruction.right}\n"
+
+            # Assume false: set dest = 0
+            returnstr += f"ld {instruction.dest}, 0\n"
+            # If carry flag set (A < right), skip the true branch
+            returnstr += f"jp c, {end_lbl}\n"
+            # If zero flag set (A == right), skip the true branch
+            returnstr += f"jp z, {end_lbl}\n"
+
+            # True branch: A > right
+            returnstr += f"{true_lbl}:\n"
+            returnstr += f"ld {instruction.dest}, 1\n"
+            # End label
+            returnstr += f"{end_lbl}:\n"
+            return returnstr
+        # < less than
+        elif instruction.op == '<':
+            # If the left operand is not already in the accumulator, load it into A.
+            true_lbl = f"LT_TRUE_{self.cmp_counter}"
+            end_lbl  = f"LT_END_{self.cmp_counter}"
+            self.cmp_counter += 1
+
+            # Load left into the accumulator (A) if needed, then compare to right
+            if instruction.left != 'a':
+                returnstr += f"ld a, {instruction.left}\n"
+            returnstr += f"cp {instruction.right}\n"
+
+            # Assume false: set dest = 0
+            returnstr += f"ld {instruction.dest}, 0\n"
+            # If carry flag set (A < right), skip the true branch
+            returnstr += f"jp c, {true_lbl}\n"
+            # Otherwise skip over the true branch. 
+            returnstr += f"jp {end_lbl}\n"
+
+            # True branch: A < right, so dest = 1
+            returnstr += f"{true_lbl}:\n"
+            returnstr += f"ld {instruction.dest}, 1\n"
+            # End label
+            returnstr += f"{end_lbl}:\n"
+
+            return returnstr
+        # <= less than or equal
+        elif instruction.op == '<=':
+            # Generate unique labels for the true and end branches
+            true_lbl = f"LE_TRUE_{self.cmp_counter}"
+            end_lbl  = f"LE_END_{self.cmp_counter}"
+            self.cmp_counter += 1
+
+            # Load left into A if needed, then compare to right
+            if instruction.left != 'a':
+                returnstr += f"ld a, {instruction.left}\n"
+            returnstr += f"cp {instruction.right}\n"
+
+            # Assume false: dest = 0
+            returnstr += f"ld {instruction.dest}, 0\n"
+            # If carry flag set (A < right), jump to true branch
+            returnstr += f"jp c, {true_lbl}\n"
+            # If zero flag set (A == right), also jump to true branch
+            returnstr += f"jp z, {true_lbl}\n"
+            # Otherwise skip over the true branch
+            returnstr += f"jp {end_lbl}\n"
+
+            # True branch: A <= right, so dest = 1
+            returnstr += f"{true_lbl}:\n"
+            returnstr += f"ld {instruction.dest}, 1\n"
+            # End label
+            returnstr += f"{end_lbl}:\n"
+
+            return returnstr
+        # >= greater than or equal to
+        elif instruction.op == '>=':
+            # Generate unique labels for the true and end branches
+            true_lbl = f"GE_TRUE_{self.cmp_counter}"
+            end_lbl  = f"GE_END_{self.cmp_counter}"
+            self.cmp_counter += 1
+
+            # Load left into the accumulator if needed, then compare to right
+            if instruction.left != 'a':
+                returnstr += f"ld a, {instruction.left}\n"
+            returnstr += f"cp {instruction.right}\n"
+
+            # Assume false: set dest = 0
+            returnstr += f"ld {instruction.dest}, 0\n"
+            # If zero flag set (A == right), jump to true branch
+            returnstr += f"jp z, {true_lbl}\n"
+            # If carry flag is not set (A >= right), jump to true branch
+            returnstr += f"jp nc, {true_lbl}\n"
+            # Otherwise skip over the true branch
+            returnstr += f"jp {end_lbl}\n"
+
+            # True branch: A >= right, so dest = 1
+            returnstr += f"{true_lbl}:\n"
+            returnstr += f"ld {instruction.dest}, 1\n"
+            # End label
+            returnstr += f"{end_lbl}:\n"
+
+            return returnstr
+        # << shift left
+        elif instruction.op == '<<':
+            # Generate unique labels for our shift loop
+            loop_lbl = f"SHL_LOOP_{self.cmp_counter}"
+            end_lbl  = f"SHL_END_{self.cmp_counter}"
+            self.cmp_counter += 1
+
+            # Load the value to shift into the accumulator (A) if needed
+            if instruction.left != 'a':
+                returnstr += f"ld a, {instruction.left}\n"
+            # Load the shift count into B
+            returnstr += f"ld b, {instruction.right}\n"
+
+            # Loop: When shifting left, all newly-inserted bits are reset. Shifted on to A, then decrement B, repeat while B ≠ 0
+            returnstr += f"{loop_lbl}:\n"
+            returnstr += f"sla a       ; shift A left by 1 bit\n"
+            returnstr += f"dec b       ; decrement loop counter\n"
+            returnstr += f"jp nz, {loop_lbl}   ; repeat until B == 0\n"
+
+            # After shifting, result is in A. Store it if dest ≠ A
+            if instruction.dest != 'a':
+                returnstr += f"ld {instruction.dest}, a\n"
+            return returnstr
+        # >> shift right (sign extension)
+        elif instruction.op == '>>':
+            # Generate unique labels for our shift loop
+            loop_lbl = f"SHR_LOOP_{self.cmp_counter}"
+            end_lbl  = f"SHR_END_{self.cmp_counter}"
+            self.cmp_counter += 1
+
+            # Load the value to shift into the accumulator (A) if needed
+            if instruction.left != 'a':
+                returnstr += f"ld a, {instruction.left}\n"
+            # Load the shift count into B
+            returnstr += f"ld b, {instruction.right}\n"
+
+            # Loop: when shifting right, they are copies of the original most significant bit instead. repeat while B ≠ 0
+            returnstr += f"{loop_lbl}:\n"
+            returnstr += f"srl a       ; shift A right by (logical)\n"
+            returnstr += f"dec b\n"
+            returnstr += f"jp nz, {loop_lbl}   ; repeat until B == 0\n"
+
+            # After shifting, result is in A. Store it if dest ≠ A
+            if instruction.dest != 'a':
+                returnstr += f"ld {instruction.dest}, a\n"
+            return returnstr
 
     def generate_UnaryOp(self,instruction: IRUnaryOp) -> str:
         # Implementation to be filled in
