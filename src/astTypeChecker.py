@@ -144,6 +144,28 @@ class TypeChecker:
             # If not, handle the case where the type is not recognized
             logger.error(f"Invalid type: {type_str}")
             raise InvalidTypeError(f"Invalid type: {type_str} --- {type(type_str)}")
+        
+    def get_procedure_name(self, node: Union[ProcedureCall, ProcedureDef]) -> str:
+        # hjælper methodf forr getting qa procedure namer, where the procedure might accessed with an attribute
+        
+        # node is usually a Variable or an AttributeAccess (possibly nested)
+        # base case is when node is a string (the name of the procedure)
+        if isinstance(node, str):
+            return node
+        # check if node is an AttributeAccess
+        elif hasattr(node, 'name') and hasattr(node, 'attribute'):
+            # recursively get the base name of each attribute, and add the attribute to the end
+            base = self.get_procedure_name(node.name)
+            return f"{base}.{node.attribute}"
+        # check if node is a Variable
+        elif hasattr(node, 'name'):
+            # return the name of the node, which is the procedure name
+            return self.get_procedure_name(node.name)
+        # check if node is a Variable with a string name
+        elif isinstance(node, Variable) and isinstance(node.name, str):
+            return node.name
+        # if nothign else, return the string representation of the node
+        return str(node)  # fallback
     
     def check_node(self, node: ASTNode) -> Type:
         """Type check an AST node by dispatching to the appropriate method in the TypeChecker."""
@@ -546,7 +568,7 @@ class TypeChecker:
         """Type check a ProcedureCallStatement node."""
         logger.info("Type checking procedure call statement")
         
-        # Type check the procedure call
+        # Type check the procedure call, siden det er en statement, så vi skal bare tjekke den
         self.check_node(node.call)
         
         return VoidType()
@@ -555,55 +577,34 @@ class TypeChecker:
         """Type check a ProcedureCall node."""
         logger.info(f"Type checking procedure call: {node.name}")
         
-        # Handle the case where the name is a Variable containing an AttributeAccess
-        if hasattr(node.name, 'name') and hasattr(node.name.name, 'name') and hasattr(node.name.name, 'attribute'):
-            # This handles: ProcedureCall(name=Variable(name=AttributeAccess(name='control', attribute='LCDon')))
-            if isinstance(node.name.name.name, str):
-                base = node.name.name.name
-            else:
-                base = node.name.name.name.name  # Get the actual string name
-            attr = node.name.name.attribute
-            proc_name = f"{base}.{attr}"
-        # Handle simple attribute access
-        elif hasattr(node.name, 'name') and hasattr(node.name, 'attribute'):
-            # This handles: ProcedureCall(name=AttributeAccess(name='control', attribute='LCDon'))
-            if isinstance(node.name.name, str):
-                base = node.name.name
-            elif hasattr(node.name.name, 'name'):
-                base = node.name.name.name  # Get the actual string name
-            else:
-                base = str(node.name.name)
-            attr = node.name.attribute
-            proc_name = f"{base}.{attr}"
-        # Handle simple Variable
-        elif hasattr(node.name, 'name') and isinstance(node.name.name, str):
-            proc_name = node.name.name
-        # Handle string name
-        elif isinstance(node.name, str):
-            proc_name = node.name
-        else:
-            # Fallback case
-            proc_name = str(node.name)
+        # get the procedure name
+        proc_name = self.get_procedure_name(node)
         
-        # Check if the procedure has been declared
-        if proc_name not in self.procedure_table:
-            logger.error(f"Undeclared procedure: {proc_name}, Type: {type(node.name)}")
+        # get the procedure entry from the procedure table
+        proc = self.procedures.lookup(proc_name)
+        
+        # check it against the procedure table
+        if proc is None:
+            logger.error(f"Undeclared procedure: {proc_name}")
             raise UndeclaredVariableError(f"Undeclared procedure: {proc_name}")
+
+        # access the actual params given as input
+        param_types, return_type = proc
         
-        # Continue with the original implementation for argument checking
-        param_types, return_type = self.procedure_table[proc_name]
-        
-        # Check if the number of arguments matches the number of parameters
+        # Tjek om typer og parameternavne kan mappes
         if len(node.params) != len(param_types):
             logger.error(f"Procedure '{proc_name}' expects {len(param_types)} arguments, got {len(node.params)}")
             raise TypeMismatchError(f"Procedure '{proc_name}' expects {len(param_types)} arguments, got {len(node.params)}")
         
-        # Type check each argument
-        for i, (arg, (_, param_type)) in enumerate(zip(node.params, param_types)):
-            arg_type = self.check_node(arg)
-            if arg_type != param_type:
-                logger.error(f"Type mismatch in argument {i+1} of procedure '{proc_name}': expected {param_type}, got {arg_type}")
-                raise TypeMismatchError(f"Type mismatch in argument {i+1} of procedure '{proc_name}': expected {param_type}, got {arg_type}")
+        # type check each of the actual arguments
+        # loop over each argument and its corresponding parameter by index of a mapped tuple
+        for i, (arg, (param_name, expected_type)) in enumerate(zip(node.params, param_types)):
+            # check the type of the argument
+            actual_type = self.check_node(arg)
+            # see if the type of the argument matches the expected type from the procedure table
+            if actual_type != expected_type:
+                logger.error(f"Argument {i+1} ('{param_name}') of procedure '{proc_name}' has wrong type: expected {expected_type}, got {actual_type}")
+                raise TypeMismatchError(f"Argument {i+1} ('{param_name}') of procedure '{proc_name}' has wrong type: expected {expected_type}, got {actual_type}")
 
         # Return the procedure's return type
         node.var_type = return_type
@@ -613,46 +614,48 @@ class TypeChecker:
         """Type check a ProcedureDef node."""
         logger.info(f"Type checking procedure definition: {node.name}")
         
-        # Check if the procedure has already been declared
-        if node.name in self.procedure_table:
+        # Check if the procedure has already been declared, dupilcate
+        if self.procedures.lookup(node.name):
             logger.error(f"Duplicate procedure declaration: {node.name}")
-            raise DuplicateDeclarationError(f"Duplicate procedure declaration: {node.name}")
+            raise DuplicateDeclarationError(f"Procedure '{node.name}' already declared")
         
-        # Convert the return type string to a Type object
+        # process formal parameters
+        param_types = []
+        for declaration in node.params: # params contains declarations of variables
+            param_type = self.string_to_type(declaration.var_type)
+            param_types.append((declaration.name, param_type))
+        
+        # process return type, of the procedure
         return_type = self.string_to_type(node.return_type) if node.return_type else VoidType()
-        
-        logger.debug(f"########### return_type: {node.return_type} --- {type(node.return_type)} --- {return_type} --- {type(return_type)}")
         node.return_type = return_type
         
-        # Save the previous return type (in case we're in a nested procedure)
-        prev_return_type = self.current_return_type
+        logger.debug(f"########### return_type: {node.return_type} --- {type(node.return_type)} --- {return_type} --- {type(return_type)}")
+        
+        # define the procedure in the procedure table
+        self.procedures.define(node.name, param_types, return_type)
+        
+        # push a new scope for the procedure
+        self.env.push()
+        
+        # define the parameters in the new scope
+        for declaration in node.params:
+            var_type = self.string_to_type(declaration.var_type)
+            self.env.define(declaration.name, var_type)
+            declaration.var_type = var_type
+        
+        # save the current return type and previous return type, if we are in a nested procedure
+        previous_return_type = self.current_return_type
         self.current_return_type = return_type
         
-        # Create a new scope for the procedure's parameters
-        old_symbol_table = self.symbol_table.copy()
-        
-        # Process the parameters
-        # parametres are declarations of varaibles
-        for param in node.params:
-            self.check_node(param)
-        param_types = []
-        for param in node.params:
-            # param.var_type = self.string_to_type(param.var_type)
-            param_types.append((param.name, param.var_type))
-            
-            # Add the parameter to the symbol table
-            # self.symbol_table[param.name] = param.var_type
-        
-        # Add the procedure to the procedure table
-        self.procedure_table[node.name] = (param_types, return_type)
-        
-        # Type check the procedure body
+        # check the body of the procedure
         for statement in node.body:
             self.check_node(statement)
+            
+        # return to the previous scope
+        self.env.pop()
         
-        # Restore the previous scope and return type
-        self.symbol_table = old_symbol_table
-        self.current_return_type = prev_return_type
+        # restore the previous return type
+        self.current_return_type = previous_return_type
         
         return VoidType()
 

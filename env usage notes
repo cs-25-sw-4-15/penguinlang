@@ -20,7 +20,7 @@ class TypeEnv:
     def current_scope(self):
         return self.stack[-1]
 
-# Usage example in the type checker (replace your current env usage)
+# Usage example
 env = TypeEnv()
 
 # When entering a procedure:
