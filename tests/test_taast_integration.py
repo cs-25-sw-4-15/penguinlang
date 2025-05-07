@@ -498,6 +498,7 @@ class TestTypeStringLiteral:
         # assert isinstance(taast.statements[1].value.var_type, StringType), "sprite in assignment -> StringType"
         # øvre er udkomemnnteret, da der ikke må laves assignments af sprites osv. kun initialization
 
+
 class TestTypeVariable:
     def test_varaible_scope(self):
         # regular variable case

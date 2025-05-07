@@ -46,5 +46,7 @@ class InvalidTypeError(TypeError):
     """Error for when an invalid type is used."""
     pass
 
+
 class InvalidAttributeError(TypeError):
+    """Error for when an invalid attribute is used."""
     pass

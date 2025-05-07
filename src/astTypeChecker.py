@@ -496,9 +496,6 @@ class TypeChecker:
         """Type check an AttributeAccess node."""
         logger.info(f"Type checking attribute access: {node.attribute} on {node.name}")
         
-        # get the base type of the attribute access (most leftside of the access)
-        base_type = self.check_node(node.name)
-        
         # Attributes can ahve complex paths, like a.b.c, so we need to handle that
         # to handle this we make the helper funcion that constructs the path
         def construct_path(name_path) -> str:
