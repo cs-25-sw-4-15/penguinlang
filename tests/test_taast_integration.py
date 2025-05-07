@@ -83,7 +83,7 @@ class TestTypeAssignments:
             assert isinstance(e, TypeMismatchError), "if this is not the case, either the error has been changed, or somethjing else has happend"
         
         try:
-             build_taast("sprite x; x = 1;")
+            build_taast("sprite x; x = 1;")
         except Exception as e:
             assert isinstance(e, TypeMismatchError), "InvalidTypeError #1 sprite var -x-> string"
             

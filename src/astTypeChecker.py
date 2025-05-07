@@ -64,8 +64,8 @@ class TypeEnv:
     def define(self, name, typ):
         self.stack[-1][name] = typ
 
-    def lookup(self, name) -> Optional[Type]:
-        for scope in reversed(self.stack):
+    def lookup(self, name: str) -> Optional[Type]:
+        for scope in reversed(self.stack):  # Check inner to outer
             if name in scope:
                 return scope[name]
         return None
@@ -187,12 +187,7 @@ class TypeChecker:
         
         # Type check each statement in the program
         for stmt in node.statements:
-            if isinstance(stmt, ProcedureDef):
-                self.check_node(stmt)
-
-        for stmt in node.statements:
-            if not isinstance(stmt, ProcedureDef):
-                self.check_node(stmt)
+            self.check_node(stmt)
     
     def check_Declaration(self, node: Declaration) -> None:
         """Type check a Declaration node."""
@@ -627,7 +622,7 @@ class TypeChecker:
         return_type = self.string_to_type(node.return_type) if node.return_type else VoidType()
         node.return_type = return_type
         
-        logger.debug(f"########### return_type: {node.return_type} --- {type(node.return_type)} --- {return_type} --- {type(return_type)}")
+        # logger.debug(f"return_type: {node.return_type} --- {type(node.return_type)} --- {return_type} --- {type(return_type)}")
         
         # define the procedure in the procedure table
         self.procedures.define(node.name, param_types, return_type)
