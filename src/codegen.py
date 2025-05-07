@@ -261,7 +261,8 @@ SECTION "Header", ROM0[$100]
 
     def generate_Assign(self,instruction: IRAssign) -> str:
         returnstr = ""
-        returnstr += f"ld {instruction.dest}, {instruction.src}\n"
+        if instruction.dest != instruction.src:
+            returnstr += f"ld {instruction.dest}, {instruction.src}\n"
         return returnstr
 
     def generate_Constant(self,instruction: IRConstant) -> str:
@@ -275,13 +276,14 @@ SECTION "Header", ROM0[$100]
         else:
             returnstr += f"ld hl, {instruction.addr[1:-1]}\n"
         returnstr += f"ld a, [hl]\n"
-        returnstr += f"ld {instruction.dest}, a\n"
+        if instruction.dest != 'a':
+            returnstr += f"ld {instruction.dest}, a\n"
         return returnstr
 
     def generate_Store(self,instruction: IRStore) -> str:
         returnstr = ""
-
-        returnstr += f"ld a, {instruction.value}\n"
+        if instruction.value != 'a':
+            returnstr += f"ld a, {instruction.value}\n"
         #Case of normal variable
         if instruction.addr in self.variable_address_dict:
             returnstr += f"ld hl, {self.variable_address_dict[instruction.addr]}\n"
@@ -303,7 +305,10 @@ SECTION "Header", ROM0[$100]
         return returnstr
 
     def generate_CondJump(self,instruction: IRCondJump) -> str:
-        returnstr = f"cp 0\n"
+        returnstr = ""
+        if instruction.condition != 'a':
+            returnstr += f"ld a, {instruction.condition}\n"
+        returnstr += f"cp 0\n"
         returnstr += f"jp nz, {instruction.true_label}\n"
 
         return returnstr
@@ -339,7 +344,8 @@ SECTION "Header", ROM0[$100]
         # Implementation to be filled in
         returnstr = ""
         returnstr += f"ld a, [{instruction.register}]\n"
-        returnstr += f"ld {instruction.dest}, a\n"
+        if instruction.dest != 'a':
+            returnstr += f"ld {instruction.dest}, a\n"
         return returnstr
 
     def generate_HardwareStore(self, instruction: IRHardwareStore) -> str:
@@ -360,12 +366,12 @@ SECTION "Header", ROM0[$100]
     def generate_HardwareMemCpy(self,instruction: IRHardwareMemCpy) -> str:
         # Implementation to be filled in
         returnstr = ""
-        returnstr += f"call PenguinPush"
-        returnstr += f"ld de, {instruction.src}Start"
-        returnstr += f"ld hl, {instruction.dest}"
-        returnstr += f"ld bc, {instruction.src}End - {instruction.src}Start"
-        returnstr += f"call PenguinMemCopy"
-        returnstr += f"call PenguinPop"
+        returnstr += f"call PenguinPush\n"
+        returnstr += f"ld de, Label{instruction.src}Start\n"
+        returnstr += f"ld hl, {instruction.dest}\n"
+        returnstr += f"ld bc, Label{instruction.src}End - {instruction.src}Start\n"
+        returnstr += f"call PenguinMemCopy\n"
+        returnstr += f"call PenguinPop\n"
         returnstr += f""
         return returnstr
 
