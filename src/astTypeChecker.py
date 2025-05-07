@@ -2,8 +2,9 @@
 
 Traverses an AST and verifies type correctness according to language rules.
 """
-
-from ast import *
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Generated modules
 from src.generated.penguinParser import penguinParser
@@ -16,7 +17,7 @@ from src.predefinedVnF import initialize_hardware_elements
 from src.customErrors import *
 
 # Typing modules
-from typing import List, Tuple, Union, Any, Optional
+from typing import List, Tuple, Union, Any, Optional, Dict
 
 # Logging modules
 import logging
@@ -88,7 +89,7 @@ class ProcedureEnv:
         # Makes a new env for the procedure, with a copy of the current env
         env = TypeEnv()
         for name, (params, ret_type) in self.table.items():
-            env.define(name, FunctionType([typ for _, typ in params], ret_type)) # Er 
+            env.define(name, ProcedureType([typ for _, typ in params], ret_type)) # Er 
         return env
 
 

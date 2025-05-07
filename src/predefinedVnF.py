@@ -2,6 +2,11 @@
 Predefined hardware registers and functions for the Penguin language.
 This file defines built-in hardware elements that are available to all programs.
 """
+
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from typing import Dict, List, Tuple
 # Import the type classes from the main type checker
 from src.astTypes import *

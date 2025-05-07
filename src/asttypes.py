@@ -4,12 +4,16 @@ Types for the Penguin compiler.
 
 # Typing modules
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any, Optional, List
 
 if TYPE_CHECKING:
     # Stops Pylance from complaining about the import. 
     # Recursive import, but only for type checking.
     from astTypes import IntType
+
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 
 class Type:
@@ -271,6 +275,15 @@ class ListType(Type):
         """
         
         return f"List[{self.element_type}]"
+
+
+class ProcedureType:
+    def __init__(self, param_types: List[Type], return_type: Type):
+        self.param_types = param_types
+        self.return_type = return_type
+
+    def __repr__(self):
+        return f"Procedure(param_types={self.param_types}, return_type={self.return_type})"
 
 
 # Singleton type instances for the Penguin compiler, used in the type checker and AST nodes.
