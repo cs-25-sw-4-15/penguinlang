@@ -1,0 +1,44 @@
+class TypeEnv:
+    def __init__(self):
+        self.stack = [{}]
+
+    def push(self):
+        self.stack.append({})
+
+    def pop(self):
+        self.stack.pop()
+
+    def define(self, name, typ):
+        self.stack[-1][name] = typ
+
+    def lookup(self, name):
+        for scope in reversed(self.stack):
+            if name in scope:
+                return scope[name]
+        return None
+
+    def current_scope(self):
+        return self.stack[-1]
+
+# Usage example in the type checker (replace your current env usage)
+env = TypeEnv()
+
+# When entering a procedure:
+env.push()
+for param in proc.params:
+    env.define(param.name, param.type)
+
+# When exiting a procedure:
+env.pop()
+
+# For variable declaration:
+if env.lookup(varname) is not None:
+    # only error if it's in the current scope
+    if varname in env.current_scope():
+        raise TypeError("Variable already defined in this scope")
+env.define(varname, vartype)
+
+# For variable usage:
+typ = env.lookup(varname)
+if typ is None:
+    raise TypeError("Undefined variable")

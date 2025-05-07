@@ -50,58 +50,15 @@ logger = logging.getLogger(__name__)
 # Typetjek dem imens?
 
 
-class TypeEnv: 
-    # Symbol table for the type checker.
-    def __init__(self):
-        self.stack: List[Dict] = [{}]
-
-    def push(self):
-        self.stack.append({})
-
-    def pop(self):
-        self.stack.pop()
-
-    def define(self, name, typ):
-        self.stack[-1][name] = typ
-
-    def lookup(self, name) -> Optional[Type]:
-        for scope in reversed(self.stack):
-            if name in scope:
-                return scope[name]
-        return None
-
-    def current_scope(self):
-        return self.stack[-1]
-
-
-class ProcedureEnv:
-    def __init__(self):
-        self.table: Dict[str, Tuple[List[Tuple[str, Type]], Type]] = {}
-
-    def define(self, name: str, params: List[Tuple[str, Type]], return_type: Type):
-        self.table[name] = (params, return_type)
-
-    def lookup(self, name: str) -> Optional[Tuple[List[Tuple[str, Type]], Type]]:
-        return self.table.get(name)
-    
-    def as_typeenv(self) -> TypeEnv:
-        # Makes a new env for the procedure, with a copy of the current env
-        env = TypeEnv()
-        for name, (params, ret_type) in self.table.items():
-            env.define(name, FunctionType([typ for _, typ in params], ret_type)) # Er 
-        return env
-
-
 class TypeChecker:
     """Type checker for Penguin Language AST.
     
-    Traverses an AST and verifies type and scope correctness according to language rules.
+    Traverses an AST and verifies type correctness according to language rules.
     """
     
     def __init__(self):
-        
-        self.env = TypeEnv() # Symbol table
-        self.procedures = ProcedureEnv() # Procedure table
+        self.symbol_table: Dict[str, Type] = {}  # Maps variable names to their types
+        self.procedure_table: Dict[str, Tuple[List[Tuple[str, Type]], Type]] = {}  # Maps procedure names to (param_types, return_type)
         self.current_return_type: Optional[Type] = None  # Return type of the current procedure
         
         # Initialize predefined hardware elements
@@ -112,13 +69,11 @@ class TypeChecker:
         # Get predefined elements from the hardware module
         hardware_symbols, hardware_procedures = initialize_hardware_elements()
         
-        # add to symboltable (env)
-        for symbol, typ in hardware_symbols.items():
-            self.env.define(symbol, typ)
+        # Add predefined symbols to the symbol table
+        self.symbol_table.update(hardware_symbols)
         
-        # Add procedures to the procedure table
-        for name, (params, ret_type) in hardware_procedures.items():
-            self.procedures.define(name, params, ret_type)
+        # Add predefined procedures to the procedure table
+        self.procedure_table.update(hardware_procedures)
         
         logger.info(f"Initialized {len(hardware_symbols)} hardware symbols and {len(hardware_procedures)} hardware procedures")
     
@@ -126,27 +81,23 @@ class TypeChecker:
         """Convert a type string to a Type object."""
         logger.debug(f"Converting string '{type_str}' to type")
         
-        dictionary = {
-            "int": IntType(),
-            "tileset": TilesetType(),
-            "tilemap": TileMapType(),
-            "sprite": SpriteType(),
-            "string": StringType(),
-            "void": VoidType(),
-            "oamentry": OAMEntryType(),
-            "list": ListType()
-        }
-        # Check if the type string is in the dictionary
-        type_str = type_str.lower()
-        if type_str in dictionary:
-            return dictionary[type_str]
+        if type_str == "int" or type_str == "Int":
+            return IntType()
+        elif type_str == "Tileset" or type_str == "tileset":
+            return TilesetType()
+        elif type_str == "Tilemap" or type_str == "tilemap":
+            return TileMapType()
+        elif type_str == "Sprite" or type_str == "sprite":
+            return SpriteType()
+        elif type_str == "String" or type_str == "string":
+            return StringType()
+        elif type_str == "void":
+            return VoidType()
         else:
-            # If not, handle the case where the type is not recognized
-            logger.error(f"Invalid type: {type_str}")
             raise InvalidTypeError(f"Invalid type: {type_str} --- {type(type_str)}")
     
     def check_node(self, node: ASTNode) -> Type:
-        """Type check an AST node by dispatching to the appropriate method in the TypeChecker."""
+        """Type check an AST node by dispatching to the appropriate method."""
         logger.debug(f"Type checking node: {type(node).__name__}")
         
         # Use a method dispatch pattern to call the appropriate check method
@@ -164,32 +115,25 @@ class TypeChecker:
         logger.info("Type checking program")
         
         # Type check each statement in the program
-        for stmt in node.statements:
-            if isinstance(stmt, ProcedureDef):
-                self.check_node(stmt)
-
-        for stmt in node.statements:
-            if not isinstance(stmt, ProcedureDef):
-                self.check_node(stmt)
+        for statement in node.statements:
+            self.check_node(statement)
     
     def check_Declaration(self, node: Declaration) -> None:
         """Type check a Declaration node."""
         logger.info(f"Type checking declaration: {node.name} of type {node.var_type}")
         
-        # Check if the variable has already been declared in the current scope
-        if self.env.lookup(node.name) is not None:
-            if node.name in self.env.current_scope():
-                raise DuplicateDeclarationError(f"Variable '{node.name}' already declared in this scope")
+        # Check if the variable has already been declared
+        if node.name in self.symbol_table:
+            raise DuplicateDeclarationError(f"Variable '{node.name}' already declared")
         
         # Convert the type string to a Type object
         var_type = self.string_to_type(node.var_type)
         
-        # Add the variable to the symbol table, by defining it in the enviroment
-        self.env.define(node.name, var_type)
-        
-        # Store type in the node for later use
-        node.var_type = var_type
+        # Add the variable to the symbol table
+        self.symbol_table[node.name] = var_type
 
+        node.var_type = var_type  # Store the type in the node for later use
+        
         logger.debug(f"Declared variable '{node.name}' with type {var_type}")
     
     def check_Assignment(self, node: Assignment) -> None:
@@ -200,18 +144,16 @@ class TypeChecker:
         target_type = self.check_node(node.target)
         value_type = self.check_node(node.value)
         
-        # Store the type in the node for later use
         node.var_type = target_type
-        
+        # Store the type in the node for later use
         # Check if the types match
         if target_type != value_type:   
             if (value_type == SpriteType() and target_type == IntType()):
-                return 
-            
+                return
             logger.error(f"Type mismatch in assignment: expected {target_type}, got {value_type}")
             raise TypeMismatchError(f"Type mismatch in assignment: expected {target_type}, got {value_type}")
 
-        if isinstance(target_type, (TileMapType, TilesetType, SpriteType)):
+        if (target_type == (TileMapType, TilesetType, SpriteType)):
             # Special case, where the above types cannot be reassigned at runtime
             logger.error(f"Cannot reassign {target_type} at runtime")
             raise TypeMismatchError(f"Cannot reassign {target_type} at runtime")
@@ -222,27 +164,23 @@ class TypeChecker:
         """Type check an Initialization node."""
         logger.info(f"Type checking initialization: {node.name} of type {node.var_type}")
         
-        # Check if the variable is already declared in the current scope
-        if self.env.lookup(node.name) is not None:
-            if node.name in self.env.current_scope():
-                raise DuplicateDeclarationError(f"Variable '{node.name}' already declared in this scope")
+        # Check if the variable has already been declared
+        if node.name in self.symbol_table:
+            raise DuplicateDeclarationError(f"Variable '{node.name}' already declared")
         
         # Convert the type string to a Type object
         var_type = self.string_to_type(node.var_type)
         
         # Add the variable to the symbol table
-        self.env.define(node.name, var_type)
+        self.symbol_table[node.name] = var_type
         
         # Type check the value
         value_type = self.check_node(node.value)
-        
-        # Store the type in the node for later use
-        node.var_type = var_type
-        
+        node.var_type = var_type  # Store the type in the node for later use
         # Check if the types match
         if var_type != value_type:
             # Special case for Tileset, TileMap, and Sprite which must be assigned strings
-            if isinstance(var_type, (TilesetType, TileMapType, SpriteType)) and isinstance(value_type, StringType):
+            if (isinstance(var_type, (TilesetType, TileMapType, SpriteType)) and isinstance(value_type, StringType)):
                 return
             
             logger.error(f"Type mismatch in initialization: expected {var_type}, got {value_type}")
@@ -252,20 +190,16 @@ class TypeChecker:
         """Type check a ListInitialization node."""
         logger.info(f"Type checking list initialization: {node.name}")
         
-        # Check if the variable has already been declared in the current scope
-        if self.env.lookup(node.name) is not None:
-            if node.name in self.env.current_scope():
-                raise DuplicateDeclarationError(f"Variable '{node.name}' already declared in this scope")
+        # Check if the variable has already been declared
+        if node.name in self.symbol_table:
+            raise DuplicateDeclarationError(f"Variable '{node.name}' already declared")
         
         # Per the rules, lists must always be of type int
         list_type = ListType(IntType())
         
         # Add the variable to the symbol table
-        self.env.define(node.name, list_type)
-        
-        # Store the type in the node for later use
-        node.var_type = list_type
-        
+        self.symbol_table[node.name] = list_type
+        node.var_type = ListType()  # Store the type in the node for later use
         # Type check each value in the list
         for value in node.values:
             value_type = self.check_node(value)
@@ -320,10 +254,7 @@ class TypeChecker:
         
         # Type check the return value
         value_type = self.check_node(node.value)
-        
-        # Store the type in the node for later use 
-        node.var_type = value_type 
-        
+        node.var_type = value_type  # Store the type in the node for later use 
         # Check if the return type matches the current procedure's return type
         if self.current_return_type is None:
             logger.error("Return statement outside of procedure")
@@ -332,13 +263,17 @@ class TypeChecker:
         if value_type != self.current_return_type:
             logger.error(f"Return type mismatch: expected {self.current_return_type}, got {value_type}")
             raise TypeMismatchError(f"Return type mismatch: expected {self.current_return_type}, got {value_type}")
-    
-        # Check if coid type, and if so if the value is None
-        if isinstance(self.current_return_type, VoidType) and node.value is not None:
-            logger.error("Void procedure should not return a value")
-            raise TypeMismatchError("Void procedure should not return a value")
         
         return value_type
+    
+    def check_ProcedureCallStatement(self, node: ProcedureCallStatement) -> Type:
+        """Type check a ProcedureCallStatement node."""
+        logger.info("Type checking procedure call statement")
+        
+        # Type check the procedure call
+        self.check_node(node.call)
+        
+        return VoidType()
     
     def check_BinaryOp(self, node: BinaryOp) -> Type:
         """Type check a BinaryOp node."""
@@ -348,34 +283,43 @@ class TypeChecker:
         left_type = self.check_node(node.left)
         right_type = self.check_node(node.right)
         
-        # Store the type in the node for later use
-        node.var_type = right_type
-        
-        # define sets of operators, taken from grammar
-        complex_artimetic_operators = {'*'}
-        simple_arithmetic_operators = {'+', '-'}
-        bitwise_arthmetic_operators = {'<<', '>>'}
-        x_than_operators = {'<', '>', '<=', '>='}
-        equality_operators = {'==', '!='}
-        bitwise_logical_operators1 = {'&'}
-        bitwise_logical_operators2 = {'^'}
-        bitwise_logical_operators3 = {'|'}
-        logical_operators1 = {'and'}
-        logical_operators2 = {'or'}
-        
+        node.var_type = right_type  # Store the type in the node for later use
         # Check operator compatibility
-        if node.op in complex_artimetic_operators | simple_arithmetic_operators | bitwise_arthmetic_operators \
-                                                  | x_than_operators | equality_operators | bitwise_logical_operators1 \
-                                                  | bitwise_logical_operators2 | bitwise_logical_operators3 \
-                                                  | logical_operators1 | logical_operators2:
-                
+        if node.op in ['+', '-', '*']:
+            # Arithmetic operators
             if not isinstance(left_type, IntType) or not isinstance(right_type, IntType):
-                operator_type = "Arithmetic" if node.op in complex_artimetic_operators | simple_arithmetic_operators | bitwise_arthmetic_operators else \
-                    "Comparison" if node.op in x_than_operators | equality_operators else \
-                    "Bitwise" if node.op in bitwise_logical_operators1 | bitwise_logical_operators2 | bitwise_logical_operators3 else \
-                    "Logical"
-                logger.error(f"{operator_type} operator '{node.op}' requires integer operands, got {left_type} and {right_type}")
+                logger.error(f"Arithmetic operator '{node.op}' requires integer operands, got {left_type} and {right_type}")
+                raise TypeMismatchError(f"Arithmetic operator '{node.op}' requires integer operands, got {left_type} and {right_type}")
             return IntType()
+        
+        elif node.op in ['<', '>', '<=', '>=', '==', '!=']:
+            # Comparison operators
+            if not isinstance(left_type, IntType) or not isinstance(right_type, IntType):
+                logger.error(f"Comparison operator '{node.op}' requires integer operands, got {left_type} and {right_type}")
+                raise TypeMismatchError(f"Comparison operator '{node.op}' requires integer operands, got {left_type} and {right_type}")
+            return IntType()  # Comparison returns boolean (represented as int)
+        
+        elif node.op in ['&&', '||']:
+            # Logical operators
+            if not isinstance(left_type, IntType) or not isinstance(right_type, IntType):
+                logger.error(f"Logical operator '{node.op}' requires integer operands, got {left_type} and {right_type}")
+                raise TypeMismatchError(f"Logical operator '{node.op}' requires integer operands, got {left_type} and {right_type}")
+            return IntType()
+        
+        elif node.op in ['>>', '<<', '&', '|', '^']:
+            # Logical operators
+            if not isinstance(left_type, IntType) or not isinstance(right_type, IntType):
+                logger.error(f"Logical operator '{node.op}' requires integer operands, got {left_type} and {right_type}")
+                raise TypeMismatchError(f"Logical operator '{node.op}' requires integer operands, got {left_type} and {right_type}")
+            return IntType()
+        
+        elif node.op in ['and', 'or']:
+            # Logical operators
+            if not isinstance(left_type, IntType) or not isinstance(right_type, IntType):
+                logger.error(f"Logical operator '{node.op}' requires integer operands, got {left_type} and {right_type}")
+                raise TypeMismatchError(f"Logical operator '{node.op}' requires integer operands, got {left_type} and {right_type}")
+            return IntType()
+        
         else:
             logger.error(f"Unknown binary operator: {node.op}")
             raise TypeError(f"Unknown binary operator: {node.op}")
@@ -387,17 +331,11 @@ class TypeChecker:
         # Type check the operand
         operand_type = self.check_node(node.operand)
         
-        # define sets of operators, taken from grammar
-        arithmetic_operators = {'-', '+'}
-        bitwise_operators = {'~'}
-        logical_operators = {'not'}
-        
-        if node.op in arithmetic_operators | bitwise_operators | logical_operators:
+        # Check operator compatibility
+        if node.op in ['-', '+', '~', 'not']:
             if not isinstance(operand_type, IntType):
-                operator_type = "Arithmetic" if node.op in arithmetic_operators else \
-                    "Bitwise" if node.op in bitwise_operators else \
-                    "Logical"
-                logger.error(f"{operator_type} operator '{node.op}' requires integer operand, got {operand_type}")
+                logger.error(f"Unary operator '{node.op}' requires integer operand, got {operand_type}")
+                raise TypeMismatchError(f"Unary operator '{node.op}' requires integer operand, got {operand_type}")
             node.var_type = IntType()  # Store the type in the node for later use
             return IntType()
         
@@ -429,90 +367,74 @@ class TypeChecker:
             return self.check_node(node.name)
         
         # Regular case - node.name is a string
-        try:
-            # Check if the variable has been declared
-            var_type = self.env.lookup(node.name)
-        except KeyError:
+        if node.name not in self.symbol_table:
             logger.error(f"Undeclared variable: {node.name}")
             raise UndeclaredVariableError(f"Undeclared variable: {node.name}")
         
         # Return the variable's type
-        var_type = self.env.lookup(node.name)
+        var_type = self.symbol_table[node.name]
         node.var_type = var_type
-        return var_type
+        return self.symbol_table[node.name]
     
     def check_ListAccess(self, node: ListAccess) -> Type:
         """Type check a ListAccess node."""
         logger.info(f"Type checking list access: {node.name}")
-        
-        # Store the type in the node for later use
-        node.var_type = IntType()
-        
-        base_type = None
+        node.var_type = IntType()  # Store the type in the node for later use
         
         # Get the base object to check if it's indexable
         if isinstance(node.name, str):
-            try:
-                # Check if the variable has been declared, if not, raise an error, else get its type
-                base_type = self.env.lookup(node.name)
-            except KeyError:
+            if node.name not in self.symbol_table:
                 logger.error(f"Undeclared variable: {node.name}")
                 raise UndeclaredVariableError(f"Undeclared variable: {node.name}")
+            
+            base_type = self.symbol_table[node.name]
         else:
             # If node.name is not a string, it's a nested structure (like a.b[0])
             base_type = self.check_node(node.name)
         
-        # Check if the base object is indexable, like a list or array
+        # Check if the base object is indexable
         if not base_type.is_indexable():
             logger.error(f"Type {base_type} is not indexable")
             raise TypeMismatchError(f"Type {base_type} is not indexable")
         
-        # Type check each index, ensuring they are of type int
+        # Type check each index
         for index in node.indices:
             index_type = self.check_node(index)
             if not isinstance(index_type, IntType):
                 logger.error(f"Index must be of type int, got {index_type}")
                 raise TypeMismatchError(f"Index must be of type int, got {index_type}")
         
-        # Return the type of element that we get when indexing this type, should be int
+        # Return the type of element that we get when indexing this type
         return base_type.index_result_type()
     
     def check_AttributeAccess(self, node: AttributeAccess) -> Type:
         """Type check an AttributeAccess node."""
         logger.info(f"Type checking attribute access: {node.attribute} on {node.name}")
         
-        # Attributes can ahve complex paths, like a.b.c, so we need to handle that
-        # to handle this we make the helper funcion that constructs the path
-        def construct_path(name_path) -> str:
-            # Check if name is a string
-            if isinstance(name_path, str):
-                return name_path
-            # check if name is an AttributeAccess
-            elif isinstance(name_path, AttributeAccess):
-                # recursively construct the path
-                return f"{construct_path(name_path.name)}.{name_path.attribute}"
-            # check if name is a Variable
-            elif hasattr(name_path, 'name'):
-                return f"{name_path.name}.{node.attribute}"
-            # else return the name as string
+        # Handle predefined complex paths
+        full_path = ""
+        if isinstance(node.name, str):
+            full_path = f"{node.name}.{node.attribute}"
+        elif isinstance(node.name, AttributeAccess):
+            # Handle nested AttributeAccess
+            if isinstance(node.name.name, str):
+                base_name = node.name.name
+            elif hasattr(node.name.name, 'name'):
+                base_name = node.name.name.name
             else:
-                return str(name_path)
+                base_name = str(node.name.name)
+            full_path = f"{base_name}.{node.name.attribute}.{node.attribute}"
+        elif hasattr(node.name, 'name'):
+            full_path = f"{node.name.name}.{node.attribute}"
+        else:
+            full_path = f"{node.name}.{node.attribute}"
         
-        # Construct the full path
-        base_name = construct_path(node.name)
-        full_path = f"{base_name}.{node.attribute}"
-        
-        # Check is it is in the symbol table
-        try:
-            # Check if the variable has been declared
-            var_type = self.env.lookup(full_path)
-            return var_type
-        except KeyError:
-            # siden det så ikke er i symbol table, kan man tjekke videre
-            pass
+        # Check if we have a predefined path
+        if full_path in self.symbol_table:
+            return self.symbol_table[full_path]
         
         # Get the base object type
-        base_obj = self.check_node(node.name) if isinstance(node.name, ASTNode) else self.env.lookup(node.name) # self.symbol_table.get(node.name)
+        base_obj = self.check_node(node.name) if isinstance(node.name, ASTNode) else self.symbol_table.get(node.name)
         
         if base_obj is None:
             logger.error(f"Undeclared variable: {node.name}")
@@ -541,15 +463,6 @@ class TypeChecker:
         # For attributes that aren't predefined, report an error
         logger.error(f"Undeclared attribute: {node.attribute} on object of type {base_obj}")
         raise UndeclaredVariableError(f"Undeclared attribute: {node.attribute} on object of type {base_obj}")
-    
-    def check_ProcedureCallStatement(self, node: ProcedureCallStatement) -> Type:
-        """Type check a ProcedureCallStatement node."""
-        logger.info("Type checking procedure call statement")
-        
-        # Type check the procedure call
-        self.check_node(node.call)
-        
-        return VoidType()
     
     def check_ProcedureCall(self, node: ProcedureCall) -> Type:
         """Type check a ProcedureCall node."""
@@ -615,8 +528,7 @@ class TypeChecker:
         
         # Check if the procedure has already been declared
         if node.name in self.procedure_table:
-            logger.error(f"Duplicate procedure declaration: {node.name}")
-            raise DuplicateDeclarationError(f"Duplicate procedure declaration: {node.name}")
+            raise DuplicateDeclarationError(f"Procedure '{node.name}' already declared")
         
         # Convert the return type string to a Type object
         return_type = self.string_to_type(node.return_type) if node.return_type else VoidType()
