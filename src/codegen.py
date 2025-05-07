@@ -175,6 +175,46 @@ SECTION "Header", ROM0[$100]
             #STORE RESULT
             returnstr += f"TEMP MULTIPLY\n"
 
+        elif instruction.op == '==':
+            ""
+            return returnstr
+        
+        elif instruction.op == 'and':
+            # If the left operand is already in the accumulator, we can skip loading and directly do 'and' on the right.
+            if instruction.left == 'a':
+                returnstr += f"and {instruction.right}\n"
+            # If the right operand is already in the accumulator, we can directly to 'and' on the left.
+            elif instruction.right == 'a':
+                returnstr += f"and {instruction.left}\n"
+            else:
+            # None of the operands are in the accumulator, so we load left into the accumulator first.
+                returnstr += f"ld a, {instruction.left}\n"
+                returnstr += f"and {instruction.right}\n"
+
+            # After the 'and' instruction, the result is in the accumulator. 
+            if instruction.dest != 'a':
+                returnstr += f"ld {instruction.dest}, a\n"
+
+            return returnstr
+        
+        elif instruction.op == 'or':
+            # If the left operand is already in the accumulator, we can skip loading and directly do 'or' on the right.
+            if instruction.left == 'a':
+                returnstr += f"or {instruction.right}\n"
+            # If the right operand is already in the accumulator, we can directly do 'or' on the left.
+            elif instruction.right == 'a':
+                returnstr += f"or {instruction.left}\n"
+            else:
+                # None of the operands are in the accumulator, so we load left into the accumulator first.
+                returnstr += f"ld a, {instruction.left}\n"
+                returnstr += f"or {instruction.right}\n"
+
+            # After the 'or' instruction, the result is in the accumulator. 
+            if instruction.dest != 'a':
+                returnstr += f"ld {instruction.dest}, a\n"
+
+            return returnstr
+
 
 
         # ==
@@ -183,8 +223,6 @@ SECTION "Header", ROM0[$100]
         # >
         # <=
         # >=
-        # and
-        # or
         # ^
         # & 
         # |
