@@ -26,6 +26,7 @@ class CodeGenerator:
         assembly_code += self.header()
 
         assembly_code += "PenguinEntry:\n"
+        assembly_code += "ld sp, $DFFF\n"
 
         # Iterate over each instruction in the IR program
         for instruction in ir_program.main_instructions:
@@ -37,7 +38,7 @@ class CodeGenerator:
 
         for procedure in ir_program.procedures.items():
             #add label for procedure
-            assembly_code += f"Label{procedure[0]}:"
+            assembly_code += f"Label{procedure[0]}:\n"
             for instruction in procedure[1].instructions:
                 assembly_line = self.generate(instruction)
                 if assembly_line:
@@ -94,6 +95,14 @@ SECTION "Header", ROM0[$100]
         PenguinCalcOffset:
 
         PenguinMemCopy:
+        ld a, [de]
+        ld [hli], a
+        inc de
+        dec bc
+        ld a, b
+        or a, c
+        jp nz, PenguinMemCopy
+        ret
 
 
         control_LCDon:
@@ -204,46 +213,50 @@ SECTION "Header", ROM0[$100]
         # Implementation to be filled in
         returnstr = ""
 
-        returnstr += f"Label{instruction.varname}Start\n"
+        returnstr += f"Label{instruction.varname}Start:\n"
         returnstr += f"INCBIN {instruction.filepath}\n"
-        returnstr += f"Label{instruction.varname}End\n"
+        returnstr += f"Label{instruction.varname}End:\n"
 
         return returnstr
 
 
 
     def generate_Assign(self,instruction: IRAssign) -> str:
-        # Implementation to be filled in
         returnstr = ""
         returnstr += f"ld {instruction.dest}, {instruction.src}\n"
         return returnstr
 
     def generate_Constant(self,instruction: IRConstant) -> str:
-        # Implementation to be filled in
         returnstr = f"ld {instruction.dest}, {instruction.value}\n"
         return returnstr
 
     def generate_Load(self,instruction: IRLoad) -> str:
-        # Implementation to be filled in
         returnstr = ""
-        returnstr += f"ld hl, {self.variable_address_dict[instruction.addr]}\n"
+        if instruction.addr in self.variable_address_dict:
+            returnstr += f"ld hl, {self.variable_address_dict[instruction.addr]}\n"
+        else:
+            returnstr += f"ld hl, {instruction.addr[1:-1]}\n"
         returnstr += f"ld a, [hl]\n"
         returnstr += f"ld {instruction.dest}, a\n"
         return returnstr
 
     def generate_Store(self,instruction: IRStore) -> str:
-        # Implementation to be filled in
         returnstr = ""
 
         returnstr += f"ld a, {instruction.value}\n"
-        returnstr += f"ld hl, {self.variable_address_dict[instruction.addr]}\n"
+        #Case of normal variable
+        if instruction.addr in self.variable_address_dict:
+            returnstr += f"ld hl, {self.variable_address_dict[instruction.addr]}\n"
+        #Case of spill and stack pointer
+        else:
+            returnstr += f"ld hl, {instruction.addr[1:-1]}\n"
         returnstr += f"ld [hl], a\n"
         return returnstr
 
 
     def generate_Label(self,instruction: IRLabel) -> str:
         # Implementation to be filled in
-        returnstr = f"{instruction.name}\n"
+        returnstr = f"{instruction.name}:\n"
         return returnstr
 
     def generate_Jump(self,instruction: IRJump) -> str:
@@ -309,8 +322,16 @@ SECTION "Header", ROM0[$100]
     def generate_HardwareMemCpy(self,instruction: IRHardwareMemCpy) -> str:
         # Implementation to be filled in
         returnstr = ""
+        returnstr += f"call PenguinPush"
+        returnstr += f"ld de, {instruction.src}Start"
+        returnstr += f"ld hl, {instruction.dest}"
+        returnstr += f"ld bc, {instruction.src}End - {instruction.src}Start"
+        returnstr += f"call PenguinMemCopy"
+        returnstr += f"call PenguinPop"
+        returnstr += f""
+        return returnstr
 
     def generate_ArgLoad(self,instruction: IRArgLoad) -> str:
         # Implementation to be filled in
         returnstr = ""
-        return "; Arg was loaded"   
+        return "; Arg was loaded\n"   
