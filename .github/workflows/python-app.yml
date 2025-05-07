@@ -50,5 +50,4 @@ jobs:
         PYTHONPATH=. flake8 . --count --exit-zero --statistics
     - name: Test with pytest
       run: |
-        pytest
-        working-directory: ${{ github.workspace }}
+        PYTHONPATH=. pytest
