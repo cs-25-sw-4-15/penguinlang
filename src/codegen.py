@@ -179,7 +179,7 @@ SECTION "Header", ROM0[$100]
             ""
             return returnstr
         
-        elif instruction.op == 'and':
+        elif instruction.op == ('and', '&'):
             # If the left operand is already in the accumulator, we can skip loading and directly do 'and' on the right.
             if instruction.left == 'a':
                 returnstr += f"and {instruction.right}\n"
@@ -197,7 +197,7 @@ SECTION "Header", ROM0[$100]
 
             return returnstr
         
-        elif instruction.op == 'or':
+        elif instruction.op == ('or', '|'):
             # If the left operand is already in the accumulator, we can skip loading and directly do 'or' on the right.
             if instruction.left == 'a':
                 returnstr += f"or {instruction.right}\n"
@@ -224,8 +224,6 @@ SECTION "Header", ROM0[$100]
         # <=
         # >=
         # ^
-        # & 
-        # |
         # <<
         # >>
         
