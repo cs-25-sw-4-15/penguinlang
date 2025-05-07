@@ -33,7 +33,11 @@ jobs:
         rm src/rgbds/rgbds-0.9.1-linux-x86_64.tar.xz
     - name : Generate lexer/parser with ANTLR
       run: |
-        antlr4 -Dlanguage=Python3 -visitor -o src/generated/ src/grammar/penguin.g4
+        sudo apt-get install -y default-jre
+        cd /usr/local/lib
+        curl -O https://www.antlr.org/download/antlr-4.13.2-complete.jar
+        cd $GITHUB_WORKSPACE  # back to the repo root
+        java -jar /usr/local/lib/antlr-4.13.2-complete.jar -Dlanguage=Python3 -visitor -o src/generated/ src/grammar/penguin.g4
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
