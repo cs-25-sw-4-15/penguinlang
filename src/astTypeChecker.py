@@ -451,15 +451,13 @@ class TypeChecker:
             return self.check_node(node.name)
         
         # Regular case - node.name is a string
-        try:
-            # Check if the variable has been declared
-            var_type = self.env.lookup(node.name)
-        except KeyError:
+        # Check if the variable has been declared
+        var_type = self.env.lookup(node.name)
+        if var_type is None:
             logger.error(f"Undeclared variable: {node.name}")
             raise UndeclaredVariableError(f"Undeclared variable: {node.name}")
         
         # Return the variable's type
-        var_type = self.env.lookup(node.name)
         node.var_type = var_type
         return var_type
     

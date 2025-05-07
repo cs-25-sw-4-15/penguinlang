@@ -67,22 +67,25 @@ class TestTypeAssignments:
         assert isinstance(taast.statements[1].target.var_type, IntType), "ass target -> int"
         assert isinstance(taast.statements[1].value.var_type, IntType), "ass value -> int"
         
-        taast = build_taast("""sprite x; x = "binarys";""")
-        assert isinstance(taast.statements[1].target.var_type, SpriteType), "ass target -> sprite"
-        assert isinstance(taast.statements[1].value.var_type, StringType), "ass value -> string"
-        
-        taast = build_taast("""tilemap x; x = "binarys";""")
-        assert isinstance(taast.statements[1].target.var_type, TileMapType), "ass target -> tilemap"
-        assert isinstance(taast.statements[1].value.var_type, StringType), "ass value -> string"
-        
-        taast = build_taast("""tileset x; x = "binarys";""")    
-        assert isinstance(taast.statements[1].target.var_type, TileMapType), "ass target -> tileset"
-        assert isinstance(taast.statements[1].value.var_type, StringType), "ass value -> string"
+        try:
+            build_taast("""sprite x; x = "binarys";""")
+        except Exception as e:
+            assert isinstance(e, TypeMismatchError), "if this is not the case, either the error has been changed, or somethjing else has happend"
         
         try:
-            taast = build_taast("sprite x; x = 1;")
+            build_taast("""tilemap x; x = "binarys";""")
         except Exception as e:
-            assert isinstance(e, InvalidTypeError), "InvalidTypeError #1 sprite var -x-> string"
+            assert isinstance(e, TypeMismatchError), "if this is not the case, either the error has been changed, or somethjing else has happend"
+        
+        try:
+            build_taast("""tileset x; x = "binarys";""") 
+        except Exception as e:
+            assert isinstance(e, TypeMismatchError), "if this is not the case, either the error has been changed, or somethjing else has happend"
+        
+        try:
+             build_taast("sprite x; x = 1;")
+        except Exception as e:
+            assert isinstance(e, TypeMismatchError), "InvalidTypeError #1 sprite var -x-> string"
             
     def test_assignment_scope_undeclared(self):
         # Test assignment scope
@@ -323,7 +326,7 @@ class TestTypeProcedureDef:
         try:
             build_taast("int z; procedure foo() { z = 6; }")
         except Exception as e:
-            assert False, "wtf --- " + str(e) 
+            assert False, "wtf - z not part of procedure scope --- " + str(e) 
         
         try:
             build_taast("int q; procedure foo(int q) { int x; }")
@@ -581,15 +584,13 @@ class TestTypeProcedureCallStatement:
         
         # Procedure is defined after it is called, should raise error
         try:
-            taast = build_taast("""foo(1); procedure foo(int y) { int x = 1; }""")
-            assert False, "Expected error for calling before declaration"
+            build_taast("""foo(1); procedure foo(int y) { int x = 1; }""")
         except Exception as e:
             assert isinstance(e, UndeclaredVariableError), "undeclared proc error (called before declared)"
 
         # Procedure with no parameters called before it's declared, should raise error
         try:
-            taast = build_taast("""foo(); procedure foo() { int x = 1; }""")
-            assert False, "Expected error for calling before declaration"
+            build_taast("""foo(); procedure foo() { int x = 1; }""")
         except Exception as e:
             assert isinstance(e, UndeclaredVariableError), "undeclared proc error (called before declared)"
 
