@@ -27,6 +27,7 @@ def initialize_hardware_elements() -> Tuple[Dict[str, Type], Dict[str, Tuple[Lis
     symbol_table["display_oam_x"] = ListType(IntType())  # List of OAM entries
     symbol_table["display_oam_y"] = ListType(IntType())   # List of OAM entries
     symbol_table["display_oam_tile"] = ListType(IntType())   # List of OAM entries
+    symbol_table["display_oam_attr"] = ListType(IntType())   # List of OAM entries
    
     # Control functions
     procedure_table["control_LCDon"] = ([], VoidType())

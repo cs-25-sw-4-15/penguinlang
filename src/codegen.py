@@ -1,4 +1,5 @@
 from IRProgram import *
+from codegenRegisters import *
 
 class CodeGenerator:
 
@@ -8,6 +9,7 @@ class CodeGenerator:
         """
         self.variable_address_dict = {}
         self.cmp_counter = 0
+        self.registerDict = codegenRegister()
 
     def generate_code(self, ir_program: IRProgram) -> str:
         """
@@ -543,7 +545,8 @@ SECTION "Header", ROM0[$100]
     def generate_HardwareLoad(self, instruction: IRHardwareLoad) -> str:
         # Implementation to be filled in
         returnstr = ""
-        returnstr += f"ld a, [{instruction.register}]\n"
+        returnstr += f"ld hl, {self.registerDict[instruction.register]}\n" 
+        returnstr += f"ld a, [hl]\n"
         if instruction.dest != 'a':
             returnstr += f"ld {instruction.dest}, a\n"
         return returnstr
@@ -552,7 +555,8 @@ SECTION "Header", ROM0[$100]
         # Implementation to be filled in
         returnstr = ""
         returnstr += f"ld a, {instruction.value}\n"
-        returnstr += f"ld [{instruction.register}], a\n"
+        returnstr += f"ld hl, {self.registerDict[instruction.register]}\n"
+        returnstr += f"ld [hl], a\n"
         return returnstr
 
     def generate_HardwareIndexedLoad(self, instruction: IRHardwareIndexedLoad) -> str:
