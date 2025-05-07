@@ -35,7 +35,7 @@ jobs:
       run: |
         sudo apt-get install -y default-jre
         curl -o antlr-4.13.2-complete.jar https://www.antlr.org/download/antlr-4.13.2-complete.jar
-        java -jar ./antlr-4.13.2-complete.jar -Dlanguage=Python3 -visitor -o src/generated src/grammar/penguin.g4
+        java -jar ./antlr-4.13.2-complete.jar -Dlanguage=Python3 -visitor -o src/generated/ src/grammar/penguin.g4
         ls -R src/generated
     - name: Lint with flake8
       run: |
