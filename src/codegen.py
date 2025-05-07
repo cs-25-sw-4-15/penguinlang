@@ -272,24 +272,32 @@ SECTION "Header", ROM0[$100]
             returnstr += f"ld a, {instruction.condition}\n"
         returnstr += f"cp 0\n"
         returnstr += f"jp nz, {instruction.true_label}\n"
+        if instruction.false_label:
+            returnstr += f"jp {instruction.false_label}\n"
 
         return returnstr
 
     def generate_Call(self,instruction: IRCall) -> str:
         # Implementation to be filled in
         returnstr = ""
-        returnstr += f"call PenguinPush\n"
-        returnstr += f"call {instruction.proc_name}\n"
+        #returnstr += f"call PenguinPush\n"
+        returnstr += "push bc\n"
+        returnstr += "push de\n"
+        returnstr += "push hl\n"
+        returnstr += f"call Label{instruction.proc_name}\n"
         #Placer variables
         #Call den reele funktion
         #Result er i A
-        returnstr += f"call PenguinPop\n"
+        #returnstr += f"call PenguinPop\n"
+        returnstr += "pop hl\n"
+        returnstr += "pop de\n"
+        returnstr += "pop bc\n"
         return returnstr
 
     def generate_Return(self,instruction: IRReturn) -> str:
         # Implementation to be filled in
         returnstr = ""
-        if instruction.value:
+        if instruction.value and instruction.value != 'a':
             returnstr += f"ld a, {instruction.value}\n"
         returnstr += "ret\n"
         return returnstr
@@ -341,3 +349,11 @@ SECTION "Header", ROM0[$100]
         # Implementation to be filled in
         returnstr = ""
         return "; Arg was loaded\n"   
+    
+    def generate_ChangeSP(self, instruction: IRChangeSP) -> str:
+        returnstr = ""
+        if instruction.op == '+':
+            returnstr += f"add sp, {instruction.amount}\n"
+        else:
+            returnstr += f"add sp, -{instruction.amount}\n"
+        return returnstr

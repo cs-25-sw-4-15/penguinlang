@@ -221,6 +221,16 @@ class IRArgLoad(IRInstruction):
     
     def __str__(self) -> str:
         return f"{self.dest} = arg[{self.arg_index}]"
+    
+
+class IRChangeSP(IRInstruction):
+    """Load argument in IR"""
+    def __init__(self, amount: int, op: str):
+        self.amount = amount
+        self.op = op
+    
+    def __str__(self) -> str:
+        return f"SP {self.op} {self.amount}"
 
 class IRProcedure:
     """Procedure in IR"""

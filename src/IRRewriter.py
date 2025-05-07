@@ -94,6 +94,7 @@ class IRRewriter:
             A list of rewritten IR instructions
         """
         rewritten = []
+        returnwritten = 0
         
         # Add prologue for spill slots if needed
         if any(not self._is_register(alloc) for alloc in self.current_allocations.values()):
@@ -102,6 +103,9 @@ class IRRewriter:
         # Rewrite each instruction
         for instr in instructions:
             rewritten_instrs = self._rewrite_instruction(instr)
+            if isinstance(instr, IRReturn) and any(not self._is_register(alloc) for alloc in self.current_allocations.values()):
+                rewritten.extend(self._generate_epilogue())
+                returnwritten = returnwritten + 1
             rewritten.extend(rewritten_instrs)
         
         # Add epilogue for spill slots if needed
@@ -675,8 +679,6 @@ class IRRewriter:
     
     def _get_temp_reg(self) -> str:
         """Get a temporary register for spill handling."""
-        # For simplicity, always use the accumulator (a) as a temporary
-        # In a real implementation, you would need to choose registers more carefully
         return 'a'
     
     def _generate_prologue(self) -> List[IRInstruction]:
@@ -697,8 +699,8 @@ class IRRewriter:
         
         if spill_count > 0:
             # Generate code to allocate space on the stack
-            result.append(IRLabel(f"{self.proc_name}_prologue"))
-            result.append(IRBinaryOp('-', 'sp', 'sp', str(spill_count)))
+            #result.append(IRBinaryOp('-', 'sp', 'sp', str(spill_count)))
+            result.append(IRChangeSP(spill_count, '-'))
         
         return result
     
@@ -714,11 +716,11 @@ class IRRewriter:
                 # Extract the offset from the allocation string ([sp+X])
                 if '[sp+' in alloc:
                     offset = int(alloc.split('[sp+')[1].split(']')[0])
-                    spill_count = max(spill_count, offset + 1)  # +2 for word size
+                    spill_count = max(spill_count, offset + 1)  # +1 for word size
         
         if spill_count > 0:
             # Generate code to deallocate space from the stack
-            result.append(IRLabel(f"{self.proc_name}_epilogue"))
-            result.append(IRBinaryOp('+', 'sp', 'sp', str(spill_count)))
+            #result.append(IRBinaryOp('+', 'sp', 'sp', str(spill_count)))
+            result.append(IRChangeSP(spill_count, '+'))
         
         return result
