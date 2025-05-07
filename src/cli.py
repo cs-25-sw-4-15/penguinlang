@@ -13,35 +13,20 @@ Help:
     py src/cli.py --help
     py src/cli.py COMMAND --help
 """
-import json
 
+import sys
+import os
 
+# add the src directory to the system path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+# Import compiler functions
+from src.compiler import print_tree, read_input_file, \
+    concrete_syntax_tree, abstact_syntax_tree, typed_abstact_syntax_tree
 
 # Import the necessary modules
 import typer
 from typing_extensions import Annotated
-from ast_classes import ASTNode
-
-
-# Import compiler functions
-from compiler import read_input_file, \
-    concrete_syntax_tree, abstact_syntax_tree
-
-class ASTEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, ASTNode):
-            # Convert ASTNode objects to dictionaries
-            result = {}
-            # Add class name for reconstruction
-            result["__class__"] = obj.__class__.__name__
-            # Add all attributes
-            for key, value in obj.__dict__.items():
-                result[key] = value
-            return result
-        # Let the base class handle other types
-        return super().default(obj)
-
 
 # Create instance of Typer
 app = typer.Typer()
@@ -65,6 +50,7 @@ def cst(input_path: Annotated[str, typer.Argument(help="Input file path")]):
     print("AST function called with input:", input_path)
     input_stream = read_input_file(input_path)
     cst = concrete_syntax_tree(input_stream, p=True)
+    print("made cst : " + type(cst))
     
 
 @app.command()
@@ -73,13 +59,19 @@ def ast(input_path: Annotated[str, typer.Argument(help="Input file path")]):
     input_stream = read_input_file(input_path)
     cst = concrete_syntax_tree(input_stream)
     ast = abstact_syntax_tree(cst)
-    print("JSON STARTS HERE")
-    print(json.dumps(ast, cls=ASTEncoder))
+    print_tree(ast)
 
 
 @app.command()
-def tast(input_path: Annotated[str, typer.Argument(help="Input file path")]):
+def taast(input_path: Annotated[str, typer.Argument(help="Input file path")]):
     print("Typed AST function called with input:", input_path)
+    input_stream = read_input_file(input_path)
+    cst = concrete_syntax_tree(input_stream)
+    ast = abstact_syntax_tree(cst)
+    taast = typed_abstact_syntax_tree(ast)
+    
+    print_tree(taast)
+    print(taast.statements[0])
 
 
 if __name__ == "__main__":

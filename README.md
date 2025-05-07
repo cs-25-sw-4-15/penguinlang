@@ -8,6 +8,8 @@ Installer
 
 ## Setup
 
+win: py, linux: python3, mac: something
+
 0. Installer Python 3.10 or higher
 1. Upgade pip
 ```bash
@@ -48,23 +50,19 @@ antlr4 -Dlanguage=Python3 -visitor -o src/generated/ src/grammar/penguin.g4
 deactivate
 ```
 
-## Running
-```bash
-py SCRIPTPATH.FILEEXTENTION INPUTFILE -o OUTPUTFILE
-```
-
-o: optional
-
 ## Testing
 ```bash
-pytest tests/tester.py
+pytest
 ```
+
+## Syntax opitionation
 ```bash
-pytest -q tests/tester.py
+flake8 \[optional dir or file\]
 ```
+Error codes: https://pycodestyle.pycqa.org/en/latest/intro.html#error-codes
 
 ## CLI
-
-## Flake8 error codes
-https://pycodestyle.pycqa.org/en/latest/intro.html#error-codes
+```bash
+py cli.py COMMAND [option] ...
+```
 
