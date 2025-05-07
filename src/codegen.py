@@ -286,6 +286,10 @@ SECTION "Header", ROM0[$100]
     def generate_Return(self,instruction: IRReturn) -> str:
         # Implementation to be filled in
         returnstr = ""
+        if instruction.value:
+            returnstr += f"ld a, {instruction.value}\n"
+        returnstr += "ret\n"
+        return returnstr
 
     def generate_IndexedLoad(self,instruction: IRIndexedLoad) -> str:
         # Implementation to be filled in
