@@ -515,6 +515,7 @@ class TestTypeVariable:
         except Exception as e:
             assert isinstance(e, UndeclaredVariableError), "UndeclaredVariableError #1 -x-> undeclared"
     
+    @pytest.mark.xfail(reason="dropped attributes")
     def test_variable_scope2(self):
         # attribute access case
         # this has been removed from use, and new dots cannot be made
