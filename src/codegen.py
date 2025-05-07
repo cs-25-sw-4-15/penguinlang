@@ -267,7 +267,10 @@ SECTION "Header", ROM0[$100]
         return returnstr
 
     def generate_CondJump(self,instruction: IRCondJump) -> str:
-        returnstr = f"cp 0\n"
+        returnstr = ""
+        if instruction.condition != 'a':
+            returnstr += f"ld a, {instruction.condition}\n"
+        returnstr += f"cp 0\n"
         returnstr += f"jp nz, {instruction.true_label}\n"
 
         return returnstr
