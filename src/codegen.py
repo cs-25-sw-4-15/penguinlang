@@ -7,7 +7,7 @@ class CodeGenerator:
         Initialize the code generator.
         """
         self.variable_address_dict = {}
-        pass
+        self.cmp_counter = 0
 
     def generate_code(self, ir_program: IRProgram) -> str:
         """
@@ -174,11 +174,59 @@ SECTION "Header", ROM0[$100]
             #POP REGISTERS
             #STORE RESULT
             returnstr += f"TEMP MULTIPLY\n"
-
+        # ==
         elif instruction.op == '==':
-            ""
+            # If the left operand is already in the accumulator, we can skip loading and directly compare to the right.
+            # Otherwise we load left into A first.
+            true_lbl = f"EQ_TRUE_{self.cmp_counter}"
+            end_lbl  = f"EQ_END_{self.cmp_counter}"
+            self.cmp_counter += 1
+
+            # load left into accumulator if needed, then compare to right
+            if instruction.left != 'a':
+                returnstr += f"ld a, {instruction.left}\n"
+            returnstr += f"cp {instruction.right}\n"
+
+            # default false
+            returnstr += f"ld {instruction.dest}, 0\n"
+            # if zero flag set (A == right), jump to true
+            returnstr += f"jp z, {true_lbl}\n"
+            # else skip to end
+            returnstr += f"jp {end_lbl}\n"
+
+            # true branch: set dest = 1
+            returnstr += f"{true_lbl}:\n"
+            returnstr += f"ld {instruction.dest}, 1\n"
+            # end label
+            returnstr += f"{end_lbl}:\n"
+
             return returnstr
-        
+        # !=
+        elif instruction.op == '!=':
+            # Not-equal: set dest = 1 if left != right, else 0.
+            true_lbl = f"NE_TRUE_{self.cmp_counter}"
+            end_lbl  = f"NE_END_{self.cmp_counter}"
+            self.cmp_counter += 1
+
+            # load left into accumulator and compare to right
+            returnstr += f"ld a, {instruction.left}\n"
+            returnstr += f"cp {instruction.right}\n"
+
+            # they are equal
+            returnstr += f"ld {instruction.dest}, 0\n"
+            # if Z flag = 0 then not equal → jump to true
+            returnstr += f"jp nz, {true_lbl}\n"
+            # else jump to end
+            returnstr += f"jp {end_lbl}\n"
+
+            # true branch: set dest = 1
+            returnstr += f"{true_lbl}:\n"
+            returnstr += f"ld {instruction.dest}, 1\n"
+            # end label
+            returnstr += f"{end_lbl}:\n"
+
+            return returnstr
+        # and, &
         elif instruction.op == ('and', '&'):
             # If the left operand is already in the accumulator, we can skip loading and directly do 'and' on the right.
             if instruction.left == 'a':
@@ -194,9 +242,9 @@ SECTION "Header", ROM0[$100]
             # After the 'and' instruction, the result is in the accumulator. 
             if instruction.dest != 'a':
                 returnstr += f"ld {instruction.dest}, a\n"
-
             return returnstr
         
+        # or, |
         elif instruction.op == ('or', '|'):
             # If the left operand is already in the accumulator, we can skip loading and directly do 'or' on the right.
             if instruction.left == 'a':
@@ -212,18 +260,29 @@ SECTION "Header", ROM0[$100]
             # After the 'or' instruction, the result is in the accumulator. 
             if instruction.dest != 'a':
                 returnstr += f"ld {instruction.dest}, a\n"
-
             return returnstr
+        
+        # ^, xor
+        elif instruction.op == '^':
+            # If the left operand is already in the accumulator, we can skip loading and just 'xor' the right.
+            if instruction.left == 'a':
+                returnstr += f"xor {instruction.right}\n"
+            # if the right operand is already in the accumulator, we can just 'xor' the left.
+            elif instruction.right == 'a':
+                returnstr += f"xor {instruction.left}\n"
+            else:
+            # None of the operands are in the accumulator, so we load left into the accumulator first.
+                returnstr += f"ld a, {instruction.left}\n"
+                returnstr += f"xor {instruction.right}\n"
 
-
-
-        # ==
-        # !=
+            # After the 'xor' instruction, the result is in the accumulator.
+            if instruction.dest != 'a':
+                returnstr += f"ld {instruction.dest}, a\n"
+            return returnstr
         # <
         # >
         # <=
         # >=
-        # ^
         # <<
         # >>
         
