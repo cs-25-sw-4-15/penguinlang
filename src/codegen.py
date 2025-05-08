@@ -235,40 +235,92 @@ SECTION "Header", ROM0[$100]
             returnstr += f"ld {instruction.dest}, 1\n"
             returnstr += f"{end_lbl}:\n"
             return returnstr
-        # and, &
-        elif instruction.op in ('and', '&'):
-            # If the left operand is already in the accumulator, we can skip loading and directly do 'and' on the right.
+        # Bitwise and, &
+        elif instruction.op == '&':
+            # If A already holds one operand, AND the other; otherwise load left into A first
             if instruction.left == 'a':
                 returnstr += f"and {instruction.right}\n"
-            # If the right operand is already in the accumulator, we can directly to 'and' on the left.
+            # If the right operand is already in the accumulator, AND the left
             elif instruction.right == 'a':
                 returnstr += f"and {instruction.left}\n"
             else:
-            # None of the operands are in the accumulator, so we load left into the accumulator first.
-                returnstr += f"ld a, {instruction.left}\n"
+                # Neither operand is in A
+                returnstr += f"ld a, {instruction.left}   ; load left into A\n"
                 returnstr += f"and {instruction.right}\n"
-
-            # After the 'and' instruction, the result is in the accumulator. 
             if instruction.dest != 'a':
-                returnstr += f"ld {instruction.dest}, a\n"
+                returnstr += f"ld {instruction.dest}, a   ; store\n"
+            return returnstr
+
+        # Logical AND 
+            # A And B = Must be 0
+        elif instruction.op == 'and':
+            true_lbl = f"AND_TRUE_{self.cmp_counter}"
+            end_lbl  = f"AND_END_{self.cmp_counter}"
+            self.cmp_counter += 1
+
+            # assume false. If both are ≠ 0, then jump to true label
+            returnstr += f"ld {instruction.dest}, 0    ; assume false\n"
+            # if left == 0, end (false)
+            if instruction.left != 'a':
+                returnstr += f"ld a, {instruction.left}   ; load left\n"
+            returnstr += f"cp 0\n"
+            returnstr += f"jp z, {end_lbl}\n"
+
+            # if right == 0, end (false)
+            returnstr += f"ld a, {instruction.right}   ; load right\n"
+            returnstr += f"cp 0\n"
+            returnstr += f"jp z, {end_lbl}\n"
+
+            # both ≠ 0 (true)
+            returnstr += f"{true_lbl}:\n"
+            returnstr += f"ld {instruction.dest}, 1   ; set true\n"
+            returnstr += f"{end_lbl}:\n"
             return returnstr
         
-        # or, |
-        elif instruction.op in ('or', '|'):
-            # If the left operand is already in the accumulator, we can skip loading and directly do 'or' on the right.
+        # Bitwise or, |
+        elif instruction.op == '|':
             if instruction.left == 'a':
                 returnstr += f"or {instruction.right}\n"
-            # If the right operand is already in the accumulator, we can directly do 'or' on the left.
+            # If the right operand is in A, OR the left
             elif instruction.right == 'a':
                 returnstr += f"or {instruction.left}\n"
             else:
-                # None of the operands are in the accumulator, so we load left into the accumulator first.
-                returnstr += f"ld a, {instruction.left}\n"
+                # Neither operand in A, so load left first
+                returnstr += f"ld a, {instruction.left}   ; load left into A\n"
                 returnstr += f"or {instruction.right}\n"
 
-            # After the 'or' instruction, the result is in the accumulator. 
+            # Store the result if dest ≠ A
             if instruction.dest != 'a':
-                returnstr += f"ld {instruction.dest}, a\n"
+                returnstr += f"ld {instruction.dest}, a   ; store\n"
+            return returnstr
+
+        # Logical OR
+            # A OR B Must not be 0
+        elif instruction.op == 'or':
+            # Assume true. If both operands == 0, then jump to false label
+            true_lbl = f"OR_TRUE_{self.cmp_counter}"
+            end_lbl  = f"OR_END_{self.cmp_counter}"
+            self.cmp_counter += 1
+
+            # Check left ≠ 0
+            if instruction.left != 'a':
+                returnstr += f"ld a, {instruction.left}   ; load left\n"
+            returnstr += f"cp 0   ; compare left to 0\n"
+            returnstr += f"jp nz, {true_lbl}   ; if nonzero, set true\n"
+
+            # Check right ≠ 0
+            returnstr += f"ld a, {instruction.right}   ; load right\n"
+            returnstr += f"cp 0   ; compare right to 0\n"
+            returnstr += f"jp nz, {true_lbl}   ; if nonzero, set true\n"
+
+            # False Case
+            returnstr += f"ld {instruction.dest}, 0   ; set false\n"
+            returnstr += f"jp {end_lbl}\n"
+
+            # True case
+            returnstr += f"{true_lbl}:\n"
+            returnstr += f"ld {instruction.dest}, 1   ; set true\n"
+            returnstr += f"{end_lbl}:\n"
             return returnstr
         
         # ^, xor
