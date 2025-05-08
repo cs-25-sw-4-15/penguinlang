@@ -32,8 +32,12 @@ Note til gruppemedlemmer fra Naitsa:
     - 
 """
 
-import sys
+# Stdlib imports
 import os
+import sys
+from typing import List, Tuple, Union, Any
+
+# Extend module paths
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Generated modules
@@ -43,11 +47,6 @@ from src.generated.penguinVisitor import penguinVisitor
 # Custom modules
 from src.astClasses import *
 from src.customErrors import *
-
-# Typing modules
-from typing import List, Tuple, Union, Any 
-
-# Logging modules
 from src.logger import logger
 
 class ASTGenerator(penguinVisitor):

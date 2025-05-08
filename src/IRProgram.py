@@ -1,20 +1,19 @@
-"""
-Intermediate Representation (IR) Implementation for Penguin Language Compiler
+"""Intermediate Representation (IR) Implementation for Penguin Language Compiler
 
-This module transforms the type-annotated abstract syntax tree (TAAST) into
-an intermediate representation (IR) that can be used for register allocation
-and code generation.
+Transforms the type-annotated abstract syntax tree (TAAST) into an intermediate representation (IR) that can be used for register allocation and code generation.
 """
 
-import sys
+# Stdlib imports
 import os
+import sys
+from typing import List, Dict, Optional, Union, Any, Set
+
+# Extend module paths
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from typing import List, Dict, Optional, Union, Any, Set
+# Custom modules
 from src.astClasses import *
 from src.astTypes import *
-
-# logging
 from src.logger import logger
 
 
@@ -304,7 +303,7 @@ class IRGenerator:
     """Generates IR from a type-annotated AST"""
     
     def __init__(self):
-        self.program = IRProgram()
+        self.program = IR-()
         self.current_procedure: Optional[IRProcedure] = None
         self.temp_counter = 0
         self.label_counter = 0

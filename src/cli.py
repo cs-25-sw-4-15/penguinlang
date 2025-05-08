@@ -14,24 +14,34 @@ Help:
     py src/cli.py COMMAND --help
 """
 
-import sys
+# Stdlib imports
 import os
+import sys
 from pathlib import Path
 
-# add the src directory to the system path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-# Import compiler functions
-from src.compiler import write_output_file, print_tree, read_input_file, concrete_syntax_tree, \
-    abstact_syntax_tree, typed_annotated_abstact_syntax_tree, \
-    intermediate_representation, register_allocation, code_generation, \
-    compile_rgbasm, full_compile
-
-# Import the necessary modules
+# Third-party modules
 import typer
 from typing_extensions import Annotated
 
-# Create instance of Typer
+# Extend module paths
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# Custom modules
+from src.compiler import (
+    write_output_file,
+    print_tree,
+    read_input_file,
+    concrete_syntax_tree,
+    abstact_syntax_tree,
+    typed_annotated_abstact_syntax_tree,
+    intermediate_representation,
+    register_allocation,
+    code_generation,
+    compile_rgbasm,
+    full_compile,
+)
+
+# Typer CLI instance
 app = typer.Typer()
 
 

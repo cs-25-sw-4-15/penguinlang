@@ -1,3 +1,9 @@
+"""Logging setup
+
+Sets up and defiens the logger for the compiler.
+"""
+
+# Stdlib imports
 import logging
 
 logger = logging.getLogger("penguin")

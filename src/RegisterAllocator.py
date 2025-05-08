@@ -1,23 +1,25 @@
-"""
-Register Allocator for Penguin Language Compiler
+"""Register Allocator for Penguin Language Compiler
 
 This module implements register allocation for the Penguin compiler,
 interfacing between the liveness analysis, linear scanner, and IR rewriter.
 """
 
-import sys
+# Stdlib imports
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
+import sys
 from typing import Dict, List, Set, Tuple, Optional
 
+# Extend module paths
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# Custom modules
 from src.IRProgram import *
 from src.LivenessAnalyzer import LivenessAnalyzer
 from src.LinearScanner import LinearScanner
 from src.IRRewriter import IRRewriter
-
-# logging
+from src.logger import logger
 from src. logger import logger
+
 
 class RegisterAllocator:
     """

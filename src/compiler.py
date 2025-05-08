@@ -3,31 +3,30 @@
 Containes the main logic for the compiler.
 """
 
-import sys
+# Stdlib imports
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-
+import sys
 import json
 import subprocess
 from pathlib import Path
 
-# antlr4 modules
+# Extend module paths
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# Third-party modules
 from antlr4 import FileStream, CommonTokenStream
 
-# antl4 generated modules
+# Generated modules
 from src.generated.penguinLexer import penguinLexer
 from src.generated.penguinParser import penguinParser
 
-# custom modules
+# Custom modules
 from src.astClasses import ASTNode
 from src.astGenerator import ASTGenerator
 from src.astTypeChecker import TypeChecker
 from src.IRProgram import IRGenerator, IRProgram
 from src.RegisterAllocator import RegisterAllocator
 from src.codegen import CodeGenerator
-
-# logging
 from src.logger import logger
 
 

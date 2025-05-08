@@ -1,13 +1,18 @@
-import sys
-import os
+""" Code Generation for the Penguin Compiler
 
-# add the src directory to the system path
+Generates assembly code from an IR program.
+"""
+
+# Stdlib imports
+import os
+import sys
+
+# Extend module paths
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+# Custom modules
 from src.IRProgram import *
 from src.codegenRegisters import *
-
-# Logging modules
 from src.logger import logger
 
 class CodeGenerator:

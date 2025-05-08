@@ -1,15 +1,18 @@
-"""
+"""Prdefines Functions and Variables for the Penguin Language
+
 Predefined hardware registers and functions for the Penguin language.
 This file defines built-in hardware elements that are available to all programs.
 """
 
-import sys
+# Stdlib imports
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
+import sys
 from typing import Dict, List, Tuple
 
-# Import the type classes from the main type checker
+# Extend module paths
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# Custom modules
 from src.astTypes import *
 
 
