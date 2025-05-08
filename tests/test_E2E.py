@@ -426,3 +426,5 @@ def test_loop_behavior():
     assert result == 13
 
     teardown()
+
+#TODO: add tests for built-in functions, binary handling and the like, tileset, tilemaps, screen rendering, etc.
