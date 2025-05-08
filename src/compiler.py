@@ -4,7 +4,8 @@ Containes the main logic for the compiler.
 """
 
 import json
-from typing import List
+import subprocess
+from pathlib import Path
 
 # antlr4 modules
 from antlr4 import FileStream, CommonTokenStream
@@ -42,7 +43,23 @@ class ASTEncoder(json.JSONEncoder):
         return super().default(obj)
 
 
-def print_tree(tree: ASTNode) -> None:
+def write_output_file(output_file: str, data: str, p: bool = False):
+    """Writes the output data to a file.
+    
+    Args:
+        output_file (str): The path to the output file.
+        data (str): The data to write to the file.
+    """
+    
+    if not p: print("Writing output file...")
+    
+    with open(output_file, "w") as f:
+        f.write(data)
+    
+    if not p: print(f"Output written to {output_file}")    
+
+
+def print_tree(tree: ASTNode, p: bool = False):
     """Prints the tree in a readable format.
     
     Args:
@@ -54,19 +71,19 @@ def print_tree(tree: ASTNode) -> None:
     print("JSON ENDS HERE")
 
 
-def read_input_file(input_file: str) -> FileStream:
+def read_input_file(input_file: str, p: bool = False):
     """Reads the input file and returns a FileStream.
     
     Args:
         input_file (str): The path to the input file.
     """
     
-    print("Reading file...")
+    if not p: print("Reading file...")
     
     return FileStream(input_file, encoding="utf-8")
 
 
-def concrete_syntax_tree(input_stream: str, p: bool = False) -> str:
+def concrete_syntax_tree(input_stream: str, p: bool = False):
     """Creates a concrete syntax tree (CST) from the input stream.
     
     Lexing -> tokenstresm -> parsing -> parse tree (CST)
@@ -78,24 +95,24 @@ def concrete_syntax_tree(input_stream: str, p: bool = False) -> str:
         tree (str): The parse tree (CST).
     """
     
-    print("Lexing file...")
+    if not p: print("Lexing file...")
     lexer = penguinLexer(input_stream)
     
-    print("Creating token stream...")
+    if not p: print("Creating token stream...")
     stream = CommonTokenStream(lexer)
     
-    print("Parsing tokens...")
+    if not p: print("Parsing tokens...")
     parser = penguinParser(stream)
     
-    print("Creating parse tree...")
+    if not p: print("Creating parse tree...")
     tree = parser.program()
     
-    print(tree.toStringTree(recog=parser)) if p else None
+    if not p: print(tree.toStringTree(recog=parser)) if p else None
     
     return tree
 
 
-def abstact_syntax_tree(cst: str, p: bool = False) -> ASTNode[List]:
+def abstact_syntax_tree(cst: str, p: bool = False):
     """Creates an abstract syntax tree (AST) from the concrete syntax tree (CST).
     
     CST -> AST
@@ -104,7 +121,7 @@ def abstact_syntax_tree(cst: str, p: bool = False) -> ASTNode[List]:
         cst (str): The concrete syntax tree (CST).
     """
 
-    print("Generating abstract syntax tree...")
+    if not p: print("Generating abstract syntax tree...")
     
     ast_gen = ASTGenerator()
     tree: str = ast_gen.visit(cst)
@@ -112,7 +129,7 @@ def abstact_syntax_tree(cst: str, p: bool = False) -> ASTNode[List]:
     return tree
     
 
-def typed_annotated_abstact_syntax_tree(ast: ASTNode[List], p: bool = False) -> ASTNode[List]:
+def typed_annotated_abstact_syntax_tree(ast: ASTNode, p: bool = False):
     """Creates a type annotated abstract syntax tree (TAST) from the abstract syntax tree (AST).
     
     AST -> TAST
@@ -121,7 +138,7 @@ def typed_annotated_abstact_syntax_tree(ast: ASTNode[List], p: bool = False) -> 
         ast (str): The abstract syntax tree (AST).
     """
     
-    print("Generating typed abstract syntax tree...")
+    if not p: print("Generating typed abstract syntax tree...")
     
     tree = ast
     typechecker = TypeChecker()
@@ -130,7 +147,7 @@ def typed_annotated_abstact_syntax_tree(ast: ASTNode[List], p: bool = False) -> 
     return tree
 
 
-def intermediate_representation(taast: ASTNode[List], p: bool = False) -> IRProgram:
+def intermediate_representation(taast: ASTNode, p: bool = False):
     """Generates the intermediate representation (IR) from the typed abstract syntax tree (TAST).
     
     TAST -> IR
@@ -139,7 +156,7 @@ def intermediate_representation(taast: ASTNode[List], p: bool = False) -> IRProg
         taast (ASTNode[List]): The typed abstract syntax tree (TAST).
     """
     
-    print("Generating intermediate representation...")
+    if not p: print("Generating intermediate representation...")
     
     ir_generator = IRGenerator()
     ir_program: IRProgram = ir_generator.generate(taast)
@@ -147,7 +164,7 @@ def intermediate_representation(taast: ASTNode[List], p: bool = False) -> IRProg
     return ir_program
     
 
-def register_allocation(ir_program: IRProgram, num_registers: int = 4, p: bool = False) -> IRProgram:
+def register_allocation(ir_program: IRProgram, num_registers: int = 4, p: bool = False):
     """Generates the register allocation for the intermediate representation (IR).
     
     IR -> RA
@@ -156,15 +173,15 @@ def register_allocation(ir_program: IRProgram, num_registers: int = 4, p: bool =
         ir_program (IRProgram): The intermediate representation (IR).
     """
     
-    print("Allocating registers...")
+    if not p: print("Allocating registers...")
     
     reg_alloc = RegisterAllocator(num_registers=num_registers)
-    ra_program: IRProgram = reg_alloc.allocate(ir_program)
+    ra_program: IRProgram = reg_alloc.allocate_registers(ir_program)
     
     return ra_program
 
 
-def code_generation(ra_program: IRProgram, p: bool = False) -> str:
+def code_generation(ra_program: IRProgram, p: bool = False):
     """Generates the final code from the register allocated intermediate representation (IR).
     
     RA -> Code
@@ -172,8 +189,7 @@ def code_generation(ra_program: IRProgram, p: bool = False) -> str:
     Args:
         ra_program (IRProgram): The register allocated intermediate representation (IR).
     """
-    
-    print("Generating code...")
+    if not p: print("Generating code...")
     
     codegen = CodeGenerator()
     rgbasm_code = codegen.generate_code(ra_program)
@@ -181,28 +197,66 @@ def code_generation(ra_program: IRProgram, p: bool = False) -> str:
     return rgbasm_code
 
 
-def main(input_file: str, output_file: str = "out.gb") -> None:
+def compile_rgbasm(rgbasm_code: str, output_file: str = "out.gb", p: bool = False):
+    """Compiles the RGBASM code to binary.
+    
+    Args:
+        rgbasm_code (str): The RGBASM code to compile.
+        output_file (str): The output file path.
+    """
+    
+    if not p: print("Compiling RGBASM code to binary...")
+    
+    output_dir = Path(output_file).parent
+    
+    write_output_file(f"{output_dir}/main.asm", rgbasm_code, p=p)
+    
+    root = Path(__file__).parent.resolve()
+    rgbds_path = root / "rgbds"
+    subprocess.call([str(rgbds_path / "rgbasm"), f"{output_dir}/main.asm", "-o", f"{output_dir}/output.o"])
+    subprocess.call([str(rgbds_path / "rgblink"), f"{output_dir}/output.o", "-o", output_file])
+    subprocess.call([str(rgbds_path / "rgbfix"), "-v", "-p", "0xFF", output_file])
+
+
+def full_compile(input_file: str, output_file: str = "out.gb", p: bool = False):
+    """Full compile process from input file to output file.
+    
+    Args:
+        input_file (str): The input file path.
+        output_file (str): The output file path.
+    """
+    
+    if not p: print("Compiling...")
+    
+    main(input_file, output_file, p=p)
+    
+    if not p: print("Compilation finished.")
+
+
+def main(input_file: str, output_file: str = "out.gb", p: bool = False):
     """main logic for the compiler."""
     
-    input_stream: str = read_input_file(input_file)
+    input_stream: str = read_input_file(input_file, p=p)
     
     # Frontend
     
-    cst = concrete_syntax_tree(input_stream)
+    cst = concrete_syntax_tree(input_stream, p=p)
     
-    ast = abstact_syntax_tree(cst)
+    ast = abstact_syntax_tree(cst, p=p)
     
-    taast = typed_annotated_abstact_syntax_tree(ast)
+    taast = typed_annotated_abstact_syntax_tree(ast, p=p)
     
     # Backend
     
-    ir = intermediate_representation(taast)
+    ir = intermediate_representation(taast, p=p)
     
-    ra = register_allocation(ir)
+    ra = register_allocation(ir, p=p)
     
-    rgbasm_code = code_generation(ra)
+    rgbasm_code = code_generation(ra, p=p)
     
-    # Compile RGBASM code to binary
+    # Compile to binary
+        
+    compile_rgbasm(rgbasm_code, output_file, p=p)
 
 
 if __name__ == "__main__":

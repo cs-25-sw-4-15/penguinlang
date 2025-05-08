@@ -17,6 +17,7 @@ Help:
 # Import the necessary modules
 import typer
 from typing_extensions import Annotated
+from pathlib import Path
 
 from ast_classes import ASTNode
 
@@ -24,9 +25,10 @@ from ast_classes import ASTNode
 
 
 # Import compiler functions
-from compiler import print_tree, read_input_file, concrete_syntax_tree, \
+from compiler import write_output_file, print_tree, read_input_file, concrete_syntax_tree, \
     abstact_syntax_tree, typed_annotated_abstact_syntax_tree, \
-        intermediate_representation, register_allocation, code_generation
+    intermediate_representation, register_allocation, code_generation, \
+    compile_rgbasm, full_compile
 
 # Create instance of Typer
 app = typer.Typer()
@@ -106,9 +108,9 @@ def ra(input_path: Annotated[str, typer.Argument(help="Input file path")]):
     print("DONE")
 
 @app.command()
-def codegen(input_path: Annotated[str, typer.Argument(help="Input file path")]):
-    print("Generating IR for input:", input_path)
-    
+def codegen(input_path: Annotated[str, typer.Argument(help="Input file path")], 
+            output_path: Annotated[str, typer.Argument(help="Output file path")] = "out.asm"):
+    print("Generating code for input:", input_path)    
     input_stream = read_input_file(input_path)
     cst = concrete_syntax_tree(input_stream)
     ast = abstact_syntax_tree(cst)
@@ -116,11 +118,17 @@ def codegen(input_path: Annotated[str, typer.Argument(help="Input file path")]):
     ir = intermediate_representation(taast)
     ra = register_allocation(ir)
     rgbasm_code = code_generation(ra)
+    
+    output_dir = Path(output_path).parent
+    write_output_file(f"{output_dir}/main.asm", rgbasm_code)
+    
 
-    print("RGBASM STARTS HERE")
-    print(rgbasm_code)  # This will call __str__ on the IRProgram object
-    print("DONE")
 
+@app.command()
+def compile(input_path: Annotated[str, typer.Argument(help="Input file path")],
+            output_path: Annotated[str, typer.Argument(help="Output file path")] = "out.gb"):
+    full_compile(input_path, output_path, True)
+    
 
 if __name__ == "__main__":
     # Run the CLI application
