@@ -3,18 +3,44 @@
 Containes the main logic for the compiler.
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # antlr4 modules
 from antlr4 import FileStream, CommonTokenStream
 
 
 # antl4 generated modules
-from generated.penguinLexer import penguinLexer
-from generated.penguinParser import penguinParser
-
+from src.generated.penguinLexer import penguinLexer
+from src.generated.penguinParser import penguinParser
 
 # custom modules
-from ast_generator import ASTGenerator
+from src.astClasses import ASTNode
+from src.astGenerator import ASTGenerator
+from src.astTypeChecker import TypeChecker
+
+# other modules
+import json
+
+
+class ASTEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, ASTNode):
+            # Convert ASTNode objects to dictionaries
+            result = {}
+            # Add class name for reconstruction
+            result["__class__"] = obj.__class__.__name__
+            # Add all attributes
+            for key, value in obj.__dict__.items():
+                result[key] = value
+            return result
+        # Special case for Type objects including VoidType, IntType, etc.
+        elif obj.__class__.__name__ in ['VoidType', 'IntType', 'StringType', 'TilesetType', 
+                                        'TileMapType', 'SpriteType', 'OAMEntryType', 'ListType']:
+            return {"__class__": obj.__class__.__name__}
+        # Let the base class handle other types
+        return super().default(obj)
 
 
 def read_input_file(input_file: str):
@@ -29,7 +55,7 @@ def read_input_file(input_file: str):
     return FileStream(input_file, encoding="utf-8")
 
 
-def concrete_syntax_tree(input_stream: str, p: bool = False) -> str:
+def concrete_syntax_tree(input_stream: str, p: bool = False):
     """Creates a concrete syntax tree (CST) from the input stream.
     
     Lexing -> tokenstresm -> parsing -> parse tree (CST)
@@ -70,7 +96,7 @@ def abstact_syntax_tree(cst: str):
     print("Generating abstract syntax tree...")
     
     ast_gen = ASTGenerator()
-    tree: str = ast_gen.visit(cst)
+    tree: ASTNode = ast_gen.visit(cst)
     
     return tree
     
@@ -86,9 +112,23 @@ def typed_abstact_syntax_tree(ast: str):
     
     print("Generating typed abstract syntax tree...")
     
-    tree: str = ""
+    tree = ast
+    typechecker = TypeChecker()
+    typechecker.check_program(tree)
     
     return tree
+
+
+def print_tree(tree: str) -> None:
+    """Prints the tree in a readable format.
+    
+    Args:
+        tree (str): The tree to print.
+    """
+    
+    print("########### JSON STARTS HERE ###########")
+    print(json.dumps(tree, cls=ASTEncoder, indent=2))
+    print("############ JSON ENDS HERE ############")
 
 
 def main(input_file: str, output_file: str = "out.gb"):
@@ -98,18 +138,16 @@ def main(input_file: str, output_file: str = "out.gb"):
     
     # Frontend
     
-    cst = concrete_syntax_tree(input_stream)
+    cst: str = concrete_syntax_tree(input_stream)
+    ast: ASTNode = abstact_syntax_tree(cst)
+    taast: str = typed_abstact_syntax_tree(ast)
     
-    ast: str = abstact_syntax_tree(cst)
+    print("made taast: " + type(taast))
     
-    print(ast)
-    
-    tast: str = typed_abstact_syntax_tree(ast)
-    
-    # backend    
-    # rgbds
-    # cleanup
+    # Backend
+    # RGBDS
     # RGBASM to binary
+    # Cleanup
 
 
 if __name__ == "__main__":

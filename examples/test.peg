@@ -1,1 +1,1 @@
-int a = 1 + 2;
+int z; procedure foo() { z = 6; }

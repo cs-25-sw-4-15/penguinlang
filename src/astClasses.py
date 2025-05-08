@@ -3,7 +3,6 @@
 Defining the AST node classes for the Penguin compiler.
 """
 
-
 # Typing modules
 from __future__ import annotations # PEP 563 style. For forward references, e.g. ProcedureCall
 from typing import Optional, Union, List, Tuple, TYPE_CHECKING
@@ -11,28 +10,15 @@ from typing import Optional, Union, List, Tuple, TYPE_CHECKING
 if TYPE_CHECKING:
     # Stops Pylance from complaining about the import. 
     # Recursive import, but only for type checking.
-    from ast import ProcedureCall
+    from src.astClasses import ProcedureCall
+
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 
 class ASTNode():
-    """AST Base Class.
-    
-    Attributes:
-        type (str): The type of the node.
-        children (list[ASTNode]): The children of the node.
-        value (Any): The value of the node.
-    
-    Update:
-        Constructor does not get used by any class idealy.
-        The constructor is used for the base class ASTNode.
-    """
-    
-    def __init__(self, type, children=None, value=None) -> None:
-        """AST Node Constructor"""
-        
-        self.type = type
-        self.children = children or []
-        self.value = value
+    """AST Base Class."""
 
     def __repr__(self) -> str:
         """___repr__ method
@@ -328,7 +314,6 @@ class Variable(ASTNode):
         self.name = name
         
         
-
 class ListAccess(ASTNode):
     """List Access Expression AST Node.
     
@@ -372,9 +357,9 @@ class ProcedureCall(ASTNode):
         args (list[ASTNode]): The arguments to pass to the procedure.
     """
     
-    def __init__(self, name: str, args: List[ASTNode]) -> None:
+    def __init__(self, name: str, params: List[ASTNode]) -> None:
         self.name = name
-        self.args = args
+        self.params = params
 
 
 """Procedures"""
