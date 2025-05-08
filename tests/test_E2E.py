@@ -178,3 +178,166 @@ def test_function_call_1():
     assert result == 30
 
     teardown()
+
+def test_if_else_branch():
+    """
+    End-to-end test for if-else branching.
+    """
+    source_code = """
+    int Result = 0;
+    int Condition = 1;
+
+    if (Condition == 1) {
+        Result = 10;
+    } else {
+        Result = 20;
+    }
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    result = pyboy.memory[data_segment_start]
+    pyboy.stop()
+
+    assert result == 10
+
+    teardown()
+
+
+def test_if_else_if_branch():
+    """
+    End-to-end test for if-else-if branching.
+    """
+    source_code = """
+    int Result = 0;
+    int Condition = 2;
+
+    if (Condition == 1) {
+        Result = 10;
+    } else if (Condition == 2) {
+        Result = 20;
+    } else {
+        Result = 30;
+    }
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    result = pyboy.memory[data_segment_start]
+    pyboy.stop()
+
+    assert result == 20
+
+    teardown()
+
+def test_equality_and_inequality():
+    """
+    End-to-end test for equality (==) and inequality (!=) operators.
+    """
+    source_code = """
+    int Result = 0;
+    int A = 5;
+    int B = 5;
+    int C = 10;
+
+    if (A == B) {
+        Result = 1;
+    }
+
+    if (A != C) {
+        Result = Result + 1;
+    }
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    result = pyboy.memory[data_segment_start]
+    pyboy.stop()
+
+    assert result == 2
+
+    teardown()
+
+
+def test_comparisons():
+    """
+    End-to-end test for comparison operators (<, >, <=, >=).
+    """
+    source_code = """
+    int Result = 0;
+    int A = 5;
+    int B = 10;
+
+    if (A < B) {
+        Result = 1;
+    }
+
+    if (B > A) {
+        Result = Result + 1;
+    }
+
+    if (A <= 5) {
+        Result = Result + 1;
+    }
+
+    if (B >= 10) {
+        Result = Result + 1;
+    }
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    result = pyboy.memory[data_segment_start]
+    pyboy.stop()
+
+    assert result == 4
+
+    teardown()
+
+
+def test_logical_operators():
+    """
+    End-to-end test for logical operators (and, or, not).
+    """
+    source_code = """
+    int Result = 0;
+    int A = 1;
+    int B = 0;
+
+    if (A and (not B)) {
+        Result = 1;
+    }
+
+    if (A or B) {
+        Result = Result + 1;
+    }
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    result = pyboy.memory[data_segment_start]
+    pyboy.stop()
+
+    assert result == 2
+
+    teardown()
