@@ -1,1 +1,2 @@
-int z; procedure foo() { z = 6; }
+tileset mytileset = "filepath to file";
+display_tileset0 = mytileset;
