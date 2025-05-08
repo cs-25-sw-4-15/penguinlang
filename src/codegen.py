@@ -15,6 +15,7 @@ from src.IRProgram import *
 from src.codegenRegisters import *
 from src.logger import logger
 
+
 class CodeGenerator:
 
     def __init__(self):
@@ -61,10 +62,10 @@ class CodeGenerator:
             
             for instruction in procedure[1].instructions:
                 assembly_line = self.generate(instruction)
+                
                 if assembly_line:
                     assembly_code += assembly_line
             
-
         assembly_code += self.footer()
         
         return assembly_code
@@ -87,7 +88,6 @@ class CodeGenerator:
         """
 
         return headerstr
-
 
     def footer(self) -> str:
         """
@@ -142,18 +142,20 @@ class CodeGenerator:
             raise ValueError(f"No generator found for instruction type: {class_name}")
 
     def generate_BinaryOp(self,instruction: IRBinaryOp) -> str:
+        # TODO: It is to complex
+        
         returnstr = ""
 
         # +
         if instruction.op == '+':
-            #if register a is already involved
+            # if register a is already involved
             if instruction.left == 'a' or instruction.right == 'a':
                 if instruction.left == 'a':
                     returnstr += f"add {instruction.left}, {instruction.right}\n"
                 else:
                     returnstr += f"add {instruction.right}, {instruction.left}\n"
                     
-            #Case when a is not involved
+            # Case when a is not involved
             else:
                 returnstr += f"ld a, {instruction.left}\n"
                 returnstr += f"add a, {instruction.right}\n"
@@ -165,7 +167,7 @@ class CodeGenerator:
 
         # -
         elif instruction.op == '-':
-            #if register a is already involved
+            # if register a is already involved
             if instruction.left == 'a' or instruction.right == 'a':
                 if instruction.left == 'a':
                     returnstr += f"dec {instruction.left}, {instruction.right}\n"
@@ -173,7 +175,7 @@ class CodeGenerator:
                     returnstr += f""
                     returnstr += f"dec {instruction.right}, {instruction.left}\n"
 
-            #Case when a is not involved
+            # Case when a is not involved
             else:
                 returnstr += f"ld a, {instruction.left}\n"
                 returnstr += f"sub a, {instruction.right}\n"
@@ -188,11 +190,11 @@ class CodeGenerator:
             # GB DOES NOT HAVE MULTIPLY, USE HELPER FUNCTION IN FOOTER
             
             returnstr = ""
-            #PUSH REGISTERS
-            #LOAD PARAMS
-            #CALL MULTIPLY
-            #POP REGISTERS
-            #STORE RESULT
+            # PUSH REGISTERS
+            # LOAD PARAMS
+            # CALL MULTIPLY
+            # POP REGISTERS
+            # STORE RESULT
             returnstr += f"ld {instruction.dest}, a\n"
             returnstr += f"TEMP MULTIPLY\n"
             
@@ -201,7 +203,7 @@ class CodeGenerator:
             # If the left operand is already in the accumulator, we can skip loading and directly compare to the right.
             # Otherwise we load left into A first.
             true_lbl = f"EQ_TRUE_{self.cmp_counter}"
-            end_lbl  = f"EQ_END_{self.cmp_counter}"
+            end_lbl = f"EQ_END_{self.cmp_counter}"
             self.cmp_counter += 1
 
             # load left into accumulator if needed, then compare to right
@@ -231,7 +233,7 @@ class CodeGenerator:
         # !=
         elif instruction.op == '!=':
             true_lbl = f"NE_TRUE_{self.cmp_counter}"
-            end_lbl  = f"NE_END_{self.cmp_counter}"
+            end_lbl = f"NE_END_{self.cmp_counter}"
             self.cmp_counter += 1
 
             if instruction.left != 'a':
@@ -256,8 +258,9 @@ class CodeGenerator:
             # If the right operand is already in the accumulator, we can directly to 'and' on the left.
             elif instruction.right == 'a':
                 returnstr += f"and {instruction.left}\n"
-            else:
+                
             # None of the operands are in the accumulator, so we load left into the accumulator first.
+            else:
                 returnstr += f"ld a, {instruction.left}\n"
                 returnstr += f"and {instruction.right}\n"
 
@@ -297,7 +300,7 @@ class CodeGenerator:
             elif instruction.right == 'a':
                 returnstr += f"xor {instruction.left}\n"
             else:
-            # None of the operands are in the accumulator, so we load left into the accumulator first.
+                # None of the operands are in the accumulator, so we load left into the accumulator first.
                 returnstr += f"ld a, {instruction.left}\n"
                 returnstr += f"xor {instruction.right}\n"
 
@@ -311,7 +314,7 @@ class CodeGenerator:
         elif instruction.op == '>':
             # If the left operand is not already in the accumulator, load it into A.
             true_lbl = f"GT_TRUE_{self.cmp_counter}"
-            end_lbl  = f"GT_END_{self.cmp_counter}"
+            end_lbl = f"GT_END_{self.cmp_counter}"
             self.cmp_counter += 1
 
             # Load left into the accumulator if needed, then compare to right
@@ -342,7 +345,7 @@ class CodeGenerator:
         elif instruction.op == '<':
             # If the left operand is not already in the accumulator, load it into A.
             true_lbl = f"LT_TRUE_{self.cmp_counter}"
-            end_lbl  = f"LT_END_{self.cmp_counter}"
+            end_lbl = f"LT_END_{self.cmp_counter}"
             self.cmp_counter += 1
 
             # Load left into the accumulator (A) if needed, then compare to right
@@ -373,7 +376,7 @@ class CodeGenerator:
         elif instruction.op == '<=':
             # Generate unique labels for the true and end branches
             true_lbl = f"LE_TRUE_{self.cmp_counter}"
-            end_lbl  = f"LE_END_{self.cmp_counter}"
+            end_lbl = f"LE_END_{self.cmp_counter}"
             self.cmp_counter += 1
 
             # Load left into A if needed, then compare to right
@@ -408,7 +411,7 @@ class CodeGenerator:
         elif instruction.op == '>=':
             # Generate unique labels for the true and end branches
             true_lbl = f"GE_TRUE_{self.cmp_counter}"
-            end_lbl  = f"GE_END_{self.cmp_counter}"
+            end_lbl = f"GE_END_{self.cmp_counter}"
             self.cmp_counter += 1
 
             # Load left into the accumulator if needed, then compare to right
@@ -468,7 +471,7 @@ class CodeGenerator:
         elif instruction.op == '>>':
             # Generate unique labels for our shift loop
             loop_lbl = f"SHR_LOOP_{self.cmp_counter}"
-            end_lbl  = f"SHR_END_{self.cmp_counter}"
+            end_lbl = f"SHR_END_{self.cmp_counter}"
             self.cmp_counter += 1
 
             # Load the value to shift into the accumulator (A) if needed
@@ -493,16 +496,15 @@ class CodeGenerator:
     def generate_UnaryOp(self,instruction: IRUnaryOp) -> str:
         returnstr = ""
 
-        #~
+        # ~
         if instruction.op == '~':
             returnstr += 'temp\n'
 
-        #not
+        # not
         elif instruction.op == 'not':
             returnstr += 'temp\n'
 
-        return returnstr
-        
+        return returnstr  
 
     def generate_IncBin(self,instruction: IRIncBin) -> str:
         returnstr = ""
@@ -546,11 +548,11 @@ class CodeGenerator:
         if instruction.value != 'a':
             returnstr += f"ld a, {instruction.value}\n"
             
-        #Case of normal variable
+        # Case of normal variable
         if instruction.addr in self.variable_address_dict:
             
             returnstr += f"ld hl, {self.variable_address_dict[instruction.addr]}\n"
-        #Case of spill and stack pointer
+        # Case of spill and stack pointer
         else:
             returnstr += f"ld hl, {instruction.addr[1:-1]}\n"
             

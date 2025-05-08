@@ -395,7 +395,7 @@ class IRGenerator:
         for statement in ast.statements:
             if isinstance(statement, ProcedureDef):
                 # Just register the procedure signature first
-                params = [param[0] for param in statement.params]  # Extract parameter names
+                params = [param.name for param in statement.params]  # Extract parameter names
                 return_type = None
                 
                 if statement.return_type and statement.return_type != "void":
@@ -432,8 +432,8 @@ class IRGenerator:
                     self.current_procedure.add_instruction(IRArgLoad(new_temp, count))
                     
                     # Add assignment from temporary to parameter name
-                    if isinstance(param_name, tuple):  # Handle (name, type) format
-                        param_var_name = param_name[0]
+                    if isinstance(param_name, tuple):  # Handle keys: format
+                        param_var_name = param_name.name
                     else:
                         param_var_name = param_name
                         
