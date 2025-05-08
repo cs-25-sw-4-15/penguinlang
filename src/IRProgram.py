@@ -430,9 +430,8 @@ class IRGenerator:
                     
                     # Load argument into a temporary
                     self.current_procedure.add_instruction(IRArgLoad(new_temp, count))
-                    
                     # Add assignment from temporary to parameter name
-                    if isinstance(param_name, tuple):  # Handle keys: format
+                    if isinstance(param_name, Declaration):  # Handle keys: format
                         param_var_name = param_name.name
                     else:
                         param_var_name = param_name
@@ -796,9 +795,10 @@ class IRGenerator:
     def visit_ProcedureCall(self, node: ProcedureCall) -> Optional[str]:
         """Visit a ProcedureCall node and return the temp var holding the result (if any)"""
         
+        node.params
         # Evaluate arguments
         arg_temps = []
-        for arg in node.args:
+        for arg in node.params:
             arg_temp = self.visit(arg)
             arg_temps.append(arg_temp)
         

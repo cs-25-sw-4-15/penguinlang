@@ -220,11 +220,6 @@ class TypeChecker:
             
             logger.error(f"Type mismatch in assignment: expected {target_type}, got {value_type}")
             raise TypeMismatchError(f"Type mismatch in assignment: expected {target_type}, got {value_type}")
-
-        if isinstance(target_type, (TileMapType, TilesetType, SpriteType)):
-            # Special case, where the above types cannot be reassigned at runtime
-            logger.error(f"Cannot reassign {target_type} at runtime")
-            raise TypeMismatchError(f"Cannot reassign {target_type} at runtime")
         
         logger.debug(f"Assigned {node.value} to {node.target}")
 
