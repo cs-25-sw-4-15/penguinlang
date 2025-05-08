@@ -270,7 +270,6 @@ def test_equality_and_inequality():
 
     teardown()
 
-
 def test_comparisons():
     """
     End-to-end test for comparison operators (<, >, <=, >=).
@@ -310,7 +309,6 @@ def test_comparisons():
 
     teardown()
 
-
 def test_logical_operators():
     """
     End-to-end test for logical operators (and, or, not).
@@ -339,5 +337,59 @@ def test_logical_operators():
     pyboy.stop()
 
     assert result == 2
+
+    teardown()
+
+def test_bitwise_shifts():
+    """
+    End-to-end test for left (<<) and right (>>) shift operators.
+    """
+    source_code = """
+    int Result = 0;
+    int A = 4; // Binary: 0100
+
+    Result = A << 1; // Left shift by 1, Result: 1000 (8)
+    Result = Result >> 2; // Right shift by 2, Result: 0010 (2)
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    result = pyboy.memory[data_segment_start]
+    pyboy.stop()
+
+    assert result == 2
+
+    teardown()
+
+def test_bitwise_logical_operators():
+    """
+    End-to-end test for bitwise logical operators (&, |, ^, ~).
+    """
+    source_code = """
+    int Result = 0;
+    int A = 6;  // Binary: 0110
+    int B = 3;  // Binary: 0011
+
+    Result = A & B;  // Bitwise AND, Result: 0010 (2)
+    Result = Result | B;  // Bitwise OR, Result: 0011 (3)
+    Result = Result ^ A;  // Bitwise XOR, Result: 0101 (5)
+    Result = ~Result;  // Bitwise NOT, Result: ...1010 (Two's complement representation)
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    result = pyboy.memory[data_segment_start]
+    pyboy.stop()
+
+    # Assuming 8-bit signed integers, ~5 would result in -6
+    assert result == -6
 
     teardown()
