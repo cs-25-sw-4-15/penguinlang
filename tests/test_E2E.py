@@ -1,0 +1,175 @@
+import os
+import glob
+from pyboy import PyBoy
+from src.compiler import full_compile
+
+data_segment_start = 0xC000
+program_start = 0x0150
+
+def loop_detected(pyboy, PC_list):
+    """
+    Detects if the program is in a loop by checking if the PC has repeated.
+    """
+    if pyboy.register_file.PC in PC_list:
+        return True
+    else:
+        current_pc = pyboy.register_file.PC
+        if current_pc >= program_start:
+            PC_list.append(current_pc)
+        return False
+
+
+def nop_reached(pyboy):
+    """
+    Detects if the program has reached a NOP instruction.
+    """
+    return pyboy.memory[pyboy.register_file.PC] == 0x00
+
+
+def compile_source_to_binary(source_code: str, output_dir: str = 'roms') -> str:
+    """
+    Compiles the given source code into a binary file and returns the path to the binary.
+
+    Args:
+        source_code (str): The source code to compile.
+        output_dir (str): The directory to store the compiled binary.
+
+    Returns:
+        str: The path to the compiled binary file.
+    """
+    os.makedirs(output_dir, exist_ok=True)
+    source_file_path = os.path.join(output_dir, 'temp_source.peg')
+    binary_file_path = os.path.join(output_dir, 'temp_binary.gb')
+
+    with open(source_file_path, 'w') as source_file:
+        source_file.write(source_code)
+
+    full_compile(source_file_path, output_file=binary_file_path, p=True)
+
+    return binary_file_path
+
+
+def teardown():
+    """
+    Cleans up the test environment by resetting global variables and removing files in the 'roms' directory.
+    """
+    global PC_list, pyboy
+    PC_list = []
+    pyboy = None
+
+    roms_dir = 'roms'
+    if os.path.exists(roms_dir):
+        for file in glob.glob(os.path.join(roms_dir, '*')):
+            try:
+                os.remove(file)
+            except Exception as e:
+                print(f"Error deleting file {file}: {e}")
+    else:
+        os.makedirs(roms_dir)
+
+
+def test_addition_1():
+    """
+    End-to-end test for simple addition operation.
+    """
+    source_code = """
+    int Result = 0;
+    int Integer1 = 5;
+
+    int Integer2 = 1;
+
+    Result = Integer1 + (Integer2 + 3);
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    result = pyboy.memory[data_segment_start]
+    pyboy.stop()
+
+    assert result == 9
+
+    teardown()
+
+def test_subtraction_1():
+    """
+    End-to-end test for simple subtraction operation.
+    """
+    source_code = """
+    int Result = 0;
+    int Integer1 = 100;
+
+    int Integer2 = 10;
+
+    Result = Integer1 - (Integer2 - 3);
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    result = pyboy.memory[data_segment_start]
+    pyboy.stop()
+
+    assert result == 93
+
+    teardown()
+
+def test_multiplication_1():
+    """
+    End-to-end test for simple multiplication operation.
+    """
+    source_code = """
+    int Result = 0;
+    int Integer1 = 6;
+
+    int Integer2 = 7;
+
+    Result = Integer1 * Integer2;
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    result = pyboy.memory[data_segment_start]
+    pyboy.stop()
+
+    assert result == 42
+
+    teardown()
+
+
+def test_function_call_1():
+    """
+    End-to-end test for a function call.
+    """
+    source_code = """
+    procedure int Add(int a, int b) {
+        return a + b;
+    }
+
+    int Result = 0;
+
+    Result = Add(10, 20);
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    result = pyboy.memory[data_segment_start]
+    pyboy.stop()
+
+    assert result == 30
+
+    teardown()
