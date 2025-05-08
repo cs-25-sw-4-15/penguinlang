@@ -1,5 +1,11 @@
-from IRProgram import *
-from codegenRegisters import *
+import sys
+import os
+
+# add the src directory to the system path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from src.IRProgram import *
+from src.codegenRegisters import *
 
 class CodeGenerator:
 

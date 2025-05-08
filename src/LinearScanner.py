@@ -6,9 +6,14 @@ Linear scan is a simple but effective register allocation algorithm that
 allocates registers to variables in a single pass through the code.
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from typing import Dict, List, Set, Tuple, Optional
-from IRProgram import *
-from LivenessAnalyzer import LivenessAnalyzer
+
+from src.IRProgram import *
+from src.LivenessAnalyzer import LivenessAnalyzer
 
 class LiveRange:
     """Represents the live range of a variable."""

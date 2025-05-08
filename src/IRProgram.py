@@ -6,9 +6,13 @@ an intermediate representation (IR) that can be used for register allocation
 and code generation.
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from typing import List, Dict, Optional, Union, Any, Set
-from ast_classes import *
-from asttypes import *
+from src.astClasses import *
+from src.astTypes import *
 
 # IR Classes
 class IRInstruction:

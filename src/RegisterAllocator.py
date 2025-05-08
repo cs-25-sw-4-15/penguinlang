@@ -5,11 +5,16 @@ This module implements register allocation for the Penguin compiler,
 interfacing between the liveness analysis, linear scanner, and IR rewriter.
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from typing import Dict, List, Set, Tuple, Optional
-from IRProgram import *
-from LivenessAnalyzer import LivenessAnalyzer
-from LinearScanner import LinearScanner
-from IRRewriter import IRRewriter
+
+from src.IRProgram import *
+from src.LivenessAnalyzer import LivenessAnalyzer
+from src.LinearScanner import LinearScanner
+from src.IRRewriter import IRRewriter
 
 class RegisterAllocator:
     """

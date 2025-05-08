@@ -3,12 +3,14 @@
 Containes the main logic for the compiler.
 """
 
-import json
-import subprocess
-from pathlib import Path
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+
+import json
+import subprocess
+from pathlib import Path
 
 # antlr4 modules
 from antlr4 import FileStream, CommonTokenStream
