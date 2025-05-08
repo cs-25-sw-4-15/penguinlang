@@ -393,3 +393,36 @@ def test_bitwise_logical_operators():
     assert result == -6
 
     teardown()
+
+def test_loop_behavior():
+    """
+    End-to-end test for a loop with conditional logic.
+    """
+    source_code = """
+    int Result = 0;
+    int index = 0;
+
+    loop (index < 5) {
+        if (index == 3) {
+            Result = Result + 10;
+            index = 99; // Exit the loop
+        } else {
+            Result = Result + 1;
+        }
+        index = index + 1;
+    }
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    result = pyboy.memory[data_segment_start]
+    pyboy.stop()
+
+    # The loop should add 1 for index 0, 1, 2, and 10 for index 3, then exit.
+    assert result == 13
+
+    teardown()
