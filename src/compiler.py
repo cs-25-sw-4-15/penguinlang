@@ -226,23 +226,28 @@ def code_generation(ra_program: IRProgram, p: bool = False):
 
 def compile_rgbasm(rgbasm_code: str, output_file: str = "out.gb", p: bool = False):
     """Compiles the RGBASM code to binary.
-    
+
     Args:
         rgbasm_code (str): The RGBASM code to compile.
         output_file (str): The output file path.
     """
-    
+
     if not p: print("Compiling RGBASM code to binary...")
-    
+
     output_dir = Path(output_file).parent
-    
+    output_dir.mkdir(parents=True, exist_ok=True)  # Ensure the output directory exists
+
     write_output_file(f"{output_dir}/main.asm", rgbasm_code, p=p)
-    
-    root = Path(__file__).parent.resolve()
-    rgbds_path = root / "rgbds"
-    subprocess.call([str(rgbds_path / "rgbasm"), f"{output_dir}/main.asm", "-o", f"{output_dir}/output.o"])
-    subprocess.call([str(rgbds_path / "rgblink"), f"{output_dir}/output.o", "-o", output_file])
-    subprocess.call([str(rgbds_path / "rgbfix"), "-v", "-p", "0xFF", output_file])
+
+    # Use the system PATH to locate rgbds tools
+    try:
+        subprocess.run(["rgbasm", "-o", f"{output_dir}/output.o", f"{output_dir}/main.asm"], check=True)
+        subprocess.run(["rgblink", "-o", output_file, f"{output_dir}/output.o"], check=True)
+        subprocess.run(["rgbfix", "-v", "-p", "0xFF", output_file], check=True)
+    except FileNotFoundError as e:
+        print(f"Error: {e}. Ensure the RGBDS tools are installed and available in your PATH.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error during compilation: {e}")
 
 
 def full_compile(input_file: str, output_file: str = "out.gb", p: bool = False):
