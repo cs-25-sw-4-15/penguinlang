@@ -2,9 +2,15 @@
 Predefined hardware registers and functions for the Penguin language.
 This file defines built-in hardware elements that are available to all programs.
 """
-from typing import Dict, List, Tuple, Optional
+
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from typing import Dict, List, Tuple
 # Import the type classes from the main type checker
-from asttypes import Type, IntType, StringType, VoidType, ListType, TilesetType, TileMapType, SpriteType, OAMEntryType
+from src.astTypes import *
+
 
 def initialize_hardware_elements() -> Tuple[Dict[str, Type], Dict[str, Tuple[List[Tuple[str, Type]], Type]]]:
     """

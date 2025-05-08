@@ -33,13 +33,22 @@ jobs:
         rm src/rgbds/rgbds-0.9.1-linux-x86_64.tar.xz
     - name : Generate lexer/parser with ANTLR
       run: |
-        antlr4 -Dlanguage=Python3 -visitor -o src/generated/ src/grammar/penguin.g4
+        sudo apt-get install -y default-jre
+        curl -o antlr-4.13.2-complete.jar https://www.antlr.org/download/antlr-4.13.2-complete.jar
+        java -Xmx500M -cp ./antlr-4.13.2-complete.jar org.antlr.v4.Tool \
+          -Dlanguage=Python3 \
+          -visitor \
+          -o src/generated \
+          -Xexact-output-dir \
+          src/grammar/penguin.g4
+        ls -R src/generated
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        PYTHONPATH=. flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        PYTHONPATH=. flake8 . --count --exit-zero --statistics
     - name: Test with pytest
       run: |
-        pytest tests/tester.py
+        pytest
+      working-directory: ${{ github.workspace }}

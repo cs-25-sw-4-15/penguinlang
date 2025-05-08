@@ -6,22 +6,47 @@ Containes the main logic for the compiler.
 import json
 import subprocess
 from pathlib import Path
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # antlr4 modules
 from antlr4 import FileStream, CommonTokenStream
 
 
 # antl4 generated modules
-from generated.penguinLexer import penguinLexer
-from generated.penguinParser import penguinParser
+from src.generated.penguinLexer import penguinLexer
+from src.generated.penguinParser import penguinParser
 
 # custom modules
-from ast_classes import ASTNode
-from ast_generator import ASTGenerator
-from asttype_checker import TypeChecker
-from IRProgram import IRGenerator, IRProgram
-from RegisterAllocator import RegisterAllocator
-from codegen import CodeGenerator
+from src.astClasses import ASTNode
+from src.astGenerator import ASTGenerator
+from src.astTypeChecker import TypeChecker
+from src.IRProgram import IRGenerator, IRProgram
+from src.RegisterAllocator import RegisterAllocator
+from src.codegen import CodeGenerator
+
+# other modules
+import json
+
+
+class ASTEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, ASTNode):
+            # Convert ASTNode objects to dictionaries
+            result = {}
+            # Add class name for reconstruction
+            result["__class__"] = obj.__class__.__name__
+            # Add all attributes
+            for key, value in obj.__dict__.items():
+                result[key] = value
+            return result
+        # Special case for Type objects including VoidType, IntType, etc.
+        elif obj.__class__.__name__ in ['VoidType', 'IntType', 'StringType', 'TilesetType', 
+                                        'TileMapType', 'SpriteType', 'OAMEntryType', 'ListType']:
+            return {"__class__": obj.__class__.__name__}
+        # Let the base class handle other types
+        return super().default(obj)
 
 
 class ASTEncoder(json.JSONEncoder):
@@ -124,7 +149,7 @@ def abstact_syntax_tree(cst: str, p: bool = False):
     if not p: print("Generating abstract syntax tree...")
     
     ast_gen = ASTGenerator()
-    tree: str = ast_gen.visit(cst)
+    tree: ASTNode = ast_gen.visit(cst)
     
     return tree
     
