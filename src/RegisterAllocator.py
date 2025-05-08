@@ -14,7 +14,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 # Custom modules
 from src.IRProgram import *
-from src.LivenessAnalyzer import LivenessAnalyzer
 from src.LinearScanner import LinearScanner
 from src.IRRewriter import IRRewriter
 from src.logger import logger
@@ -36,7 +35,7 @@ class RegisterAllocator:
         Args:
             num_registers: Number of available registers for allocation
         """
-        self.liveness_analyzer = LivenessAnalyzer()
+        
         self.linear_scanner = LinearScanner(num_registers)
         self.ir_rewriter = IRRewriter()
         
@@ -60,11 +59,8 @@ class RegisterAllocator:
         Returns:
             A new IR program with register allocation applied
         """
-        # Step 1: Perform liveness analysis
-        logger.debug("Performing liveness analysis...")
-        liveness_info = self.liveness_analyzer.analyze_program(ir_program)
         
-        # Step 2: Perform linear scan register allocation
+        # Step 1 and 2: Perform liveness analysis (invoked by linearscanner.py) and linear scan register allocation
         logger.debug("Allocating registers with linear scan...")
         self.allocations = self.linear_scanner.allocate_program(ir_program)
         
@@ -80,6 +76,7 @@ class RegisterAllocator:
     
     def _calculate_stats(self) -> None:
         """Calculate statistics about register allocation."""
+        
         total_vars = 0
         total_regs = 0
         total_spills = 0
@@ -89,15 +86,13 @@ class RegisterAllocator:
             total_vars += proc_vars
             
             # Count register allocations vs spills
-            proc_regs = sum(1 for var, loc in alloc.items() 
-                           if self.linear_scanner.is_register(loc))
+            proc_regs = sum(1 for var, loc in alloc.items() if self.linear_scanner.is_register(loc))
             proc_spills = proc_vars - proc_regs
             
             total_regs += proc_regs
             total_spills += proc_spills
             
-            print(f"Procedure {proc_name}: {proc_vars} variables, "
-                  f"{proc_regs} in registers, {proc_spills} spilled to memory")
+            logger.debug(f"Procedure {proc_name}: {proc_vars} variables, " + f"{proc_regs} in registers, {proc_spills} spilled to memory")
         
         self.stats['variables'] = total_vars
         self.stats['registers_used'] = total_regs
@@ -105,12 +100,11 @@ class RegisterAllocator:
     
     def _print_allocation_summary(self) -> None:
         """Print a summary of the register allocation."""
+        
         logger.info("\nRegister Allocation Summary:")
         logger.info(f"Total variables: {self.stats['variables']}")
-        logger.info(f"Variables in registers: {self.stats['registers_used']} "
-              f"({self.stats['registers_used']/max(1, self.stats['variables'])*100:.1f}%)")
-        logger.info(f"Variables spilled to memory: {self.stats['spills']} "
-              f"({self.stats['spills']/max(1, self.stats['variables'])*100:.1f}%)")
+        logger.info(f"Variables in registers: {self.stats['registers_used']} " + f"({self.stats['registers_used']/max(1, self.stats['variables'])*100:.1f}%)")
+        logger.info(f"Variables spilled to memory: {self.stats['spills']} " + f"({self.stats['spills']/max(1, self.stats['variables'])*100:.1f}%)")
         
         # Print detailed allocation for each procedure
         for proc_name, alloc in self.allocations.items():
@@ -148,8 +142,10 @@ class RegisterAllocator:
         Returns:
             The register or memory location, or None if not allocated
         """
+        
         if proc_name in self.allocations and var_name in self.allocations[proc_name]:
             return self.allocations[proc_name][var_name]
+        
         return None
     
     def is_register(self, allocation: str) -> bool:
@@ -162,6 +158,7 @@ class RegisterAllocator:
         Returns:
             True if the allocation is a register, False if it's a spill location
         """
+        
         return self.linear_scanner.is_register(allocation)
     
     def get_all_register_allocations(self) -> Dict[str, Dict[str, str]]:
@@ -171,6 +168,7 @@ class RegisterAllocator:
         Returns:
             A dictionary mapping procedure names to allocation dictionaries
         """
+        
         return self.allocations
     
     def get_procedure_allocation(self, proc_name: str) -> Dict[str, str]:
@@ -192,4 +190,5 @@ class RegisterAllocator:
         Returns:
             A dictionary with statistics about the allocation
         """
+        
         return self.stats

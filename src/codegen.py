@@ -21,6 +21,7 @@ class CodeGenerator:
         """
         Initialize the code generator.
         """
+        
         self.variable_address_dict = {}
         self.cmp_counter = 0
         self.registerDict = codegenRegister()
@@ -35,6 +36,7 @@ class CodeGenerator:
         Returns:
             A string containing the generated assembly code
         """
+        
         self.variable_address_dict = ir_program.global_address
         # Initialize the assembly code string
         assembly_code = ""
@@ -48,6 +50,7 @@ class CodeGenerator:
         for instruction in ir_program.main_instructions:
             # Convert the instruction to assembly code
             assembly_line = self.generate(instruction)
+            
             # Append the assembly line to the code string
             if assembly_line:
                 assembly_code += assembly_line + "\n"
@@ -55,6 +58,7 @@ class CodeGenerator:
         for procedure in ir_program.procedures.items():
             #add label for procedure
             assembly_code += f"Label{procedure[0]}:\n"
+            
             for instruction in procedure[1].instructions:
                 assembly_line = self.generate(instruction)
                 if assembly_line:
@@ -74,13 +78,13 @@ class CodeGenerator:
         """
 
         headerstr = """
-SECTION "Header", ROM0[$100]
+        SECTION "Header", ROM0[$100]
 
-    jp PenguinEntry
+            jp PenguinEntry
 
-    ds $150 - @, 0 ; Make room for the header
+            ds $150 - @, 0 ; Make room for the header
 
-"""
+        """
 
         return headerstr
 
@@ -140,7 +144,6 @@ SECTION "Header", ROM0[$100]
             raise ValueError(f"No generator found for instruction type: {class_name}")
 
     def generate_BinaryOp(self,instruction: IRBinaryOp) -> str:
-        # Implementation to be filled in
         returnstr = ""
 
         # +
@@ -151,6 +154,7 @@ SECTION "Header", ROM0[$100]
                     returnstr += f"add {instruction.left}, {instruction.right}\n"
                 else:
                     returnstr += f"add {instruction.right}, {instruction.left}\n"
+                    
             #Case when a is not involved
             else:
                 returnstr += f"ld a, {instruction.left}\n"
@@ -183,7 +187,8 @@ SECTION "Header", ROM0[$100]
 
         # *
         elif instruction.op == '*':
-            """GB DOES NOT HAVE MULTIPLY, USE HELPER FUNCTION IN FOOTER"""
+            # GB DOES NOT HAVE MULTIPLY, USE HELPER FUNCTION IN FOOTER
+            
             returnstr = ""
             #PUSH REGISTERS
             #LOAD PARAMS
@@ -192,6 +197,7 @@ SECTION "Header", ROM0[$100]
             #STORE RESULT
             returnstr += f"ld {instruction.dest}, a\n"
             returnstr += f"TEMP MULTIPLY\n"
+            
         # ==
         elif instruction.op == '==':
             # If the left operand is already in the accumulator, we can skip loading and directly compare to the right.
@@ -203,22 +209,27 @@ SECTION "Header", ROM0[$100]
             # load left into accumulator if needed, then compare to right
             if instruction.left != 'a':
                 returnstr += f"ld a, {instruction.left}\n"
+                
             returnstr += f"cp {instruction.right}\n"
 
             # default false
             returnstr += f"ld {instruction.dest}, 0\n"
+            
             # if zero flag set (A == right), jump to true
             returnstr += f"jp z, {true_lbl}\n"
+            
             # else skip to end
             returnstr += f"jp {end_lbl}\n"
 
             # true branch: set dest = 1
             returnstr += f"{true_lbl}:\n"
             returnstr += f"ld {instruction.dest}, 1\n"
+            
             # end label
             returnstr += f"{end_lbl}:\n"
 
             return returnstr
+        
         # !=
         elif instruction.op == '!=':
             true_lbl = f"NE_TRUE_{self.cmp_counter}"
@@ -227,6 +238,7 @@ SECTION "Header", ROM0[$100]
 
             if instruction.left != 'a':
                 returnstr += f"ld a, {instruction.left}\n"
+                
             returnstr += f"cp {instruction.right}\n"
             returnstr += f"ld {instruction.dest}, 0\n"
             returnstr += f"jp nz, {true_lbl}\n"
@@ -234,12 +246,15 @@ SECTION "Header", ROM0[$100]
             returnstr += f"{true_lbl}:\n"
             returnstr += f"ld {instruction.dest}, 1\n"
             returnstr += f"{end_lbl}:\n"
+            
             return returnstr
+        
         # and, &
         elif instruction.op in ('and', '&'):
             # If the left operand is already in the accumulator, we can skip loading and directly do 'and' on the right.
             if instruction.left == 'a':
                 returnstr += f"and {instruction.right}\n"
+                
             # If the right operand is already in the accumulator, we can directly to 'and' on the left.
             elif instruction.right == 'a':
                 returnstr += f"and {instruction.left}\n"
@@ -251,6 +266,7 @@ SECTION "Header", ROM0[$100]
             # After the 'and' instruction, the result is in the accumulator. 
             if instruction.dest != 'a':
                 returnstr += f"ld {instruction.dest}, a\n"
+                
             return returnstr
         
         # or, |
@@ -258,6 +274,7 @@ SECTION "Header", ROM0[$100]
             # If the left operand is already in the accumulator, we can skip loading and directly do 'or' on the right.
             if instruction.left == 'a':
                 returnstr += f"or {instruction.right}\n"
+                
             # If the right operand is already in the accumulator, we can directly do 'or' on the left.
             elif instruction.right == 'a':
                 returnstr += f"or {instruction.left}\n"
@@ -269,6 +286,7 @@ SECTION "Header", ROM0[$100]
             # After the 'or' instruction, the result is in the accumulator. 
             if instruction.dest != 'a':
                 returnstr += f"ld {instruction.dest}, a\n"
+                
             return returnstr
         
         # ^, xor
@@ -276,6 +294,7 @@ SECTION "Header", ROM0[$100]
             # If the left operand is already in the accumulator, we can skip loading and just 'xor' the right.
             if instruction.left == 'a':
                 returnstr += f"xor {instruction.right}\n"
+                
             # if the right operand is already in the accumulator, we can just 'xor' the left.
             elif instruction.right == 'a':
                 returnstr += f"xor {instruction.left}\n"
@@ -287,7 +306,9 @@ SECTION "Header", ROM0[$100]
             # After the 'xor' instruction, the result is in the accumulator.
             if instruction.dest != 'a':
                 returnstr += f"ld {instruction.dest}, a\n"
+                
             return returnstr
+        
         # > greater than
         elif instruction.op == '>':
             # If the left operand is not already in the accumulator, load it into A.
@@ -298,21 +319,27 @@ SECTION "Header", ROM0[$100]
             # Load left into the accumulator if needed, then compare to right
             if instruction.left != 'a':
                 returnstr += f"ld a, {instruction.left}\n"
+                
             returnstr += f"cp {instruction.right}\n"
 
             # Assume false: set dest = 0
             returnstr += f"ld {instruction.dest}, 0\n"
+            
             # If carry flag set (A < right), skip the true branch
             returnstr += f"jp c, {end_lbl}\n"
+            
             # If zero flag set (A == right), skip the true branch
             returnstr += f"jp z, {end_lbl}\n"
 
             # True branch: A > right
             returnstr += f"{true_lbl}:\n"
             returnstr += f"ld {instruction.dest}, 1\n"
+            
             # End label
             returnstr += f"{end_lbl}:\n"
+            
             return returnstr
+        
         # < less than
         elif instruction.op == '<':
             # If the left operand is not already in the accumulator, load it into A.
@@ -323,22 +350,27 @@ SECTION "Header", ROM0[$100]
             # Load left into the accumulator (A) if needed, then compare to right
             if instruction.left != 'a':
                 returnstr += f"ld a, {instruction.left}\n"
+                
             returnstr += f"cp {instruction.right}\n"
 
             # Assume false: set dest = 0
             returnstr += f"ld {instruction.dest}, 0\n"
+            
             # If carry flag set (A < right), skip the true branch
             returnstr += f"jp c, {true_lbl}\n"
+            
             # Otherwise skip over the true branch. 
             returnstr += f"jp {end_lbl}\n"
 
             # True branch: A < right, so dest = 1
             returnstr += f"{true_lbl}:\n"
             returnstr += f"ld {instruction.dest}, 1\n"
+            
             # End label
             returnstr += f"{end_lbl}:\n"
 
             return returnstr
+        
         # <= less than or equal
         elif instruction.op == '<=':
             # Generate unique labels for the true and end branches
@@ -349,24 +381,31 @@ SECTION "Header", ROM0[$100]
             # Load left into A if needed, then compare to right
             if instruction.left != 'a':
                 returnstr += f"ld a, {instruction.left}\n"
+                
             returnstr += f"cp {instruction.right}\n"
 
             # Assume false: dest = 0
             returnstr += f"ld {instruction.dest}, 0\n"
+            
             # If carry flag set (A < right), jump to true branch
             returnstr += f"jp c, {true_lbl}\n"
+            
             # If zero flag set (A == right), also jump to true branch
             returnstr += f"jp z, {true_lbl}\n"
+            
             # Otherwise skip over the true branch
             returnstr += f"jp {end_lbl}\n"
 
             # True branch: A <= right, so dest = 1
             returnstr += f"{true_lbl}:\n"
+            
             returnstr += f"ld {instruction.dest}, 1\n"
+            
             # End label
             returnstr += f"{end_lbl}:\n"
 
             return returnstr
+        
         # >= greater than or equal to
         elif instruction.op == '>=':
             # Generate unique labels for the true and end branches
@@ -377,34 +416,41 @@ SECTION "Header", ROM0[$100]
             # Load left into the accumulator if needed, then compare to right
             if instruction.left != 'a':
                 returnstr += f"ld a, {instruction.left}\n"
+                
             returnstr += f"cp {instruction.right}\n"
 
             # Assume false: set dest = 0
             returnstr += f"ld {instruction.dest}, 0\n"
+            
             # If zero flag set (A == right), jump to true branch
             returnstr += f"jp z, {true_lbl}\n"
+            
             # If carry flag is not set (A >= right), jump to true branch
             returnstr += f"jp nc, {true_lbl}\n"
+            
             # Otherwise skip over the true branch
             returnstr += f"jp {end_lbl}\n"
 
             # True branch: A >= right, so dest = 1
             returnstr += f"{true_lbl}:\n"
             returnstr += f"ld {instruction.dest}, 1\n"
+            
             # End label
             returnstr += f"{end_lbl}:\n"
 
             return returnstr
+        
         # << shift left
         elif instruction.op == '<<':
             # Generate unique labels for our shift loop
             loop_lbl = f"SHL_LOOP_{self.cmp_counter}"
-            end_lbl  = f"SHL_END_{self.cmp_counter}"
+            end_lbl = f"SHL_END_{self.cmp_counter}"
             self.cmp_counter += 1
 
             # Load the value to shift into the accumulator (A) if needed
             if instruction.left != 'a':
                 returnstr += f"ld a, {instruction.left}\n"
+                
             # Load the shift count into B
             returnstr += f"ld b, {instruction.right}\n"
 
@@ -417,7 +463,9 @@ SECTION "Header", ROM0[$100]
             # After shifting, result is in A. Store it if dest ≠ A
             if instruction.dest != 'a':
                 returnstr += f"ld {instruction.dest}, a\n"
+                
             return returnstr
+        
         # >> shift right (sign extension)
         elif instruction.op == '>>':
             # Generate unique labels for our shift loop
@@ -428,6 +476,7 @@ SECTION "Header", ROM0[$100]
             # Load the value to shift into the accumulator (A) if needed
             if instruction.left != 'a':
                 returnstr += f"ld a, {instruction.left}\n"
+                
             # Load the shift count into B
             returnstr += f"ld b, {instruction.right}\n"
 
@@ -440,10 +489,10 @@ SECTION "Header", ROM0[$100]
             # After shifting, result is in A. Store it if dest ≠ A
             if instruction.dest != 'a':
                 returnstr += f"ld {instruction.dest}, a\n"
+                
             return returnstr
 
     def generate_UnaryOp(self,instruction: IRUnaryOp) -> str:
-        # Implementation to be filled in
         returnstr = ""
 
         #~
@@ -458,7 +507,6 @@ SECTION "Header", ROM0[$100]
         
 
     def generate_IncBin(self,instruction: IRIncBin) -> str:
-        # Implementation to be filled in
         returnstr = ""
 
         returnstr += f"Label{instruction.varname}Start:\n"
@@ -467,59 +515,72 @@ SECTION "Header", ROM0[$100]
 
         return returnstr
 
-
-
     def generate_Assign(self,instruction: IRAssign) -> str:
         returnstr = ""
         if instruction.dest != instruction.src:
             returnstr += f"ld {instruction.dest}, {instruction.src}\n"
+            
         return returnstr
 
     def generate_Constant(self,instruction: IRConstant) -> str:
         returnstr = f"ld {instruction.dest}, {instruction.value}\n"
+        
         return returnstr
 
     def generate_Load(self,instruction: IRLoad) -> str:
         returnstr = ""
+        
         if instruction.addr in self.variable_address_dict:
             returnstr += f"ld hl, {self.variable_address_dict[instruction.addr]}\n"
         else:
             returnstr += f"ld hl, {instruction.addr[1:-1]}\n"
+            
         returnstr += f"ld a, [hl]\n"
+        
         if instruction.dest != 'a':
             returnstr += f"ld {instruction.dest}, a\n"
+            
         return returnstr
 
     def generate_Store(self,instruction: IRStore) -> str:
         returnstr = ""
+        
         if instruction.value != 'a':
             returnstr += f"ld a, {instruction.value}\n"
+            
         #Case of normal variable
         if instruction.addr in self.variable_address_dict:
+            
             returnstr += f"ld hl, {self.variable_address_dict[instruction.addr]}\n"
         #Case of spill and stack pointer
         else:
             returnstr += f"ld hl, {instruction.addr[1:-1]}\n"
+            
         returnstr += f"ld [hl], a\n"
+        
         return returnstr
 
-
     def generate_Label(self,instruction: IRLabel) -> str:
-        # Implementation to be filled in
+        # TODO: Implementation to be filled in
         returnstr = f"{instruction.name}:\n"
+        
         return returnstr
 
     def generate_Jump(self,instruction: IRJump) -> str:
-        # Implementation to be filled in
+        # TODO: Implementation to be filled in
         returnstr = f"jp {instruction.label}\n"
+        
         return returnstr
 
     def generate_CondJump(self,instruction: IRCondJump) -> str:
         returnstr = ""
+        
         if instruction.condition != 'a':
             returnstr += f"ld a, {instruction.condition}\n"
+            
         returnstr += f"cp 0\n"
         returnstr += f"jp nz, {instruction.true_label}\n"
+        
         if instruction.false_label:
             returnstr += f"jp {instruction.false_label}\n"
 
@@ -527,139 +588,179 @@ SECTION "Header", ROM0[$100]
 
     def generate_Call(self,instruction: IRCall) -> str:
         listofregs = ['b', 'c', 'd', 'e']
-        # Implementation to be filled in
-        returnstr = ""
-        returnstr += "push bc\n"
-        returnstr += "push de\n"
-        returnstr += "push hl\n"
-        #Placer variables
-        for param in instruction.args:
-            returnstr += f"dec sp\n"
-            returnstr += f"ld [sp], {param}\n"
-        
-        for i in range(len(instruction.args), -1, -1):
-            returnstr += f"ld {listofregs[i]}, [sp]\n"
-            returnstr += f"add sp, 1\n"
+        lines = []
 
-        returnstr += f"call Label{instruction.proc_name}\n"
-        
-        #Result er i A
-        returnstr += "pop hl\n"
-        returnstr += "pop de\n"
-        returnstr += "pop bc\n"
+        # Push registers onto stack
+        lines.append("push bc")
+        lines.append("push de")
+        lines.append("push hl")
+
+        # Place variables on the stack
+        for param in instruction.args:
+            lines.append(f"dec sp")
+            lines.append(f"ld [sp], {param}")
+
+        # Load arguments from stack into registers
+        for i in range(len(instruction.args) - 1, -1, -1):
+            lines.append(f"ld {listofregs[i]}, [sp]")
+            lines.append(f"add sp, 1")
+
+        # Call the procedure
+        lines.append(f"call Label{instruction.proc_name}")
+
+        # Result is in A
+        lines.append("pop hl")
+        lines.append("pop de")
+        lines.append("pop bc")
+
+        # Store result in destination register if specified
         if instruction.dest:
-            returnstr += f"ld {instruction.dest}, a\n"
+            lines.append(f"ld {instruction.dest}, a")
+
+        returnstr = "\n".join(lines)
+            
         return returnstr
 
     def generate_Return(self,instruction: IRReturn) -> str:
-        # Implementation to be filled in
-        returnstr = ""
+        lines = []
         if instruction.value and instruction.value != 'a':
-            returnstr += f"ld a, {instruction.value}\n"
-        returnstr += "ret\n"
+            lines.append(f"ld a, {instruction.value}")
+            
+        lines.append("ret")
+
+        returnstr = "\n".join(lines)
         return returnstr
 
     def generate_IndexedLoad(self,instruction: IRIndexedLoad) -> str:
-        # Implementation to be filled in
+        # TODO: Implementation to be filled in
         returnstr = ""
+        
+        return returnstr
 
     def generate_IndexedStore(self, instruction: IRIndexedStore) -> str:
-        # Implementation to be filled in
+        # TODO: Implementation to be filled in
         returnstr = ""
+        
+        return returnstr
 
     def generate_HardwareLoad(self, instruction: IRHardwareLoad) -> str:
-        # Implementation to be filled in
-        returnstr = ""
-        returnstr += f"ld hl, {self.registerDict[instruction.register]}\n" 
-        returnstr += f"ld a, [hl]\n"
+        lines = [
+            f"ld hl, {self.registerDict[instruction.register]}",
+            "ld a, [hl]"
+        ]
+        
         if instruction.dest != 'a':
-            returnstr += f"ld {instruction.dest}, a\n"
+            lines.append(f"ld {instruction.dest}, a")
+
+        returnstr = "\n".join(lines)
+            
         return returnstr
 
     def generate_HardwareStore(self, instruction: IRHardwareStore) -> str:
-        # Implementation to be filled in
-        returnstr = ""
-        returnstr += f"ld a, {instruction.value}\n"
-        returnstr += f"ld hl, {self.registerDict[instruction.register]}\n"
-        returnstr += f"ld [hl], a\n"
+        lines = [
+            f"ld a, {instruction.value}",
+            f"ld hl, {self.registerDict[instruction.register]}",
+            "ld [hl], a",
+        ]
+        
+        returnstr = "\n".join(lines)
+    
         return returnstr
 
     def generate_HardwareIndexedLoad(self, instruction: IRHardwareIndexedLoad) -> str:
-        # Implementation to be filled in
-        returnstr = ""
-        returnstr += f"ld a, {instruction.index}\n"
-        returnstr += f"push bc\n"
-        returnstr += f"push de\n"
-        returnstr += f"push hl\n"
-        returnstr += f"ld hl, {self.registerDict[instruction.register]}\n"
-        if "display_oam" in instruction.register:
-            returnstr += "ld bc, 4\n"
-        else:
-            returnstr += "ld bc, 1\n"
+        lines = [
+            f"ld a, {instruction.index}",
+            "push bc",
+            "push de",
+            "push hl",
+            f"ld hl, {self.registerDict[instruction.register]}",
+        ]
 
-        returnstr += f"HwLoadLoop{self.cmp_counter}:\n"
-        returnstr += f"cp 0\n"
-        returnstr += f"jp z, HwLoadLoopDone{self.cmp_counter}\n"
-        returnstr += f"add hl, bc\n"
-        returnstr += f"dec a\n"
-        returnstr += f"jp HwLoadLoop{self.cmp_counter}\n"
-        returnstr += f"HwLoadLoopDone{self.cmp_counter}:\n"
-        returnstr += f"ld a, [hl]"
-        returnstr += f"pop hl\n"
-        returnstr += f"pop de\n"
-        returnstr += f"pop bc\n"
+        # Conditional load size
+        lines.append("ld bc, 4" if "display_oam" in instruction.register else "ld bc, 1")
+
+        # Loop code
+        lines += [
+            f"HwLoadLoop{self.cmp_counter}:",
+            "cp 0",
+            f"jp z, HwLoadLoopDone{self.cmp_counter}",
+            "add hl, bc",
+            "dec a",
+            f"jp HwLoadLoop{self.cmp_counter}",
+            f"HwLoadLoopDone{self.cmp_counter}:",
+            "ld a, [hl]",
+            "pop hl",
+            "pop de",
+            "pop bc",
+        ]
+
+        # Optional register transfer
         if instruction.dest != 'a':
-            returnstr += f"ld {instruction.dest}, a"
+            lines.append(f"ld {instruction.dest}, a")
+
         self.cmp_counter += 1
+        
+        returnstr = "\n".join(lines)
+            
         return returnstr
 
     def generate_HardwareIndexedStore(self, instruction: IRHardwareIndexedStore) -> str:
-        # Implementation to be filled in
-        returnstr = ""
-        returnstr += f"ld a, {instruction.index}\n"
-        returnstr += f"ld d, {instruction.value}\n"
-        returnstr += f"push bc\n"
-        returnstr += f"push de\n"
-        returnstr += f"push hl\n"
-        returnstr += f"ld hl, {self.registerDict[instruction.register]}\n"
-        if "display_oam" in instruction.register:
-            returnstr += "ld bc, 4\n"
-        else:
-            returnstr += "ld bc, 1\n"
+        lines = [
+            f"ld a, {instruction.index}",
+            f"ld d, {instruction.value}",
+            "push bc",
+            "push de",
+            "push hl",
+            f"ld hl, {self.registerDict[instruction.register]}",
+        ]
 
-        returnstr += f"HwStoreLoop{self.cmp_counter}:\n"
-        returnstr += f"cp 0\n"
-        returnstr += f"jp z, HwStoreLoopDone{self.cmp_counter}\n"
-        returnstr += f"add hl, bc\n"
-        returnstr += f"dec a\n"
-        returnstr += f"jp HwLoadLoop{self.cmp_counter}\n"
-        returnstr += f"HwLoadLoopDone{self.cmp_counter}:\n"
-        returnstr += f"ld a, d\n"
-        returnstr += f"ld [hl], a\n"
-        returnstr += f"pop hl\n"
-        returnstr += f"pop de\n"
-        returnstr += f"pop bc\n"
-        self.cmp_counter += 1
+        # Conditionally add the `ld bc` line
+        if "display_oam" in instruction.register:
+            lines.append("ld bc, 4")
+        else:
+            lines.append("ld bc, 1")
+
+        lines += [
+            f"HwStoreLoop{self.cmp_counter}:",
+            "cp 0",
+            f"jp z, HwStoreLoopDone{self.cmp_counter}",
+            "add hl, bc",
+            "dec a",
+            f"jp HwLoadLoop{self.cmp_counter}",
+            f"HwLoadLoopDone{self.cmp_counter}:",
+            "ld a, d",
+            "ld [hl], a",
+            "pop hl",
+            "pop de",
+            "pop bc",
+        ]
+
+        returnstr = "\n".join(lines)
+        
         return returnstr
 
     def generate_HardwareMemCpy(self,instruction: IRHardwareMemCpy) -> str:
-        # Implementation to be filled in
-        returnstr = ""
-        returnstr += f"push bc\n"
-        returnstr += f"push de\n"
-        returnstr += f"push hl\n"
-        returnstr += f"ld de, Label{instruction.src}Start\n"
-        returnstr += f"ld hl, {instruction.dest}\n"
-        returnstr += f"ld bc, Label{instruction.src}End - {instruction.src}Start\n"
-        returnstr += f"call PenguinMemCopy\n"
-        returnstr += f"pop hl\n"
-        returnstr += f"pop de\n"
-        returnstr += f"pop bc\n"
+        lines = [
+            "push bc",
+            "push de",
+            "push hl",
+            f"ld de, Label{instruction.src}Start",
+            f"ld hl, {instruction.dest}",
+            f"ld bc, Label{instruction.src}End - {instruction.src}Start",
+            "call PenguinMemCopy",
+            "pop hl",
+            "pop de",
+            "pop bc"
+        ]
+        
+        returnstr = "\n".join(lines)
+
         return returnstr
 
     def generate_ArgLoad(self,instruction: IRArgLoad) -> str:
         # Implementation to be filled in
         returnstr = "; Arg was loaded\n"
+        
         return returnstr 
     
     def generate_ChangeSP(self, instruction: IRChangeSP) -> str:
@@ -668,4 +769,5 @@ SECTION "Header", ROM0[$100]
             returnstr += f"add sp, {instruction.amount}\n"
         else:
             returnstr += f"add sp, -{instruction.amount}\n"
+            
         return returnstr
