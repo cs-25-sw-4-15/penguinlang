@@ -1,5 +1,4 @@
-"""
-IR Rewriter for Penguin Language Compiler
+"""IR Rewriter for Penguin Language Compiler
 
 This module rewrites the intermediate representation (IR) to use allocated
 registers and handle spilled variables.
@@ -34,9 +33,7 @@ class IRRewriter:
         self.proc_name = ""  # Current procedure name
         self.is_register = None  # Function to check if an allocation is a register
         
-    def rewrite_program(self, 
-                       ir_program: IRProgram, 
-                       allocations: Dict[str, Dict[str, str]]) -> IRProgram:
+    def rewrite_program(self, ir_program: IRProgram, allocations: Dict[str, Dict[str, str]]) -> IRProgram:
         """
         Rewrite an entire IR program to use register allocations.
         
@@ -47,13 +44,13 @@ class IRRewriter:
         Returns:
             A new IR program with register allocations applied
         """
+        
         # Create a new IR program
         new_program = IRProgram()
         
         # Copy globals
         new_program.globals = ir_program.globals.copy()
         new_program.global_address = ir_program.global_address.copy()
-        
         
         # Rewrite main section
         if ir_program.main_instructions:
@@ -91,6 +88,7 @@ class IRRewriter:
         Args:
             is_register_fn: A function that takes an allocation string and returns True if it's a register
         """
+        
         self.is_register = is_register_fn
     
     def rewrite_instructions(self, instructions: List[IRInstruction]) -> List[IRInstruction]:
@@ -103,6 +101,7 @@ class IRRewriter:
         Returns:
             A list of rewritten IR instructions
         """
+        
         rewritten = []
         returnwritten = 0
         
@@ -113,9 +112,11 @@ class IRRewriter:
         # Rewrite each instruction
         for instr in instructions:
             rewritten_instrs = self._rewrite_instruction(instr)
+            
             if isinstance(instr, IRReturn) and any(not self._is_register(alloc) for alloc in self.current_allocations.values()):
                 rewritten.extend(self._generate_epilogue())
                 returnwritten = returnwritten + 1
+                
             rewritten.extend(rewritten_instrs)
         
         # Add epilogue for spill slots if needed
@@ -134,6 +135,7 @@ class IRRewriter:
         Returns:
             A list of rewritten IR instructions (may be more than one if spill handling is needed)
         """
+        
         method_name = f"_rewrite_{instr.__class__.__name__}"
         rewrite_method = getattr(self, method_name, None)
         
@@ -145,6 +147,7 @@ class IRRewriter:
     
     def _rewrite_IRAssign(self, instr: IRAssign) -> List[IRInstruction]:
         """Rewrite an IRAssign instruction."""
+        
         result = []
         
         # Get allocations
@@ -157,6 +160,7 @@ class IRRewriter:
             temp_reg = 'a'  # Use accumulator as a temporary
             result.append(IRLoad(temp_reg, src_alloc))
             src_alloc = temp_reg
+            
         elif not src_alloc:
             # Source is a constant or direct reference
             src_alloc = instr.src
@@ -172,6 +176,7 @@ class IRRewriter:
                 if src_alloc != temp_reg:
                     result.append(IRAssign(temp_reg, src_alloc))
                 result.append(IRStore(dest_alloc, temp_reg))
+                
         else:
             # Destination doesn't have an allocation - keep original
             result.append(instr)
@@ -180,6 +185,7 @@ class IRRewriter:
     
     def _rewrite_IRBinaryOp(self, instr: IRBinaryOp) -> List[IRInstruction]:
         """Rewrite an IRBinaryOp instruction."""
+        
         result = []
         
         # Get allocations
@@ -215,6 +221,7 @@ class IRRewriter:
                 temp_reg = 'c'  # Use c for result
                 result.append(IRBinaryOp(instr.op, temp_reg, left_alloc, right_alloc))
                 result.append(IRStore(dest_alloc, temp_reg))
+                
         else:
             # No allocation for destination - keep original
             result.append(instr)
@@ -223,6 +230,7 @@ class IRRewriter:
     
     def _rewrite_IRUnaryOp(self, instr: IRUnaryOp) -> List[IRInstruction]:
         """Rewrite an IRUnaryOp instruction."""
+        
         result = []
         
         # Get allocations
@@ -256,6 +264,7 @@ class IRRewriter:
     
     def _rewrite_IRConstant(self, instr: IRConstant) -> List[IRInstruction]:
         """Rewrite an IRConstant instruction."""
+        
         result = []
         
         # Get allocation for destination
@@ -278,6 +287,7 @@ class IRRewriter:
     
     def _rewrite_IRLoad(self, instr: IRLoad) -> List[IRInstruction]:
         """Rewrite an IRLoad instruction."""
+        
         result = []
         
         # Get allocations
@@ -311,6 +321,7 @@ class IRRewriter:
     
     def _rewrite_IRStore(self, instr: IRStore) -> List[IRInstruction]:
         """Rewrite an IRStore instruction."""
+        
         result = []
         
         # Get allocations
@@ -342,6 +353,7 @@ class IRRewriter:
     
     def _rewrite_IRIndexedLoad(self, instr: IRIndexedLoad) -> List[IRInstruction]:
         """Rewrite an IRIndexedLoad instruction."""
+        
         result = []
         
         # Get allocations
@@ -385,6 +397,7 @@ class IRRewriter:
     
     def _rewrite_IRIndexedStore(self, instr: IRIndexedStore) -> List[IRInstruction]:
         """Rewrite an IRIndexedStore instruction."""
+        
         result = []
         
         # Get allocations
@@ -423,6 +436,7 @@ class IRRewriter:
     
     def _rewrite_IRCondJump(self, instr: IRCondJump) -> List[IRInstruction]:
         """Rewrite an IRCondJump instruction."""
+        
         result = []
         
         # Get allocation for condition
@@ -447,6 +461,7 @@ class IRRewriter:
     
     def _rewrite_IRCall(self, instr: IRCall) -> List[IRInstruction]:
         """Rewrite an IRCall instruction."""
+        
         result = []
         
         # Process arguments
@@ -485,6 +500,7 @@ class IRRewriter:
     
     def _rewrite_IRReturn(self, instr: IRReturn) -> List[IRInstruction]:
         """Rewrite an IRReturn instruction."""
+        
         result = []
         
         if instr.value:
@@ -507,6 +523,7 @@ class IRRewriter:
     
     def _rewrite_IRHardwareCall(self, instr: IRHardwareCall) -> List[IRInstruction]:
         """Rewrite an IRHardwareCall instruction."""
+        
         result = []
         
         # Process arguments
@@ -531,6 +548,7 @@ class IRRewriter:
     
     def _rewrite_IRHardwareLoad(self, instr: IRHardwareLoad) -> List[IRInstruction]:
         """Rewrite an IRHardwareRead instruction."""
+        
         result = []
         
         # Get allocation for destination
@@ -553,6 +571,7 @@ class IRRewriter:
     
     def _rewrite_IRHardwareStore(self, instr: IRHardwareStore) -> List[IRInstruction]:
         """Rewrite an IRHardwareWrite instruction."""
+        
         result = []
         
         # Get allocation for value
@@ -573,6 +592,7 @@ class IRRewriter:
     
     def _rewrite_IRHardwareIndexedLoad(self, instr: IRHardwareIndexedLoad) -> List[IRInstruction]:
         """Rewrite an IRHardwareIndexedRead instruction."""
+        
         result = []
         
         # Get allocations
@@ -606,6 +626,7 @@ class IRRewriter:
     
     def _rewrite_IRHardwareIndexedStore(self, instr: IRHardwareIndexedStore) -> List[IRInstruction]:
         """Rewrite an IRHardwareIndexedWrite instruction."""
+        
         result = []
         
         # Get allocations
@@ -637,14 +658,17 @@ class IRRewriter:
     
     def _rewrite_IRLabel(self, instr: IRLabel) -> List[IRInstruction]:
         """Labels don't need rewriting."""
+        
         return [instr]
     
     def _rewrite_IRJump(self, instr: IRJump) -> List[IRInstruction]:
         """Jumps don't need rewriting."""
+        
         return [instr]
     
     def _rewrite_IRArgLoad(self, instr: IRArgLoad) -> List[IRInstruction]:
         """Rewrite an IRArgLoad instruction."""
+        
         result = []
         
         # Get allocation for destination
@@ -667,20 +691,24 @@ class IRRewriter:
     
     def _rewrite_IRIncBin(self, instr: IRIncBin) -> List[IRInstruction]:
         """IRIncBin doesn't need rewriting."""
+        
         return [instr]
     
     def _rewrite_IRHardwareMemCpy(self, instr: IRHardwareMemCpy) -> List[IRInstruction]:
         """IRHardwareMemCpy doesn't need rewriting."""
+        
         return [instr]
     
     def _get_allocation(self, var_name: str) -> Optional[str]:
         """Get the allocation (register or memory location) for a variable."""
+        
         if var_name in self.current_allocations:
             return self.current_allocations[var_name]
         return None
     
     def _is_register(self, allocation: str) -> bool:
         """Check if an allocation is a register."""
+        
         if self.is_register:
             return self.is_register(allocation)
         else:
@@ -689,10 +717,12 @@ class IRRewriter:
     
     def _get_temp_reg(self) -> str:
         """Get a temporary register for spill handling."""
+        
         return 'a'
     
     def _generate_prologue(self) -> List[IRInstruction]:
         """Generate prologue code for allocating spill slots on the stack."""
+        
         result = []
         
         # Count the number of spill slots needed
@@ -709,13 +739,14 @@ class IRRewriter:
         
         if spill_count > 0:
             # Generate code to allocate space on the stack
-            #result.append(IRBinaryOp('-', 'sp', 'sp', str(spill_count)))
+            # result.append(IRBinaryOp('-', 'sp', 'sp', str(spill_count)))
             result.append(IRChangeSP(spill_count, '-'))
         
         return result
     
     def _generate_epilogue(self) -> List[IRInstruction]:
         """Generate epilogue code for deallocating spill slots from the stack."""
+        
         result = []
         
         # Count the number of spill slots used
@@ -730,7 +761,7 @@ class IRRewriter:
         
         if spill_count > 0:
             # Generate code to deallocate space from the stack
-            #result.append(IRBinaryOp('+', 'sp', 'sp', str(spill_count)))
+            # result.append(IRBinaryOp('+', 'sp', 'sp', str(spill_count)))
             result.append(IRChangeSP(spill_count, '+'))
         
         return result

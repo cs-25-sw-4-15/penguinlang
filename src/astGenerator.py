@@ -49,6 +49,7 @@ from src.astClasses import *
 from src.customErrors import *
 from src.logger import logger
 
+
 class ASTGenerator(penguinVisitor):
     """Converts an ANTLR parse tree into an AST.
     

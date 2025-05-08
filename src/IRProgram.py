@@ -20,11 +20,14 @@ from src.logger import logger
 # IR Classes
 class IRInstruction:
     """Base class for all IR instructions"""
+    
     def __str__(self) -> str:
         return f"{self.__class__.__name__}"
 
+
 class IRBinaryOp(IRInstruction):
     """Binary operation in IR"""
+    
     def __init__(self, op: str, dest: str, left: str, right: str):
         self.op = op
         self.dest = dest
@@ -34,8 +37,10 @@ class IRBinaryOp(IRInstruction):
     def __str__(self) -> str:
         return f"{self.dest} = {self.left} {self.op} {self.right}"
 
+
 class IRUnaryOp(IRInstruction):
     """Unary operation in IR"""
+    
     def __init__(self, op: str, dest: str, operand: str):
         self.op = op
         self.dest = dest
@@ -43,10 +48,11 @@ class IRUnaryOp(IRInstruction):
     
     def __str__(self) -> str:
         return f"{self.dest} = {self.op} {self.operand}"
-    
+
 
 class IRIncBin(IRInstruction):
     """Binary inc in IR"""
+    
     def __init__(self, varname: str, filepath: str):
         self.varname = varname
         self.filepath = filepath
@@ -54,8 +60,10 @@ class IRIncBin(IRInstruction):
     def __str__(self) -> str:
         return f"INCBIN {self.varname} {self.filepath}"
 
+
 class IRAssign(IRInstruction):
     """Assignment in IR"""
+    
     def __init__(self, dest: str, src: str):
         self.dest = dest
         self.src = src
@@ -63,8 +71,10 @@ class IRAssign(IRInstruction):
     def __str__(self) -> str:
         return f"{self.dest} = {self.src}"
 
+
 class IRConstant(IRInstruction):
     """Constant assignment in IR"""
+    
     def __init__(self, dest: str, value: Any):
         self.dest = dest
         self.value = value
@@ -72,8 +82,10 @@ class IRConstant(IRInstruction):
     def __str__(self) -> str:
         return f"{self.dest} = {self.value}"
 
+
 class IRLoad(IRInstruction):
     """Load from memory in IR"""
+    
     def __init__(self, dest: str, addr: str):
         self.dest = dest
         self.addr = addr
@@ -81,8 +93,10 @@ class IRLoad(IRInstruction):
     def __str__(self) -> str:
         return f"{self.dest} = load {self.addr}"
 
+
 class IRStore(IRInstruction):
     """Store to memory in IR"""
+    
     def __init__(self, addr: str, value: str):
         self.addr = addr
         self.value = value
@@ -90,24 +104,30 @@ class IRStore(IRInstruction):
     def __str__(self) -> str:
         return f"store {self.addr}, {self.value}"
 
+
 class IRLabel(IRInstruction):
     """Label in IR"""
+    
     def __init__(self, name: str):
         self.name = name
     
     def __str__(self) -> str:
         return f"{self.name}:"
 
+
 class IRJump(IRInstruction):
     """Unconditional jump in IR"""
+    
     def __init__(self, label: str):
         self.label = label
     
     def __str__(self) -> str:
         return f"jump {self.label}"
 
+
 class IRCondJump(IRInstruction):
     """Conditional jump in IR"""
+    
     def __init__(self, condition: str, true_label: str, false_label: Optional[str] = None):
         self.condition = condition
         self.true_label = true_label
@@ -116,10 +136,13 @@ class IRCondJump(IRInstruction):
     def __str__(self) -> str:
         if self.false_label:
             return f"if {self.condition} jump {self.true_label} else jump {self.false_label}"
+        
         return f"if {self.condition} jump {self.true_label}"
+
 
 class IRCall(IRInstruction):
     """Procedure call in IR"""
+    
     def __init__(self, proc_name: str, args: List[str], dest: Optional[str] = None):
         self.proc_name = proc_name
         self.args = args
@@ -129,20 +152,26 @@ class IRCall(IRInstruction):
         args_str = ", ".join(self.args)
         if self.dest:
             return f"{self.dest} = call {self.proc_name}({args_str})"
+        
         return f"call {self.proc_name}({args_str})"
+
 
 class IRReturn(IRInstruction):
     """Return instruction in IR"""
+    
     def __init__(self, value: Optional[str] = None):
         self.value = value
     
     def __str__(self) -> str:
         if self.value:
             return f"return {self.value}"
+        
         return "return"
+
 
 class IRIndexedLoad(IRInstruction):
     """Load from indexed location in IR (for arrays/lists)"""
+    
     def __init__(self, dest: str, base: str, index: str):
         self.dest = dest
         self.base = base
@@ -151,8 +180,10 @@ class IRIndexedLoad(IRInstruction):
     def __str__(self) -> str:
         return f"{self.dest} = {self.base}[{self.index}]"
 
+
 class IRIndexedStore(IRInstruction):
     """Store to indexed location in IR (for arrays/lists)"""
+    
     def __init__(self, base: str, index: str, value: str):
         self.base = base
         self.index = index
@@ -161,8 +192,10 @@ class IRIndexedStore(IRInstruction):
     def __str__(self) -> str:
         return f"{self.base}[{self.index}] = {self.value}"
 
+
 class IRHardwareLoad(IRInstruction):
     """Load from a hardware register"""
+    
     def __init__(self, dest: str, register: str):
         self.dest = dest
         self.register = register
@@ -170,8 +203,10 @@ class IRHardwareLoad(IRInstruction):
     def __str__(self) -> str:
         return f"{self.dest} = hw_load({self.register})"
 
+
 class IRHardwareStore(IRInstruction):
     """Store to a hardware register"""
+    
     def __init__(self, register: str, value: str):
         self.register = register
         self.value = value
@@ -179,8 +214,10 @@ class IRHardwareStore(IRInstruction):
     def __str__(self) -> str:
         return f"hw_store({self.register}, {self.value})"
 
+
 class IRHardwareIndexedLoad(IRInstruction):
     """Load from an indexed hardware register (like display.oam[i])"""
+    
     def __init__(self, dest: str, register: str, index: str):
         self.dest = dest
         self.register = register
@@ -189,8 +226,10 @@ class IRHardwareIndexedLoad(IRInstruction):
     def __str__(self) -> str:
         return f"{self.dest} = hw_indexed_load({self.register}, {self.index})"
 
+
 class IRHardwareIndexedStore(IRInstruction):
     """Store to an indexed hardware register (like display.oam[i])"""
+    
     def __init__(self, register: str, index: str, value: str):
         self.register = register
         self.index = index
@@ -199,9 +238,10 @@ class IRHardwareIndexedStore(IRInstruction):
     def __str__(self) -> str:
         return f"hw_indexed_store({self.register}, {self.index}, {self.value})"
 
-class IRHardwareCall(IRInstruction):
 
+class IRHardwareCall(IRInstruction):
     """Call a hardware function (like control.LCDon())"""
+    
     def __init__(self, module: str, function: str, args: List[str] = None):
         self.module = module
         self.function = function
@@ -211,8 +251,10 @@ class IRHardwareCall(IRInstruction):
         args_str = ", ".join(self.args)
         return f"hw_call({self.module}.{self.function}, [{args_str}])"
 
+
 class IRHardwareMemCpy(IRInstruction):
     """Copy memory from one hardware register to another"""
+    
     def __init__(self, dest: str, src: str):
         self.dest = dest
         self.src = src
@@ -220,8 +262,10 @@ class IRHardwareMemCpy(IRInstruction):
     def __str__(self) -> str:
         return f"hw_memcpy({self.dest}, {self.src})"
     
+    
 class IRArgLoad(IRInstruction):
     """Load argument in IR"""
+    
     def __init__(self, dest: str, arg_index: int):
         self.dest = dest
         self.arg_index = arg_index
@@ -229,9 +273,10 @@ class IRArgLoad(IRInstruction):
     def __str__(self) -> str:
         return f"{self.dest} = arg[{self.arg_index}]"
     
-
+    
 class IRChangeSP(IRInstruction):
     """Load argument in IR"""
+    
     def __init__(self, amount: int, op: str):
         self.amount = amount
         self.op = op
@@ -239,8 +284,10 @@ class IRChangeSP(IRInstruction):
     def __str__(self) -> str:
         return f"SP {self.op} {self.amount}"
 
+
 class IRProcedure:
     """Procedure in IR"""
+    
     def __init__(self, name: str, params: List[str], return_type: Optional[Type] = None):
         self.name = name
         self.params = params
@@ -257,8 +304,10 @@ class IRProcedure:
         body = "\n".join(f"  {instr}" for instr in self.instructions)
         return f"{header}\n{body}"
 
+
 class IRProgram:
     """Complete IR program"""
+    
     def __init__(self):
         self.procedures: Dict[str, IRProcedure] = {}
         self.globals: Dict[str, Type] = {}
@@ -299,6 +348,7 @@ class IRProgram:
         
         return "\n".join(result)
 
+
 class IRGenerator:
     """Generates IR from a type-annotated AST"""
     
@@ -314,18 +364,23 @@ class IRGenerator:
     
     def new_temp(self) -> str:
         """Generate a new temporary variable name"""
+        
         temp = f"t{self.temp_counter}"
         self.temp_counter += 1
+        
         return temp
     
     def new_label(self) -> str:
         """Generate a new label name"""
+        
         label = f"L{self.label_counter}"
         self.label_counter += 1
+        
         return label
     
     def add_instruction(self, instruction: IRInstruction) -> None:
         """Add an instruction to the current procedure or main section"""
+        
         if self.current_procedure:
             self.current_procedure.add_instruction(instruction)
         else:
@@ -333,20 +388,29 @@ class IRGenerator:
     
     def generate(self, ast: Program) -> IRProgram:
         """Generate IR from an AST"""
+        
+        # TODO: make less complex
+        
         # First collect global variables and procedures
         for statement in ast.statements:
             if isinstance(statement, ProcedureDef):
                 # Just register the procedure signature first
-                params = [param[0] for param in statement.params]  # Extract parameter names
+                params = [param.name for param in statement.params]  # Extract parameter names
+                
+                logger.debug("######### Procedure signature: %s", statement.name)
+                
                 return_type = None
+                
                 if statement.return_type and statement.return_type != "void":
                     return_type = self.string_to_type(statement.return_type)
                 
                 procedure = IRProcedure(statement.name, params, return_type)
                 self.program.add_procedure(procedure)
+        
             elif isinstance(statement, (Declaration, Initialization)):
                 if isinstance(statement.var_type, (TileMapType, TilesetType, SpriteType)) and isinstance(statement, Initialization):
-                    continue;
+                    continue
+                
                 # Register globals
                 type_ = None
                 if isinstance(statement, Declaration):
@@ -362,21 +426,24 @@ class IRGenerator:
                 # Now generate the procedure body
                 procedure = self.program.procedures[statement.name]
                 self.current_procedure = procedure
+                
                 count = 0
                 for param_name in statement.params:
                     new_temp = self.new_temp()
+                    
                     # Load argument into a temporary
                     self.current_procedure.add_instruction(IRArgLoad(new_temp, count))
+                    
                     # Add assignment from temporary to parameter name
-                    if isinstance(param_name, tuple):  # Handle (name, type) format
-                        param_var_name = param_name[0]
-                    else:
-                        param_var_name = param_name
+                    param_var_name = param_name.name
+                        
                     self.current_procedure.add_instruction(IRAssign(param_var_name, new_temp))
                     count += 1
+                    
                 for stmt in statement.body:
                     self.visit(stmt)
                 self.current_procedure = None
+                
             else:
                 # Generate code for global initialization and other top-level statements
                 self.visit(statement)
@@ -385,6 +452,7 @@ class IRGenerator:
     
     def initialize_hardware_registers(self):
         """Initialize the set of hardware registers"""
+        
         # Display subsystem registers
         self.hardware_registers.add("display_tileset0")
         self.hardware_registers.add("display_tilemap0")
@@ -407,10 +475,12 @@ class IRGenerator:
     
     def is_hardware_register(self, name: str) -> bool:
         """Check if a name refers to a hardware register"""
+        
         return name in self.hardware_registers
     
     def string_to_type(self, type_str: Union[str, Type]) -> Type:
         """Convert a type string to a Type object"""
+        
         if isinstance(type_str, Type):
             return type_str
             
@@ -429,6 +499,7 @@ class IRGenerator:
     
     def visit(self, node: ASTNode) -> Optional[str]:
         """Visit an AST node and generate IR instructions"""
+        
         method_name = f"visit_{node.__class__.__name__}"
         method = getattr(self, method_name, None)
         
@@ -441,20 +512,23 @@ class IRGenerator:
     
     def visit_Program(self, node: Program) -> None:
         """Visit a Program node"""
+        
         for statement in node.statements:
             self.visit(statement)
     
     def visit_Declaration(self, node: Declaration) -> None:
         """Visit a Declaration node"""
+        
         # For declarations, we don't need to generate IR code
         # unless it's a local variable in a procedure
         if self.current_procedure:
             # Add local variable initialization if inside a procedure
             pass
-        # todo: add handling of in-procedure declarations
+        # TODO: add handling of in-procedure declarations
     
     def visit_Assignment(self, node: Assignment) -> None:
         """Visit an Assignment node"""
+        
         value_temp = self.visit(node.value)
         
         if isinstance(node.target, Variable):
@@ -466,6 +540,7 @@ class IRGenerator:
                     self.add_instruction(IRHardwareMemCpy(target_name, value_temp))
                 else:
                     self.add_instruction(IRHardwareStore(target_name, value_temp))
+                    
             else:
                 # Check if it's a global variable
                 if target_name in self.program.globals:
@@ -474,13 +549,15 @@ class IRGenerator:
                 else:
                     # For locals, simple assignment (potentially register to register)
                     self.add_instruction(IRAssign(target_name, value_temp))
+                    
         elif isinstance(node.target, (TileMapType, TilesetType, SpriteType)):
-            ##Do code here
+            # Do code here
             logger.debug("oogabooge")
             
         elif isinstance(node.target, ListAccess):
             # List/array assignment
             base_name = node.target.name
+            
             if isinstance(base_name, Variable):
                 base_name = base_name.name
             
@@ -497,6 +574,7 @@ class IRGenerator:
         
     def visit_Initialization(self, node: Initialization) -> None:
         """Visit an Initialization node"""
+        
         value_temp = self.visit(node.value)
         
         if isinstance(node.value, (StringLiteral)):
@@ -521,6 +599,7 @@ class IRGenerator:
     
     def visit_ListInitialization(self, node: ListInitialization) -> None:
         """Visit a ListInitialization node"""
+        
         # Initialize each element of the list
         for i, value in enumerate(node.values):
             value_temp = self.visit(value)
@@ -528,8 +607,9 @@ class IRGenerator:
     
     def visit_Conditional(self, node: Conditional) -> None:
         """Visit a Conditional node"""
-        condition_temp = self.visit(node.condition)
         
+        condition_temp = self.visit(node.condition)
+
         true_label = self.new_label()
         end_label = self.new_label()
         
@@ -538,10 +618,12 @@ class IRGenerator:
             # Jump to false_label if condition is false
             self.add_instruction(IRCondJump(condition_temp, true_label, false_label))
             self.add_instruction(IRJump(false_label))
+            
             # True branch
             self.add_instruction(IRLabel(true_label))
             for stmt in node.then_body:
                 self.visit(stmt)
+                
             self.add_instruction(IRJump(end_label))
             
             # False branch
@@ -555,6 +637,7 @@ class IRGenerator:
             # Jump to end_label if condition is false
             self.add_instruction(IRCondJump(condition_temp, true_label))
             self.add_instruction(IRJump(end_label))
+            
             # True branch (executed only if condition is true)
             self.add_instruction(IRLabel(true_label))
             for stmt in node.then_body:
@@ -565,6 +648,7 @@ class IRGenerator:
     
     def visit_Loop(self, node: Loop) -> None:
         """Visit a Loop node"""
+        
         start_label = self.new_label()
         body_label = self.new_label()
         end_label = self.new_label()
@@ -591,6 +675,7 @@ class IRGenerator:
     
     def visit_Return(self, node: Return) -> None:
         """Visit a Return node"""
+        
         if node.value:
             value_temp = self.visit(node.value)
             self.add_instruction(IRReturn(value_temp))
@@ -599,10 +684,12 @@ class IRGenerator:
     
     def visit_ProcedureCallStatement(self, node: ProcedureCallStatement) -> None:
         """Visit a ProcedureCallStatement node"""
+        
         self.visit(node.call)  # Just delegate to visit_ProcedureCall
     
     def visit_BinaryOp(self, node: BinaryOp) -> str:
         """Visit a BinaryOp node and return the temp var holding the result"""
+        
         left_temp = self.visit(node.left)
         right_temp = self.visit(node.right)
         
@@ -613,6 +700,7 @@ class IRGenerator:
     
     def visit_UnaryOp(self, node: UnaryOp) -> str:
         """Visit a UnaryOp node and return the temp var holding the result"""
+        
         operand_temp = self.visit(node.operand)
         
         result_temp = self.new_temp()
@@ -622,6 +710,7 @@ class IRGenerator:
     
     def visit_IntegerLiteral(self, node: IntegerLiteral) -> str:
         """Visit an IntegerLiteral node and return the temp var holding the value"""
+        
         result_temp = self.new_temp()
         self.add_instruction(IRConstant(result_temp, node.value))
         
@@ -634,6 +723,7 @@ class IRGenerator:
     
     def visit_Variable(self, node: Variable) -> str:
         """Visit a Variable node and return the variable name or a temp var"""
+        
         if isinstance(node.name, str):
             var_name = node.name
             
@@ -658,6 +748,7 @@ class IRGenerator:
     
     def visit_ListAccess(self, node: ListAccess) -> str:
         """Visit a ListAccess node and return the temp var holding the accessed value"""
+        
         base_name = node.name
         if isinstance(base_name, Variable):
             base_name = base_name.name
@@ -679,6 +770,7 @@ class IRGenerator:
     
     def visit_AttributeAccess(self, node: AttributeAccess) -> str:
         """Visit an AttributeAccess node and return the temp var holding the accessed value"""
+        
         base_name = node.name
         if isinstance(base_name, Variable):
             base_name = base_name.name
@@ -703,9 +795,10 @@ class IRGenerator:
     
     def visit_ProcedureCall(self, node: ProcedureCall) -> Optional[str]:
         """Visit a ProcedureCall node and return the temp var holding the result (if any)"""
+        
         # Evaluate arguments
         arg_temps = []
-        for arg in node.args:
+        for arg in node.params:
             arg_temp = self.visit(arg)
             arg_temps.append(arg_temp)
         

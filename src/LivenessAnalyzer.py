@@ -48,6 +48,7 @@ class LivenessAnalyzer:
             A dictionary mapping procedure names to their liveness information
             (which maps instruction indices to sets of live variables)
         """
+        
         result = {}
         
         # Analyze main section
@@ -72,6 +73,7 @@ class LivenessAnalyzer:
         Returns:
             A dictionary mapping instruction indices to sets of live variables
         """
+        
         if not instructions:
             return {}
             
@@ -96,6 +98,9 @@ class LivenessAnalyzer:
         - One exit point (the last instruction)
         - No branching except at the last instruction
         """
+        
+        # TODO: make less complex
+        
         # First instruction is a leader
         if self.instructions:
             self.leaders.add(0)
@@ -130,6 +135,9 @@ class LivenessAnalyzer:
         Build the control flow graph (CFG) for the instructions.
         The CFG represents the flow of control between basic blocks.
         """
+        
+        # TODO: make less complex
+        
         self.cfg = {i: [] for i in range(len(self.instructions))}
         
         for i, instr in enumerate(self.instructions):
@@ -170,6 +178,7 @@ class LivenessAnalyzer:
         def_vars: variables defined (written to) by the instruction
         use_vars: variables used (read from) by the instruction
         """
+        
         self.def_vars = [set() for _ in range(len(self.instructions))]
         self.use_vars = [set() for _ in range(len(self.instructions))]
         
@@ -184,6 +193,9 @@ class LivenessAnalyzer:
             idx: The index of the instruction
             instr: The instruction to analyze
         """
+        
+        # TODO: make less complex
+        
         if isinstance(instr, IRAssign):
             self.def_vars[idx].add(instr.dest)
             self._add_if_var(self.use_vars[idx], instr.src)
@@ -259,6 +271,7 @@ class LivenessAnalyzer:
             var_set: The set to add to
             name: The name to add
         """
+        
         if isinstance(name, str) and not name.isdigit() and not name.startswith('"') and not name.startswith("'"):
             var_set.add(name)
     
@@ -268,6 +281,7 @@ class LivenessAnalyzer:
         Uses an iterative algorithm to propagate liveness information
         backward through the control flow graph.
         """
+        
         n = len(self.instructions)
         self.live_in = [set() for _ in range(n)]
         self.live_out = [set() for _ in range(n)]
@@ -302,6 +316,7 @@ class LivenessAnalyzer:
         Returns:
             A dictionary mapping variable names to their live ranges as (start, end) tuples
         """
+        
         variables = set()
         for i in range(len(self.instructions)):
             variables.update(self.def_vars[i])
@@ -331,6 +346,7 @@ class LivenessAnalyzer:
         Returns:
             A dictionary mapping variable names to sets of variables they interfere with
         """
+        
         variables = set()
         for i in range(len(self.instructions)):
             variables.update(self.def_vars[i])

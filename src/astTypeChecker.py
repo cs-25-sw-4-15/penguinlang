@@ -487,6 +487,9 @@ class TypeChecker:
     
     def check_AttributeAccess(self, node: AttributeAccess) -> Type:
         """Type check an AttributeAccess node."""
+        
+        # TODO: make less complex
+        
         logger.info(f"Type checking attribute access: {node.attribute} on {node.name}")
         
         # Attributes can ahve complex paths, like a.b.c, so we need to handle that

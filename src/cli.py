@@ -119,6 +119,7 @@ def ra(input_path: Annotated[str, typer.Argument(help="Input file path")]):
     print(ra)  # This will call __str__ on the IRProgram object
     print("DONE")
 
+
 @app.command()
 def codegen(input_path: Annotated[str, typer.Argument(help="Input file path")], 
             output_path: Annotated[str, typer.Argument(help="Output file path")] = "out.asm"):
@@ -134,7 +135,6 @@ def codegen(input_path: Annotated[str, typer.Argument(help="Input file path")],
     output_dir = Path(output_path).parent
     write_output_file(f"{output_dir}/main.asm", rgbasm_code)
     
-
 
 @app.command()
 def compile(input_path: Annotated[str, typer.Argument(help="Input file path")],
