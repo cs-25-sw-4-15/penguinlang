@@ -1,15 +1,25 @@
-"""
-Register Allocator for Penguin Language Compiler
+"""Register Allocator for Penguin Language Compiler
 
 This module implements register allocation for the Penguin compiler,
 interfacing between the liveness analysis, linear scanner, and IR rewriter.
 """
 
+# Stdlib imports
+import os
+import sys
 from typing import Dict, List, Set, Tuple, Optional
-from IRProgram import *
-from LivenessAnalyzer import LivenessAnalyzer
-from LinearScanner import LinearScanner
-from IRRewriter import IRRewriter
+
+# Extend module paths
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# Custom modules
+from src.IRProgram import *
+from src.LivenessAnalyzer import LivenessAnalyzer
+from src.LinearScanner import LinearScanner
+from src.IRRewriter import IRRewriter
+from src.logger import logger
+from src.logger import logger
+
 
 class RegisterAllocator:
     """
@@ -51,11 +61,11 @@ class RegisterAllocator:
             A new IR program with register allocation applied
         """
         # Step 1: Perform liveness analysis
-        print("Performing liveness analysis...")
+        logger.debug("Performing liveness analysis...")
         liveness_info = self.liveness_analyzer.analyze_program(ir_program)
         
         # Step 2: Perform linear scan register allocation
-        print("Allocating registers with linear scan...")
+        logger.debug("Allocating registers with linear scan...")
         self.allocations = self.linear_scanner.allocate_program(ir_program)
         
         # Step 3: Calculate statistics
@@ -63,7 +73,7 @@ class RegisterAllocator:
         self._print_allocation_summary()
         
         # Step 4: Rewrite the IR program with register allocations
-        print("Rewriting IR program with register allocations...")
+        logger.debug("Rewriting IR program with register allocations...")
         rewritten_program = self.ir_rewriter.rewrite_program(ir_program, self.allocations)
         
         return rewritten_program
@@ -95,16 +105,16 @@ class RegisterAllocator:
     
     def _print_allocation_summary(self) -> None:
         """Print a summary of the register allocation."""
-        print("\nRegister Allocation Summary:")
-        print(f"Total variables: {self.stats['variables']}")
-        print(f"Variables in registers: {self.stats['registers_used']} "
+        logger.info("\nRegister Allocation Summary:")
+        logger.info(f"Total variables: {self.stats['variables']}")
+        logger.info(f"Variables in registers: {self.stats['registers_used']} "
               f"({self.stats['registers_used']/max(1, self.stats['variables'])*100:.1f}%)")
-        print(f"Variables spilled to memory: {self.stats['spills']} "
+        logger.info(f"Variables spilled to memory: {self.stats['spills']} "
               f"({self.stats['spills']/max(1, self.stats['variables'])*100:.1f}%)")
         
         # Print detailed allocation for each procedure
         for proc_name, alloc in self.allocations.items():
-            print(f"\nAllocation for {proc_name}:")
+            logger.debug(f"\nAllocation for {proc_name}:")
             
             # Group by allocation location (register or memory)
             by_location = {}
@@ -117,15 +127,15 @@ class RegisterAllocator:
             for reg in self.linear_scanner.registers:
                 if reg in by_location:
                     vars_in_reg = ", ".join(by_location[reg])
-                    print(f"  Register {reg}: {vars_in_reg}")
+                    logger.debug(f"  Register {reg}: {vars_in_reg}")
             
             # Then print spill locations
             spill_locs = [loc for loc in by_location if loc not in self.linear_scanner.registers]
             if spill_locs:
-                print("  Spill locations:")
+                logger.debug("  Spill locations:")
                 for loc in sorted(spill_locs):
                     vars_in_loc = ", ".join(by_location[loc])
-                    print(f"    {loc}: {vars_in_loc}")
+                    logger.debug(f"    {loc}: {vars_in_loc}")
     
     def get_allocation(self, proc_name: str, var_name: str) -> Optional[str]:
         """

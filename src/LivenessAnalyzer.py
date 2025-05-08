@@ -5,9 +5,18 @@ This module analyzes the liveness of variables in the intermediate representatio
 to enable efficient register allocation.
 """
 
+# Stdlib imports
+import os
+import sys
 from typing import Dict, List, Set, Tuple
-from IRProgram import IRInstruction, IRProgram, IRProcedure
-from IRProgram import *
+
+# Extend module paths
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# Custom modules
+from src.IRProgram import *
+from src.logger import logger
+
 
 class LivenessAnalyzer:
     """

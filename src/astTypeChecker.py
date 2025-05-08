@@ -3,29 +3,20 @@
 Traverses an AST and verifies type correctness according to language rules.
 """
 
-import sys
+# Stdlib imports
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import sys
+from typing import List, Tuple, Union, Optional, Dict
 
-# Generated modules
-from src.generated.penguinParser import penguinParser
-from src.generated.penguinVisitor import penguinVisitor
+# Extend module paths
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Custom modules
 from src.astClasses import *
-from src.astTypes import * 
+from src.astTypes import *
 from src.predefinedVnF import initialize_hardware_elements
 from src.customErrors import *
-
-# Typing modules
-from typing import List, Tuple, Union, Any, Optional, Dict
-
-# Logging modules
-import logging
-
-# Set up logging
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+from src.logger import logger
 
 
 # Start med at modtage det tree som vi har lavet i AST generator

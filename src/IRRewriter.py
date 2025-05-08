@@ -5,8 +5,18 @@ This module rewrites the intermediate representation (IR) to use allocated
 registers and handle spilled variables.
 """
 
-from typing import Dict, List, Set, Tuple, Optional
-from IRProgram import *
+# Stdlib imports
+import os
+import sys
+from typing import Dict, List, Optional
+
+# Extend module paths
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# Custom modules
+from src.IRProgram import *
+from src.logger import logger
+
 
 class IRRewriter:
     """
