@@ -170,11 +170,13 @@ SECTION "Header", ROM0[$100]
         # *
         elif instruction.op == '*':
             """GB DOES NOT HAVE MULTIPLY, USE HELPER FUNCTION IN FOOTER"""
+            returnstr = ""
             #PUSH REGISTERS
             #LOAD PARAMS
             #CALL MULTIPLY
             #POP REGISTERS
             #STORE RESULT
+            returnstr += f"ld {instruction.dest}, a\n"
             returnstr += f"TEMP MULTIPLY\n"
         # ==
         elif instruction.op == '==':
@@ -510,20 +512,29 @@ SECTION "Header", ROM0[$100]
         return returnstr
 
     def generate_Call(self,instruction: IRCall) -> str:
+        listofregs = ['b', 'c', 'd', 'e']
         # Implementation to be filled in
         returnstr = ""
-        #returnstr += f"call PenguinPush\n"
         returnstr += "push bc\n"
         returnstr += "push de\n"
         returnstr += "push hl\n"
-        returnstr += f"call Label{instruction.proc_name}\n"
         #Placer variables
-        #Call den reele funktion
+        for param in instruction.args:
+            returnstr += f"dec sp\n"
+            returnstr += f"ld [sp], {param}\n"
+        
+        for i in range(len(instruction.args), -1, -1):
+            returnstr += f"ld {listofregs[i]}, [sp]\n"
+            returnstr += f"add sp, 1\n"
+
+        returnstr += f"call Label{instruction.proc_name}\n"
+        
         #Result er i A
-        #returnstr += f"call PenguinPop\n"
         returnstr += "pop hl\n"
         returnstr += "pop de\n"
         returnstr += "pop bc\n"
+        if instruction.dest:
+            returnstr += f"ld {instruction.dest}, a\n"
         return returnstr
 
     def generate_Return(self,instruction: IRReturn) -> str:
@@ -562,27 +573,80 @@ SECTION "Header", ROM0[$100]
     def generate_HardwareIndexedLoad(self, instruction: IRHardwareIndexedLoad) -> str:
         # Implementation to be filled in
         returnstr = ""
+        returnstr += f"ld a, {instruction.index}\n"
+        returnstr += f"push bc\n"
+        returnstr += f"push de\n"
+        returnstr += f"push hl\n"
+        returnstr += f"ld hl, {self.registerDict[instruction.register]}\n"
+        if "display_oam" in instruction.register:
+            returnstr += "ld bc, 4\n"
+        else:
+            returnstr += "ld bc, 1\n"
+
+        returnstr += f"HwLoadLoop{self.cmp_counter}:\n"
+        returnstr += f"cp 0\n"
+        returnstr += f"jp z, HwLoadLoopDone{self.cmp_counter}\n"
+        returnstr += f"add hl, bc\n"
+        returnstr += f"dec a\n"
+        returnstr += f"jp HwLoadLoop{self.cmp_counter}\n"
+        returnstr += f"HwLoadLoopDone{self.cmp_counter}:\n"
+        returnstr += f"ld a, [hl]"
+        returnstr += f"pop hl\n"
+        returnstr += f"pop de\n"
+        returnstr += f"pop bc\n"
+        if instruction.dest != 'a':
+            returnstr += f"ld {instruction.dest}, a"
+        self.cmp_counter += 1
+        return returnstr
 
     def generate_HardwareIndexedStore(self, instruction: IRHardwareIndexedStore) -> str:
         # Implementation to be filled in
         returnstr = ""
+        returnstr += f"ld a, {instruction.index}\n"
+        returnstr += f"ld d, {instruction.value}\n"
+        returnstr += f"push bc\n"
+        returnstr += f"push de\n"
+        returnstr += f"push hl\n"
+        returnstr += f"ld hl, {self.registerDict[instruction.register]}\n"
+        if "display_oam" in instruction.register:
+            returnstr += "ld bc, 4\n"
+        else:
+            returnstr += "ld bc, 1\n"
+
+        returnstr += f"HwStoreLoop{self.cmp_counter}:\n"
+        returnstr += f"cp 0\n"
+        returnstr += f"jp z, HwStoreLoopDone{self.cmp_counter}\n"
+        returnstr += f"add hl, bc\n"
+        returnstr += f"dec a\n"
+        returnstr += f"jp HwLoadLoop{self.cmp_counter}\n"
+        returnstr += f"HwLoadLoopDone{self.cmp_counter}:\n"
+        returnstr += f"ld a, d\n"
+        returnstr += f"ld [hl], a\n"
+        returnstr += f"pop hl\n"
+        returnstr += f"pop de\n"
+        returnstr += f"pop bc\n"
+        self.cmp_counter += 1
+        return returnstr
 
     def generate_HardwareMemCpy(self,instruction: IRHardwareMemCpy) -> str:
         # Implementation to be filled in
         returnstr = ""
-        returnstr += f"call PenguinPush\n"
+        returnstr += f"push bc\n"
+        returnstr += f"push de\n"
+        returnstr += f"push hl\n"
         returnstr += f"ld de, Label{instruction.src}Start\n"
         returnstr += f"ld hl, {instruction.dest}\n"
         returnstr += f"ld bc, Label{instruction.src}End - {instruction.src}Start\n"
         returnstr += f"call PenguinMemCopy\n"
-        returnstr += f"call PenguinPop\n"
-        returnstr += f""
+        returnstr += f"pop hl\n"
+        returnstr += f"pop de\n"
+        returnstr += f"pop bc\n"
         return returnstr
 
     def generate_ArgLoad(self,instruction: IRArgLoad) -> str:
         # Implementation to be filled in
-        returnstr = ""
-        return "; Arg was loaded\n"   
+        returnstr = "; Arg was loaded\n"
+        return returnstr 
     
     def generate_ChangeSP(self, instruction: IRChangeSP) -> str:
         returnstr = ""
