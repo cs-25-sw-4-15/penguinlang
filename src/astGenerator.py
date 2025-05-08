@@ -48,12 +48,7 @@ from src.customErrors import *
 from typing import List, Tuple, Union, Any 
 
 # Logging modules
-import logging
-
-# Set up logging
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-
+from src.logger import logger
 
 class ASTGenerator(penguinVisitor):
     """Converts an ANTLR parse tree into an AST.

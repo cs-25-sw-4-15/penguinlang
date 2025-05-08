@@ -20,12 +20,8 @@ from src.customErrors import *
 # Typing modules
 from typing import List, Tuple, Union, Any, Optional, Dict
 
-# Logging modules
-import logging
-
-# Set up logging
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+# Logging 
+from src.logger import logger
 
 
 # Start med at modtage det tree som vi har lavet i AST generator

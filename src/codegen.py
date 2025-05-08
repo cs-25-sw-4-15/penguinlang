@@ -7,6 +7,9 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from src.IRProgram import *
 from src.codegenRegisters import *
 
+# Logging modules
+from src.logger import logger
+
 class CodeGenerator:
 
     def __init__(self):

@@ -15,6 +15,9 @@ from typing import Dict, List, Set, Tuple, Optional
 from src.IRProgram import *
 from src.LivenessAnalyzer import LivenessAnalyzer
 
+# logging
+from src.logger import logger
+
 class LiveRange:
     """Represents the live range of a variable."""
     

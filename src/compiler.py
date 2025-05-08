@@ -15,7 +15,6 @@ from pathlib import Path
 # antlr4 modules
 from antlr4 import FileStream, CommonTokenStream
 
-
 # antl4 generated modules
 from src.generated.penguinLexer import penguinLexer
 from src.generated.penguinParser import penguinParser
@@ -28,8 +27,8 @@ from src.IRProgram import IRGenerator, IRProgram
 from src.RegisterAllocator import RegisterAllocator
 from src.codegen import CodeGenerator
 
-# other modules
-import json
+# logging
+from src.logger import logger
 
 
 class ASTEncoder(json.JSONEncoder):

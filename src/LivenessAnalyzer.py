@@ -13,6 +13,9 @@ from typing import Dict, List, Set, Tuple
 
 from src.IRProgram import *
 
+# logging
+from src. logger import logger
+
 class LivenessAnalyzer:
     """
     Analyzes the liveness of variables in the IR code.

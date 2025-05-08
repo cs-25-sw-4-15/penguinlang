@@ -13,6 +13,9 @@ from typing import Dict, List, Set, Tuple, Optional
 
 from src.IRProgram import *
 
+# logging
+from src.logger import logger
+
 
 class IRRewriter:
     """
