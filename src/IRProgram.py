@@ -798,7 +798,7 @@ class IRGenerator:
         
         # Evaluate arguments
         arg_temps = []
-        for arg in node.args:
+        for arg in node.params:
             arg_temp = self.visit(arg)
             arg_temps.append(arg_temp)
         
