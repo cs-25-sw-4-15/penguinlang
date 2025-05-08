@@ -303,7 +303,7 @@ class IRGenerator:
     """Generates IR from a type-annotated AST"""
     
     def __init__(self):
-        self.program = IR-()
+        self.program = IRProgram()
         self.current_procedure: Optional[IRProcedure] = None
         self.temp_counter = 0
         self.label_counter = 0
