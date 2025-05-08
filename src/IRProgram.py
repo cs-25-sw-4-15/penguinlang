@@ -395,7 +395,7 @@ class IRGenerator:
         for statement in ast.statements:
             if isinstance(statement, ProcedureDef):
                 # Just register the procedure signature first
-                params = [param[0] for param in statement.params]  # Extract parameter names
+                params = [param.name for param in statement.params]  # Extract parameter names
                 return_type = None
                 
                 if statement.return_type and statement.return_type != "void":
