@@ -396,6 +396,9 @@ class IRGenerator:
             if isinstance(statement, ProcedureDef):
                 # Just register the procedure signature first
                 params = [param.name for param in statement.params]  # Extract parameter names
+                
+                logger.debug("######### Procedure signature: %s", statement.name)
+                
                 return_type = None
                 
                 if statement.return_type and statement.return_type != "void":
@@ -432,10 +435,7 @@ class IRGenerator:
                     self.current_procedure.add_instruction(IRArgLoad(new_temp, count))
                     
                     # Add assignment from temporary to parameter name
-                    if isinstance(param_name, tuple):  # Handle keys: format
-                        param_var_name = param_name.name
-                    else:
-                        param_var_name = param_name
+                    param_var_name = param_name.name
                         
                     self.current_procedure.add_instruction(IRAssign(param_var_name, new_temp))
                     count += 1
