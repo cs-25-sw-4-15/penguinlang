@@ -18,7 +18,7 @@ from src.LivenessAnalyzer import LivenessAnalyzer
 from src.LinearScanner import LinearScanner
 from src.IRRewriter import IRRewriter
 from src.logger import logger
-from src. logger import logger
+from src.logger import logger
 
 
 class RegisterAllocator:
