@@ -32,10 +32,12 @@ class LiveRange:
     
     def __lt__(self, other):
         """Comparison operator for sorting live ranges by start point."""
+        
         return self.start < other.start
     
     def overlaps(self, other) -> bool:
         """Check if this live range overlaps with another."""
+        
         return not (self.end < other.start or self.start > other.end)
     
     def __repr__(self):
@@ -55,6 +57,7 @@ class LinearScanner:
         Args:
             num_registers: Number of available registers for allocation
         """
+        
         self.num_registers = num_registers
         self.liveness_analyzer = LivenessAnalyzer()
         
@@ -86,6 +89,7 @@ class LinearScanner:
             A dictionary mapping procedure names to allocation dictionaries
             (which map variable names to register names or spill locations)
         """
+        
         result = {}
         
         # Analyze liveness for the entire program
@@ -103,10 +107,7 @@ class LinearScanner:
             
         return result
     
-    def allocate_procedure(self, 
-                        proc_name: str, 
-                        instructions: List[IRInstruction], 
-                        liveness_info: Dict[int, Set[str]]) -> Dict[str, str]:
+    def allocate_procedure(self, proc_name: str, instructions: List[IRInstruction], liveness_info: Dict[int, Set[str]]) -> Dict[str, str]:
         """
         Allocate registers for a single procedure.
         
@@ -118,6 +119,7 @@ class LinearScanner:
         Returns:
             A dictionary mapping variable names to register names or spill locations
         """
+        
         self.active = []
         self.allocation = {}
         self.spill_counter = 0
@@ -158,9 +160,7 @@ class LinearScanner:
         
         return self.allocation
     
-    def build_live_ranges(self, 
-                         instructions: List[IRInstruction], 
-                         liveness_info: Dict[int, Set[str]]) -> None:
+    def build_live_ranges(self, instructions: List[IRInstruction], liveness_info: Dict[int, Set[str]]) -> None:
         """
         Build live ranges for all variables in the procedure.
         
@@ -168,6 +168,7 @@ class LinearScanner:
             instructions: The IR instructions in the procedure
             liveness_info: The liveness information for the procedure
         """
+        
         self.live_ranges = []
         
         # Find all variables in the procedure
@@ -193,6 +194,7 @@ class LinearScanner:
         Perform linear scan register allocation.
         Processes live ranges in order of their start points.
         """
+        
         for live_range in self.live_ranges:
             # Expire old intervals
             self.expire_old_intervals(live_range.start)
@@ -218,6 +220,7 @@ class LinearScanner:
         Args:
             position: The current instruction position
         """
+        
         i = 0
         while i < len(self.active):
             if self.active[i].end < position:
@@ -234,6 +237,7 @@ class LinearScanner:
         Args:
             live_range: The current live range being processed
         """
+        
         # Find the active live range with the furthest end point
         spill_candidate = self.active[-1]  # Last in active (sorted by end point)
         
@@ -266,6 +270,7 @@ class LinearScanner:
         Returns:
             A register name
         """
+        
         used_regs = {lr.register for lr in self.active if lr.register is not None}
         for reg in self.registers:
             if reg not in used_regs:
@@ -281,8 +286,10 @@ class LinearScanner:
         Returns:
             A string representing a memory location
         """
+        
         loc = f"[sp+{self.spill_counter}]"
         self.spill_counter += 1  # Increment by 1 byte (word size)
+        
         return loc
     
     def is_register(self, allocation: str) -> bool:
@@ -295,4 +302,5 @@ class LinearScanner:
         Returns:
             True if the allocation is a register, False if it's a spill location
         """
+        
         return allocation in self.registers
