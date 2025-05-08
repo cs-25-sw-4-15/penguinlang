@@ -112,8 +112,6 @@ class CodeGenerator:
         PenguinMult:
         ;not implemented
 
-        PenguinCalcOffset:
-
         PenguinMemCopy:
         ld a, [de]
         ld [hli], a
