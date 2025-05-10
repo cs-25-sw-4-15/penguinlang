@@ -3,29 +3,20 @@
 Traverses an AST and verifies type correctness according to language rules.
 """
 
-import sys
+# Stdlib imports
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import sys
+from typing import List, Tuple, Union, Optional, Dict
 
-# Generated modules
-from src.generated.penguinParser import penguinParser
-from src.generated.penguinVisitor import penguinVisitor
+# Extend module paths
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Custom modules
 from src.astClasses import *
-from src.astTypes import * 
+from src.astTypes import *
 from src.predefinedVnF import initialize_hardware_elements
 from src.customErrors import *
-
-# Typing modules
-from typing import List, Tuple, Union, Any, Optional, Dict
-
-# Logging modules
-import logging
-
-# Set up logging
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+from src.logger import logger
 
 
 # Start med at modtage det tree som vi har lavet i AST generator
@@ -85,13 +76,6 @@ class ProcedureEnv:
 
     def lookup(self, name: str) -> Optional[Tuple[List[Tuple[str, Type]], Type]]:
         return self.table.get(name)
-    
-    def as_typeenv(self) -> TypeEnv:
-        # Makes a new env for the procedure, with a copy of the current env
-        env = TypeEnv()
-        for name, (params, ret_type) in self.table.items():
-            env.define(name, ProcedureType([typ for _, typ in params], ret_type)) # Er 
-        return env
 
 
 class TypeChecker:
@@ -496,6 +480,9 @@ class TypeChecker:
     
     def check_AttributeAccess(self, node: AttributeAccess) -> Type:
         """Type check an AttributeAccess node."""
+        
+        # TODO: make less complex
+        
         logger.info(f"Type checking attribute access: {node.attribute} on {node.name}")
         
         # Attributes can ahve complex paths, like a.b.c, so we need to handle that

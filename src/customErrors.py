@@ -1,9 +1,13 @@
-"""Definitions of error classes used in  the project."""
+"""Custom error classes.
 
-""" AST errors """
+Definitions of error classes used in  the project.
+"""
 
-import sys
+# Stdlib imports
 import os
+import sys
+
+# Extend module paths
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 

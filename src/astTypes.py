@@ -1,19 +1,23 @@
-"""
-Types for the Penguin compiler.
+"""Types for the Penguin compiler.
+
+Defining the types used in the Penguin programming language.
 """
 
-# Typing modules
+# Future imports (skal være først i filen)
 from __future__ import annotations
+
+# Stdlib imports
+import os
+import sys
 from typing import TYPE_CHECKING, Any, Optional, List
 
-if TYPE_CHECKING:
-    # Stops Pylance from complaining about the import. 
-    # Recursive import, but only for type checking.
-    from astTypes import IntType
-
-import sys
-import os
+# Extend module paths
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# Type checking imports 
+if TYPE_CHECKING:
+    # Avoid circular imports
+    from astTypes import IntType
 
 
 class Type:

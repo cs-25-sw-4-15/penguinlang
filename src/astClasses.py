@@ -3,18 +3,21 @@
 Defining the AST node classes for the Penguin compiler.
 """
 
-# Typing modules
-from __future__ import annotations # PEP 563 style. For forward references, e.g. ProcedureCall
+# Future imports (skal være først i filen)
+from __future__ import annotations  # Enables postponed evaluation of annotations (PEP 563)
+
+# Stdlib imports
+import os
+import sys
 from typing import Optional, Union, List, Tuple, TYPE_CHECKING
 
-if TYPE_CHECKING:
-    # Stops Pylance from complaining about the import. 
-    # Recursive import, but only for type checking.
-    from src.astClasses import ProcedureCall
-
-import sys
-import os
+# Extend module paths
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# Type checking imports 
+if TYPE_CHECKING:
+    # Avoid circular imports
+    from src.astClasses import ProcedureCall
 
 
 class ASTNode():

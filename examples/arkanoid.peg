@@ -1,6 +1,6 @@
-control.LCDon();
-control.waitVBlank();
-control.LCDoff();
+control_LCDon();
+control_waitVBlank();
+control_LCDoff();
 
 // Globals
 int BRICK_LEFT = 5;
@@ -12,8 +12,8 @@ tileset arkenoidtileset = "arkanoid_tiles.bin";
 tilemap arkenoidtilemap = "arkanoid_tilemap.bin";
 
 // Set onto display backround
-display.tileset0 = arkenoidtileset;
-display.tilemap0 = arkenoidtilemap;
+display_tileset0 = arkenoidtileset;
+display_tilemap0 = arkenoidtilemap;
 
 sprite paddle = "paddle.bin";
 sprite ball = "ball.bin";
@@ -25,12 +25,12 @@ int ballY = 100;
 int ballMomentumX = 1;
 int ballMomentumY = 0 - 1;
 
-display.oam[0].tile = paddle;
-display.oam[0].x = paddleX + 8;
-display.oam[0].y = paddleY + 16;
-display.oam[1].tile = ball;
-display.oam[1].x = ballX + 8;
-display.oam[1].y = ballY + 16;
+display_oam_tile[0] = paddle;
+display_oam_x[0] = paddleX + 8;
+display_oam_y[0]= paddleY + 16;
+display_oam_tile[1] = ball;
+display_oam_x[1] = ballX + 8;
+display_oam_y[1] = ballY + 16;
 
 procedure brickAndBreak(int x, int y, int tileN) {
 	int Xtile = x << 4; // x / 8
@@ -38,7 +38,7 @@ procedure brickAndBreak(int x, int y, int tileN) {
 	Ytile = Ytile * 32;
 
 	if ((tileN == BRICK_LEFT) or (tileN == BRICK_RIGHT)) {
-		display.tilemap0[Xtile][Ytile] = BLANK_TILE;
+		display_tilemap0[Xtile][Ytile] = BLANK_TILE;
     }
 }
 
@@ -47,7 +47,7 @@ procedure int tileAtPixel(int x, int y){
 	int Ytile = y << 4;
 	Ytile = Ytile * 32;
 	
-	int tile = display.tilemap0[Xtile][Ytile];
+	int tile = display_tilemap0[Xtile][Ytile];
 	
 	return tile;
 }
@@ -84,14 +84,14 @@ procedure paddleBounce() {
 }
 
 procedure main() {
-	control.LCDon();
+	control_LCDon();
 
 	int gamecounter = 0;
 
 	loop (1) {
-    	control.waitVBlank();
-    	control.LCDoff();
-        control.updateInput();
+    	control_waitVBlank();
+    	control_LCDoff();
+        control_updateInput();
 
     	// Add momentum
     	ballX = ballX + ballMomentumX;
@@ -105,24 +105,24 @@ procedure main() {
 
     	paddleBounce();
 
-    	if (input.Right and (gamecounter == 8)) {
+    	if (input_Right and (gamecounter == 8)) {
         	paddleX = paddleX + 1;
     	}
-    	if (input.Left) {
+    	if (input_Left) {
         	paddleX = paddleX - 1;
     	}
 
-        display.oam[0].x = paddleX + 8;
-        display.oam[0].y = paddleY + 16;
-        display.oam[1].x = ballX + 8;
-        display.oam[1].y = ballY + 16;
+        display_oam_x[0] = paddleX + 8;
+        display_oam_y[0] = paddleY + 16;
+        display_oam_x[1] = ballX + 8;
+        display_oam_y[1] = ballY + 16;
 
     	gamecounter = gamecounter + 1;
     	if (gamecounter == 8) {
         	gamecounter = 0;
     	}
 
-    	control.LCDon();
+    	control_LCDon();
 	}
 }
 
