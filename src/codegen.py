@@ -598,7 +598,8 @@ class CodeGenerator:
         # Place variables on the stack
         for param in instruction.args:
             lines.append(f"dec sp")
-            lines.append(f"ld [sp], {param}")
+            lines.append(f"ld hl, sp")
+            lines.append(f"ld [hl], {param}")
 
         # Load arguments from stack into registers
         for i in range(len(instruction.args) - 1, -1, -1):
