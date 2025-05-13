@@ -512,5 +512,34 @@ def test_function_call_inside_function_call():
 
     assert result == 3
 
+# recursion test
+def test_linear_recursion():
+    """
+    End-to-end test for a recursive function.
+    """
+    source_code = """
+    procedure int Recursive(int depth) {
+        if (depth == 0) {
+            return 0;
+        } else {
+            return 1 + Recursive(depth - 1);
+        }
+    }
+
+    int Result = 0;
+
+    Result = Recursive(20);
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    result = pyboy.memory[data_segment_start]
+    pyboy.stop()
+
+    assert result == 20
 
 # TODO: add tests for built-in functions, binary handling and the like, tileset, tilemaps, screen rendering, etc.
