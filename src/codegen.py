@@ -118,7 +118,17 @@ class CodeGenerator:
         ret
 
         PenguinMult:
-        ;not implemented
+        ld a, 0
+        ld d, 8
+        .loop:
+            srl b
+            jp nc, .no_add 
+            add a, c
+        .no_add:
+            sla c
+            dec d
+            jp nz, .loop
+        ret
 
         PenguinMemCopy:
         ld a, [de]
@@ -195,16 +205,17 @@ class CodeGenerator:
 
         # *
         elif instruction.op == '*':
-            # GB DOES NOT HAVE MULTIPLY, USE HELPER FUNCTION IN FOOTER
-            
-            returnstr = ""
-            # PUSH REGISTERS
-            # LOAD PARAMS
-            # CALL MULTIPLY
-            # POP REGISTERS
-            # STORE RESULT
+            returnstr = "push bc\n"
+            returnstr += "push de\n"
+            returnstr += "push hl\n"
+            returnstr += f"ld b, {instruction.left}\n"
+            returnstr += f"ld c, {instruction.right}\n"
+            returnstr += "call PenguinMult\n"
+            returnstr += "pop hl\n"
+            returnstr += "pop de\n"
+            returnstr += "pop bc\n"
             returnstr += f"ld {instruction.dest}, a\n"
-            returnstr += "TEMP MULTIPLY\n"
+            return returnstr
             
         # ==
         elif instruction.op == '==':

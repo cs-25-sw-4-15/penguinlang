@@ -137,19 +137,17 @@ def test_subtraction_1():
 
     teardown()
 
-
-@pytest.mark.xfail(reason="not implemented")
 def test_multiplication_1():
     """
     End-to-end test for simple multiplication operation.
     """
     source_code = """
     int Result = 0;
-    int Integer1 = 6;
+    int Integer1 = 8;
 
-    int Integer2 = 7;
+    int Integer2 = 8;
 
-    Result = Integer1 * Integer2;
+    Result = (Integer1 * Integer2) * 2;
     """
 
     binary_path = compile_source_to_binary(source_code)
@@ -161,7 +159,7 @@ def test_multiplication_1():
     result = pyboy.memory[data_segment_start]
     pyboy.stop()
 
-    assert result == 42
+    assert result == 128
 
     teardown()
 
