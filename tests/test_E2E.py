@@ -31,7 +31,7 @@ def nop_reached(pyboy):
     return pyboy.memory[pyboy.register_file.PC] == 0x00
 
 
-def compile_source_to_binary(source_code: str, output_dir: str = 'roms') -> str:
+def compile_source_to_binary(source_code: str, output_dir: str = 'temp_files') -> str:
     """
     Compiles the given source code into a binary file and returns the path to the binary.
 
@@ -46,6 +46,16 @@ def compile_source_to_binary(source_code: str, output_dir: str = 'roms') -> str:
     source_file_path = os.path.join(output_dir, 'temp_source.peg')
     binary_file_path = os.path.join(output_dir, 'temp_binary.gb')
 
+    # copy test_files to temp_files
+    test_files_dir = os.path.join(os.path.dirname(__file__), 'test_files')
+    for file in glob.glob(os.path.join(test_files_dir, '*')):
+        if os.path.isfile(file):
+            dest_file = os.path.join(output_dir, os.path.basename(file))
+            if not os.path.exists(dest_file):
+                with open(file, 'rb') as src_file:
+                    with open(dest_file, 'wb') as dst_file:
+                        dst_file.write(src_file.read())
+
     with open(source_file_path, 'w') as source_file:
         source_file.write(source_code)
 
@@ -56,21 +66,21 @@ def compile_source_to_binary(source_code: str, output_dir: str = 'roms') -> str:
 
 def teardown():
     """
-    Cleans up the test environment by resetting global variables and removing files in the 'roms' directory.
+    Cleans up the test environment by resetting global variables and removing files in the 'temp_files' directory.
     """
     global PC_list, pyboy
     PC_list = []
     pyboy = None
 
-    roms_dir = 'roms'
-    if os.path.exists(roms_dir):
-        for file in glob.glob(os.path.join(roms_dir, '*')):
+    temp_files_dir = 'temp_files'
+    if os.path.exists(temp_files_dir):
+        for file in glob.glob(os.path.join(temp_files_dir, '*')):
             try:
                 os.remove(file)
             except Exception as e:
                 print(f"Error deleting file {file}: {e}")
     else:
-        os.makedirs(roms_dir)
+        os.makedirs(temp_files_dir)
 
 
 def test_addition_1():
@@ -426,5 +436,67 @@ def test_loop_behavior():
     assert result == 13
 
     teardown()
+
+def test_binary_load_behavior():
+    """
+    End-to-end test for including binary files in rom
+    """
+    source_code = """
+    tileset tileset1 = "tileset.2bpp";
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    # read out rom_0 (0x0000 - 0x3FFF)
+    rom_0 = pyboy.memory[0x0000:0x3FFF]
+
+    pyboy.stop()
+
+    # load in the binary file
+    with open('temp_files/tileset.2bpp', 'rb') as f:
+        binary_data = list(f.read())
+
+    # convert to string for comparison
+    binary_data = ''.join([chr(byte) for byte in binary_data])
+    rom_0 = ''.join([chr(byte) for byte in rom_0])
+
+    assert binary_data in rom_0
+
+    teardown()
+
+def test_function_call_inside_function_call():
+    """
+    End-to-end test for a function call inside function a call.
+    """
+    source_code = """
+    procedure int Return_1() {
+        return 1;
+    }
+    
+    procedure int Return_3() {
+        return 2 + Return_1();
+    }
+
+    int Result = 0;
+
+    Result = Return_3();
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    result = pyboy.memory[data_segment_start]
+    pyboy.stop()
+
+    assert result == 3
+
+
 
 #TODO: add tests for built-in functions, binary handling and the like, tileset, tilemaps, screen rendering, etc.
