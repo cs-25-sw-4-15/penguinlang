@@ -619,6 +619,8 @@ class CodeGenerator:
         if instruction.dest:
             lines.append(f"ld {instruction.dest}, a")
 
+        lines.append("\n")
+
         returnstr = "\n".join(lines)
             
         return returnstr
@@ -629,6 +631,7 @@ class CodeGenerator:
             lines.append(f"ld a, {instruction.value}")
             
         lines.append("ret")
+        lines.append("\n")
 
         returnstr = "\n".join(lines)
         return returnstr
