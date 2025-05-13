@@ -26,6 +26,7 @@ class CodeGenerator:
         self.variable_address_dict = {}
         self.cmp_counter = 0
         self.registerDict = codegenRegister()
+        self.include_binaries = []
 
     def generate_code(self, ir_program: IRProgram) -> str:
         """
@@ -67,7 +68,10 @@ class CodeGenerator:
                     assembly_code += assembly_line
             
         assembly_code += self.footer()
-        
+
+        total_binaries = "\n".join(self.include_binaries)
+        assembly_code += total_binaries
+
         return assembly_code
 
     def header(self) -> str:
@@ -122,11 +126,11 @@ class CodeGenerator:
         jp nz, PenguinMemCopy
         ret
 
-
         control_LCDon:
         ld a, $91
         ld [$FF40], a
         ret
+        
         """
 
         return footerstr 
@@ -559,7 +563,8 @@ class CodeGenerator:
         returnstr += f"INCBIN {instruction.filepath}\n"
         returnstr += f"Label{instruction.varname}End:\n"
 
-        return returnstr
+        self.include_binaries.append(returnstr)
+        return "; include binary hooked to below footer\n"
 
     def generate_Assign(self,instruction: IRAssign) -> str:
         returnstr = ""
@@ -796,8 +801,8 @@ class CodeGenerator:
             "push de",
             "push hl",
             f"ld de, Label{instruction.src}Start",
-            f"ld hl, {instruction.dest}",
-            f"ld bc, Label{instruction.src}End - {instruction.src}Start",
+            f"ld hl, {self.registerDict[instruction.dest]}",
+            f"ld bc, Label{instruction.src}End - Label{instruction.src}Start",
             "call PenguinMemCopy",
             "pop hl",
             "pop de",
