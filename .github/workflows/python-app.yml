@@ -31,6 +31,7 @@ jobs:
         wget -O src/rgbds/rgbds-0.9.1-linux-x86_64.tar.xz https://github.com/gbdev/rgbds/releases/download/v0.9.1/rgbds-0.9.1-linux-x86_64.tar.xz
         tar xf src/rgbds/rgbds-0.9.1-linux-x86_64.tar.xz -C src/rgbds
         rm src/rgbds/rgbds-0.9.1-linux-x86_64.tar.xz
+        sudo .src/rgbds/install.sh
     - name : Generate lexer/parser with ANTLR
       run: |
         sudo apt-get install -y default-jre
