@@ -22,3 +22,4 @@ PENGUINVisitor.py
 *.interp
 *.pycache/
 .vscode/
+temp*
