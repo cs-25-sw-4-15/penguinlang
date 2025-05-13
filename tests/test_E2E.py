@@ -327,7 +327,7 @@ def test_comparisons():
     teardown()
 
 
-@pytest.mark.xfail(reason="dropped attributes")
+@pytest.mark.xfail(reason="not implemented")
 def test_logical_operators():
     """
     End-to-end test for logical operators (and, or, not).
@@ -386,7 +386,7 @@ def test_bitwise_shifts():
     teardown()
 
 
-@pytest.mark.xfail(reason="dropped attributes")
+@pytest.mark.xfail(reason="not implemented")
 def test_bitwise_logical_operators():
     """
     End-to-end test for bitwise logical operators (&, |, ^, ~).
@@ -511,6 +511,7 @@ def test_function_call_inside_function_call():
     pyboy.stop()
 
     assert result == 3
+
 
 # recursion test
 def test_linear_recursion():

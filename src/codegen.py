@@ -58,7 +58,7 @@ class CodeGenerator:
                 assembly_code += assembly_line + "\n"
 
         for procedure in ir_program.procedures.items():
-            #add label for procedure
+            # add label for procedure
             assembly_code += f"Label{procedure[0]}:\n"
             
             for instruction in procedure[1].instructions:
@@ -180,7 +180,7 @@ class CodeGenerator:
                 if instruction.left == 'a':
                     returnstr += f"dec {instruction.left}, {instruction.right}\n"
                 else:
-                    returnstr += f""
+                    returnstr += ""
                     returnstr += f"dec {instruction.right}, {instruction.left}\n"
 
             # Case when a is not involved
@@ -204,7 +204,7 @@ class CodeGenerator:
             # POP REGISTERS
             # STORE RESULT
             returnstr += f"ld {instruction.dest}, a\n"
-            returnstr += f"TEMP MULTIPLY\n"
+            returnstr += "TEMP MULTIPLY\n"
             
         # ==
         elif instruction.op == '==':
@@ -276,7 +276,7 @@ class CodeGenerator:
             # A And B = Must be 0
         elif instruction.op == 'and':
             true_lbl = f"AND_TRUE_{self.cmp_counter}"
-            end_lbl  = f"AND_END_{self.cmp_counter}"
+            end_lbl = f"AND_END_{self.cmp_counter}"
             self.cmp_counter += 1
 
             # assume false. If both are ≠ 0, then jump to true label
@@ -284,12 +284,12 @@ class CodeGenerator:
             # if left == 0, end (false)
             if instruction.left != 'a':
                 returnstr += f"ld a, {instruction.left}   ; load left\n"
-            returnstr += f"cp 0\n"
+            returnstr += "cp 0\n"
             returnstr += f"jp z, {end_lbl}\n"
 
             # if right == 0, end (false)
             returnstr += f"ld a, {instruction.right}   ; load right\n"
-            returnstr += f"cp 0\n"
+            returnstr += "cp 0\n"
             returnstr += f"jp z, {end_lbl}\n"
 
             # both ≠ 0 (true)
@@ -320,18 +320,18 @@ class CodeGenerator:
         elif instruction.op == 'or':
             # Assume true. If both operands == 0, then jump to false label
             true_lbl = f"OR_TRUE_{self.cmp_counter}"
-            end_lbl  = f"OR_END_{self.cmp_counter}"
+            end_lbl = f"OR_END_{self.cmp_counter}"
             self.cmp_counter += 1
 
             # Check left ≠ 0
             if instruction.left != 'a':
                 returnstr += f"ld a, {instruction.left}   ; load left\n"
-            returnstr += f"cp 0   ; compare left to 0\n"
+            returnstr += "cp 0   ; compare left to 0\n"
             returnstr += f"jp nz, {true_lbl}   ; if nonzero, set true\n"
 
             # Check right ≠ 0
             returnstr += f"ld a, {instruction.right}   ; load right\n"
-            returnstr += f"cp 0   ; compare right to 0\n"
+            returnstr += "cp 0   ; compare right to 0\n"
             returnstr += f"jp nz, {true_lbl}   ; if nonzero, set true\n"
 
             # False Case
@@ -511,8 +511,8 @@ class CodeGenerator:
 
             # Loop: When shifting left, all newly-inserted bits are reset. Shifted on to A, then decrement B, repeat while B ≠ 0
             returnstr += f"{loop_lbl}:\n"
-            returnstr += f"sla a       ; shift A left by 1 bit\n"
-            returnstr += f"dec b       ; decrement loop counter\n"
+            returnstr += "sla a       ; shift A left by 1 bit\n"
+            returnstr += "dec b       ; decrement loop counter\n"
             returnstr += f"jp nz, {loop_lbl}   ; repeat until B == 0\n"
 
             # After shifting, result is in A. Store it if dest ≠ A
@@ -537,8 +537,8 @@ class CodeGenerator:
 
             # Loop: when shifting right, they are copies of the original most significant bit instead. repeat while B ≠ 0
             returnstr += f"{loop_lbl}:\n"
-            returnstr += f"srl a       ; shift A right by (logical)\n"
-            returnstr += f"dec b\n"
+            returnstr += "srl a       ; shift A right by (logical)\n"
+            returnstr += "dec b\n"
             returnstr += f"jp nz, {loop_lbl}   ; repeat until B == 0\n"
 
             # After shifting, result is in A. Store it if dest ≠ A
@@ -590,7 +590,7 @@ class CodeGenerator:
         else:
             returnstr += f"ld hl, {instruction.addr[1:-1]}\n"
             
-        returnstr += f"ld a, [hl]\n"
+        returnstr += "ld a, [hl]\n"
         
         if instruction.dest != 'a':
             returnstr += f"ld {instruction.dest}, a\n"
@@ -611,7 +611,7 @@ class CodeGenerator:
         else:
             returnstr += f"ld hl, {instruction.addr[1:-1]}\n"
             
-        returnstr += f"ld [hl], a\n"
+        returnstr += "ld [hl], a\n"
         
         return returnstr
 
@@ -633,7 +633,7 @@ class CodeGenerator:
         if instruction.condition != 'a':
             returnstr += f"ld a, {instruction.condition}\n"
             
-        returnstr += f"cp 0\n"
+        returnstr += "cp 0\n"
         returnstr += f"jp nz, {instruction.true_label}\n"
         
         if instruction.false_label:
@@ -652,15 +652,15 @@ class CodeGenerator:
 
         # Place variables on the stack
         for param in instruction.args:
-            lines.append(f"dec sp")
-            lines.append(f"ld hl, sp + 0")
+            lines.append("dec sp")
+            lines.append("ld hl, sp + 0")
             lines.append(f"ld [hl], {param}")
 
         # Load arguments from stack into registers
         for i in range(len(instruction.args) - 1, -1, -1):
-            lines.append(f"ld hl, sp + 0")
+            lines.append("ld hl, sp + 0")
             lines.append(f"ld {listofregs[i]}, [hl]")
-            lines.append(f"add sp, 1")
+            lines.append("add sp, 1")
 
         # Call the procedure
         lines.append(f"call Label{instruction.proc_name}")
