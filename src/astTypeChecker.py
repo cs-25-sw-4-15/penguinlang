@@ -76,13 +76,6 @@ class ProcedureEnv:
 
     def lookup(self, name: str) -> Optional[Tuple[List[Tuple[str, Type]], Type]]:
         return self.table.get(name)
-    
-    def as_typeenv(self) -> TypeEnv:
-        # Makes a new env for the procedure, with a copy of the current env
-        env = TypeEnv()
-        for name, (params, ret_type) in self.table.items():
-            env.define(name, ProcedureType([typ for _, typ in params], ret_type)) # Er 
-        return env
 
 
 class TypeChecker:
