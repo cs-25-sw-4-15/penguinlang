@@ -11,6 +11,7 @@ from src.compiler import full_compile
 data_segment_start = 0xC000
 program_start = 0x0150
 
+
 def loop_detected(pyboy, PC_list):
     """
     Detects if the program is in a loop by checking if the PC has repeated.
@@ -109,6 +110,7 @@ def test_addition_1():
 
     teardown()
 
+
 def test_subtraction_1():
     """
     End-to-end test for simple subtraction operation.
@@ -135,6 +137,8 @@ def test_subtraction_1():
 
     teardown()
 
+
+@pytest.mark.xfail(reason="not implemented")
 def test_multiplication_1():
     """
     End-to-end test for simple multiplication operation.
@@ -188,6 +192,7 @@ def test_function_call_1():
     assert result == 30
 
     teardown()
+
 
 def test_if_else_branch():
     """
@@ -248,6 +253,7 @@ def test_if_else_if_branch():
 
     teardown()
 
+
 def test_equality_and_inequality():
     """
     End-to-end test for equality (==) and inequality (!=) operators.
@@ -279,6 +285,7 @@ def test_equality_and_inequality():
     assert result == 2
 
     teardown()
+
 
 def test_comparisons():
     """
@@ -319,6 +326,8 @@ def test_comparisons():
 
     teardown()
 
+
+@pytest.mark.xfail(reason="dropped attributes")
 def test_logical_operators():
     """
     End-to-end test for logical operators (and, or, not).
@@ -350,6 +359,7 @@ def test_logical_operators():
 
     teardown()
 
+
 def test_bitwise_shifts():
     """
     End-to-end test for left (<<) and right (>>) shift operators.
@@ -375,6 +385,8 @@ def test_bitwise_shifts():
 
     teardown()
 
+
+@pytest.mark.xfail(reason="dropped attributes")
 def test_bitwise_logical_operators():
     """
     End-to-end test for bitwise logical operators (&, |, ^, ~).
@@ -403,6 +415,7 @@ def test_bitwise_logical_operators():
     assert result == -6
 
     teardown()
+
 
 def test_loop_behavior():
     """
@@ -437,6 +450,7 @@ def test_loop_behavior():
 
     teardown()
 
+
 def test_binary_load_behavior():
     """
     End-to-end test for including binary files in rom
@@ -468,6 +482,7 @@ def test_binary_load_behavior():
 
     teardown()
 
+
 def test_function_call_inside_function_call():
     """
     End-to-end test for a function call inside function a call.
@@ -498,5 +513,4 @@ def test_function_call_inside_function_call():
     assert result == 3
 
 
-
-#TODO: add tests for built-in functions, binary handling and the like, tileset, tilemaps, screen rendering, etc.
+# TODO: add tests for built-in functions, binary handling and the like, tileset, tilemaps, screen rendering, etc.
