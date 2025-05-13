@@ -101,6 +101,10 @@ class CodeGenerator:
             A string containing the footer
         """
         footerstr = """
+        PenguinDone:
+        nop
+        jp PenguinDone
+        
         PenguinPush:
         push bc
         push de
