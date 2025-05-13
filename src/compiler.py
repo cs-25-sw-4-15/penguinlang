@@ -256,7 +256,7 @@ def compile_rgbasm(rgbasm_code: str, output_file: str = "out.gb", p: bool = Fals
 
     # Use the system PATH to locate the rgbds tools
     try:
-        subprocess.run(["rgbasm", "-o", f"{output_dir}/output.o", f"{output_dir}/main.asm"], check=True)
+        subprocess.run(["rgbasm", "-o", f"{output_dir}/output.o", f"{output_dir}/main.asm", "-I", output_dir], check=True)
         subprocess.run(["rgblink", "-o", output_file, f"{output_dir}/output.o"], check=True)
         subprocess.run(["rgbfix", "-v", "-p", "0xFF", output_file], check=True)
     except FileNotFoundError as e:
