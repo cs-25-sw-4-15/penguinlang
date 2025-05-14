@@ -539,6 +539,45 @@ def test_binary_load_to_vram_behavior():
 
 # tilemap test
 
+def test_load_binary_tilemap_to_vram_behavior():
+    """
+    End-to-end test for including binary files in rom, and loading them to VRAM
+    """
+    source_code = """
+    tileset tileset_block_0 = "tileset_block_0.2bpp";
+    tileset tileset_block_1 = "tileset_block_1.2bpp";
+    tileset tileset_block_2 = "tileset_block_2.2bpp";
+    tilemap tilemap0 = "tilemap_0.bin";
+
+    control_waitVBlank();
+    control_LCDoff();
+    display_tileset_block_0 = tileset_block_0;
+    display_tileset_block_1 = tileset_block_1;
+    display_tileset_block_2 = tileset_block_2;
+    display_tilemap0 = tilemap0;
+    control_LCDon();
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    vram_tilemap = pyboy.memory[0x9800:0x9C00]
+
+    pyboy.stop()
+
+    with open('temp_files/tilemap_0.bin', 'rb') as f:
+        tilemap = list(f.read())
+
+    tilemap = ''.join([chr(byte) for byte in tilemap])
+    vram_tilemap = ''.join([chr(byte) for byte in vram_tilemap])
+
+    assert tilemap in vram_tilemap
+
+    teardown()
+
 def test_function_call_inside_function_call():
     """
     End-to-end test for a function call inside function a call.
@@ -569,7 +608,6 @@ def test_function_call_inside_function_call():
     assert result == 3
 
 
-# recursion test
 def test_linear_recursion():
     """
     End-to-end test for a recursive function.
