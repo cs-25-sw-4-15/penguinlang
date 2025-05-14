@@ -104,18 +104,6 @@ class CodeGenerator:
         PenguinDone:
         nop
         jp PenguinDone
-        
-        PenguinPush:
-        push bc
-        push de
-        push hl
-        ret
-
-        PenguinPop:
-        pop bc
-        pop de
-        pop hl
-        ret
 
         PenguinMult:
         ld a, 0
@@ -144,6 +132,8 @@ class CodeGenerator:
         ld a, $91
         ld [$FF40], a
         ret
+        
+        
         
         """
 
