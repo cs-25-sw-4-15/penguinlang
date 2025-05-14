@@ -637,4 +637,31 @@ def test_linear_recursion():
 
     assert result == 20
 
-# TODO: add tests for built-in functions, binary handling and the like, tileset, tilemaps, screen rendering, etc.
+def test_function_call_inside_loop():
+    """
+    End-to-end test for a function call inside a loop.
+    """
+    source_code = """
+    procedure int Increment(int a) {
+        return a + 1;
+    }
+
+    int Result = 0;
+    int i = 0;
+
+    loop (i < 5) {
+        Result = Increment(Result);
+        i = i + 1;
+    }
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    result = pyboy.memory[data_segment_start]
+    pyboy.stop()
+
+    assert result == 5
