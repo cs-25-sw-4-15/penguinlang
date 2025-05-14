@@ -802,14 +802,18 @@ class CodeGenerator:
             f"jp z, HwStoreLoopDone{self.cmp_counter}",
             "add hl, bc",
             "dec a",
-            f"jp HwLoadLoop{self.cmp_counter}",
-            f"HwLoadLoopDone{self.cmp_counter}:",
+            f"jp HwStoreLoop{self.cmp_counter}",
+            f"HwStoreLoopDone{self.cmp_counter}:",
             "ld a, d",
             "ld [hl], a",
             "pop hl",
             "pop de",
             "pop bc",
         ]
+
+        self.cmp_counter += 1
+
+        lines.append("\n")
 
         returnstr = "\n".join(lines)
         
