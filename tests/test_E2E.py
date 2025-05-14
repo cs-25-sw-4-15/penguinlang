@@ -480,6 +480,55 @@ def test_binary_load_behavior():
 
     teardown()
 
+def test_binary_load_to_vram_behavior():
+    """
+    End-to-end test for including binary files in rom, and loading them to VRAM
+    """
+    source_code = """
+    tileset tileset_block_0 = "tileset_block_0.2bpp";
+    tileset tileset_block_1 = "tileset_block_1.2bpp";
+    tileset tileset_block_2 = "tileset_block_2.2bpp";
+    
+    control_waitVBlank();
+    control_LCDoff();
+    display_tileset_block_0 = tileset_block_0;
+    display_tileset_block_1 = tileset_block_1;
+    display_tileset_block_2 = tileset_block_2;
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    vram_tileset = pyboy.memory[0x8000:0x9800]
+
+    pyboy.stop()
+    # load in the binary files
+    with open('temp_files/tileset_block_0.2bpp', 'rb') as f:
+        tileset_block_0 = list(f.read())
+    with open('temp_files/tileset_block_1.2bpp', 'rb') as f:
+        tileset_block_1 = list(f.read())
+    with open('temp_files/tileset_block_2.2bpp', 'rb') as f:
+        tileset_block_2 = list(f.read())
+
+    vram_tileset_blocks = [vram_tileset[i:i + 2048] for i in range(0, len(vram_tileset), 2048)]
+
+    tileset_block_0 = ''.join([chr(byte) for byte in tileset_block_0])
+    tileset_block_1 = ''.join([chr(byte) for byte in tileset_block_1])
+    tileset_block_2 = ''.join([chr(byte) for byte in tileset_block_2])
+
+    for i in range(len(vram_tileset_blocks)):
+        vram_tileset_blocks[i] = ''.join([chr(byte) for byte in vram_tileset_blocks[i]])
+
+    assert tileset_block_0 in vram_tileset_blocks
+    assert tileset_block_1 in vram_tileset_blocks
+    assert tileset_block_2 in vram_tileset_blocks
+
+    teardown()
+
+# tilemap test
 
 def test_function_call_inside_function_call():
     """
