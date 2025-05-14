@@ -83,6 +83,7 @@ class CodeGenerator:
         """
 
         headerstr = """
+        INCLUDE "hardware.inc"
         SECTION "Header", ROM0[$100]
 
             jp PenguinEntry
@@ -128,12 +129,26 @@ class CodeGenerator:
         jp nz, PenguinMemCopy
         ret
 
-        control_LCDon:
-        ld a, $91
-        ld [$FF40], a
+        Labelcontrol_LCDon:
+        ld a, LCDCF_ON | LCDCF_BGON
+        ld [rLCDC], a
         ret
         
+        Labelcontrol_LCDoff:
+        ld a, 0
+        ld [rLCDC], a
+        ret
         
+        Labelcontrol_waitVBlank:
+        ld a, [rLY]
+        cp 144
+        jp c, Labelcontrol_waitVBlank    
+        ret
+        
+        Labelcontrol_initDisplayRegs:
+        ld a, %11100100
+        ld [rBGP], a
+        ret
         
         """
 
