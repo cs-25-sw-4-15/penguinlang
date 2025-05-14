@@ -30,7 +30,9 @@ def initialize_hardware_elements() -> Tuple[Dict[str, Type], Dict[str, Tuple[Lis
    
     # Display subsystems - these are special hardware elements
     # They are of their specific type, but can be indexed like arrays
-    symbol_table["display_tileset0"] = TilesetType()  # Tileset that can be indexed
+    symbol_table["display_tileset_block_0"] = TilesetType()  # Tileset that can be indexed
+    symbol_table["display_tileset_block_1"] = TilesetType()  # Tileset that can be indexed
+    symbol_table["display_tileset_block_2"] = TilesetType()  # Tileset that can be indexed
     symbol_table["display_tilemap0"] = TileMapType()  # TileMap that can be indexed
     
     # OAM (Object Attribute Memory) is a special list that contains sprite attributes
@@ -44,6 +46,7 @@ def initialize_hardware_elements() -> Tuple[Dict[str, Type], Dict[str, Tuple[Lis
     procedure_table["control_LCDoff"] = ([], VoidType())
     procedure_table["control_waitVBlank"] = ([], VoidType())
     procedure_table["control_updateInput"] = ([], VoidType())
+    procedure_table["control_initDisplayRegs"] = ([], VoidType())
    
     # Input flags - these are boolean values represented as integers
     symbol_table["input_Right"] = IntType()

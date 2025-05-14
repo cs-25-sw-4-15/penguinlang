@@ -453,7 +453,9 @@ class IRGenerator:
         """Initialize the set of hardware registers"""
         
         # Display subsystem registers
-        self.hardware_registers.add("display_tileset0")
+        self.hardware_registers.add("display_tileset_block_0")
+        self.hardware_registers.add("display_tileset_block_1")
+        self.hardware_registers.add("display_tileset_block_2")
         self.hardware_registers.add("display_tilemap0")
         
         # OAM (Object Attribute Memory) registers
