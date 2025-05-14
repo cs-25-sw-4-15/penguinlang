@@ -448,13 +448,14 @@ def test_loop_behavior():
 
     teardown()
 
-
 def test_binary_load_behavior():
     """
     End-to-end test for including binary files in rom
     """
     source_code = """
-    tileset tileset1 = "tileset.2bpp";
+    tileset tileset_block_0 = "tileset_block_0.2bpp";
+    tileset tileset_block_1 = "tileset_block_1.2bpp";
+    tileset tileset_block_2 = "tileset_block_2.2bpp";
     """
 
     binary_path = compile_source_to_binary(source_code)
@@ -469,14 +470,22 @@ def test_binary_load_behavior():
     pyboy.stop()
 
     # load in the binary file
-    with open('temp_files/tileset.2bpp', 'rb') as f:
-        binary_data = list(f.read())
+    with open('temp_files/tileset_block_0.2bpp', 'rb') as f:
+        tileset_block_0 = list(f.read())
+    with open('temp_files/tileset_block_1.2bpp', 'rb') as f:
+        tileset_block_1 = list(f.read())
+    with open('temp_files/tileset_block_2.2bpp', 'rb') as f:
+        tileset_block_2 = list(f.read())
 
     # convert to string for comparison
-    binary_data = ''.join([chr(byte) for byte in binary_data])
+    tileset_block_0 = ''.join([chr(byte) for byte in tileset_block_0])
+    tileset_block_1 = ''.join([chr(byte) for byte in tileset_block_1])
+    tileset_block_2 = ''.join([chr(byte) for byte in tileset_block_2])
     rom_0 = ''.join([chr(byte) for byte in rom_0])
 
-    assert binary_data in rom_0
+    assert tileset_block_0 in rom_0
+    assert tileset_block_1 in rom_0
+    assert tileset_block_2 in rom_0
 
     teardown()
 
