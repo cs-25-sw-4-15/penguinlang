@@ -130,7 +130,7 @@ class CodeGenerator:
         ret
 
         Labelcontrol_LCDon:
-        ld a, LCDCF_ON | LCDCF_BGON
+        ld a, LCDCF_ON | LCDCF_BGON | LCDCF_OBJON
         ld [rLCDC], a
         ret
         
@@ -148,6 +148,8 @@ class CodeGenerator:
         Labelcontrol_initDisplayRegs:
         ld a, %11100100
         ld [rBGP], a
+        ld a, %11100100
+        ld [rOBP0], a
         ret
         
         """
