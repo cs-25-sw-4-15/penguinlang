@@ -461,6 +461,7 @@ class IRGenerator:
         self.hardware_registers.add("display_oam_x")
         self.hardware_registers.add("display_oam_y")
         self.hardware_registers.add("display_oam_tile")
+        self.hardware_registers.add("display_oam_attr")
         
         # Input state registers
         self.hardware_registers.add("input_Right")
@@ -652,7 +653,7 @@ class IRGenerator:
         body_label = self.new_label()
         end_label = self.new_label()
         
-        # Start of loop
+        # Start of loop a
         self.add_instruction(IRLabel(start_label))
         
         # Evaluate condition
