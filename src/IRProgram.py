@@ -260,7 +260,7 @@ class IRHardwareIndexedDoubleStore(IRInstruction):
         self.register = register
         self.index = index
         self.value = value
-        self.índex2 = index2
+        self.index2 = index2
     
     def __str__(self) -> str:
         return f"hw_indexed_doublestore({self.register}, {self.index}, {self.value})"

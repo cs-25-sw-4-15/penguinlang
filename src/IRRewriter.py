@@ -602,7 +602,7 @@ class IRRewriter:
         # Handle index
         if index_alloc and not self._is_register(index_alloc):
             # Load from spill slot to a temporary register
-            temp_reg = 'b'
+            temp_reg = 'h'
             result.append(IRLoad(temp_reg, index_alloc))
             index_alloc = temp_reg
         elif not index_alloc:
@@ -653,6 +653,93 @@ class IRRewriter:
         
         # Create the hardware indexed write
         result.append(IRHardwareIndexedStore(instr.register, index_alloc, value_alloc))
+        
+        return result
+    
+    def _rewrite_IRHardwareIndexedDoubleLoad(self, instr: IRHardwareIndexedDoubleLoad) -> List[IRInstruction]:
+        """Rewrite an IRHardwareIndexedRead instruction."""
+        
+        result = []
+        
+        # Get allocations
+        dest_alloc = self._get_allocation(instr.dest)
+        index_alloc = self._get_allocation(instr.index)
+        index_alloc2 = self._get_allocation(instr.index2)
+        
+        # Handle index
+        if index_alloc and not self._is_register(index_alloc):
+            # Load from spill slot to a temporary register
+            temp_reg = 'h'
+            result.append(IRLoad(temp_reg, index_alloc))
+            index_alloc = temp_reg
+        elif not index_alloc:
+            index_alloc = instr.index
+
+
+        # Handle index
+        if index_alloc2 and not self._is_register(index_alloc2):
+            # Load from spill slot to a temporary register
+            temp_reg = 'l'
+            result.append(IRLoad(temp_reg, index_alloc2))
+            index_alloc2 = temp_reg
+        elif not index_alloc2:
+            index_alloc2 = instr.index
+        
+        # Create the hardware indexed read
+        if dest_alloc:
+            if self._is_register(dest_alloc):
+                # Read directly to register
+                result.append(IRHardwareIndexedDoubleLoad(dest_alloc, instr.register, index_alloc, index_alloc2))
+            else:
+                # Read to a temporary, then store
+                temp_reg = 'a'
+                result.append(IRHardwareIndexedDoubleLoad(temp_reg, instr.register, index_alloc, index_alloc2))
+                result.append(IRStore(dest_alloc, temp_reg))
+        else:
+            # No allocation for destination - keep original
+            result.append(instr)
+        
+        return result
+    
+    def _rewrite_IRHardwareIndexedDoubleStore(self, instr: IRHardwareIndexedDoubleStore) -> List[IRInstruction]:
+        """Rewrite an IRHardwareIndexedWrite instruction."""
+        
+        result = []
+        
+        # Get allocations
+        index_alloc = self._get_allocation(instr.index)
+        index_alloc2 = self._get_allocation(instr.index2)
+        value_alloc = self._get_allocation(instr.value)
+        
+        # Handle index
+        if index_alloc and not self._is_register(index_alloc):
+            # Load from spill slot to a temporary register
+            temp_reg = 'h'
+            result.append(IRLoad(temp_reg, index_alloc))
+            index_alloc = temp_reg
+        elif not index_alloc:
+            index_alloc = instr.index
+
+        # Handle index
+        if index_alloc2 and not self._is_register(index_alloc2):
+            # Load from spill slot to a temporary register
+            temp_reg = 'l'
+            result.append(IRLoad(temp_reg, index_alloc2))
+            index_alloc2 = temp_reg
+        elif not index_alloc2:
+            index_alloc2 = instr.index
+        
+        # Handle value
+        if value_alloc and not self._is_register(value_alloc):
+            # Load from spill slot to a temporary register
+            temp_reg = 'a'
+            result.append(IRLoad(temp_reg, value_alloc))
+            value_alloc = temp_reg
+        elif not value_alloc:
+            value_alloc = instr.value
+        
+        # Create the hardware indexed write
+        result.append(IRHardwareIndexedDoubleStore(instr.register, index_alloc, index_alloc2, value_alloc))
         
         return result
     
