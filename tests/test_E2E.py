@@ -8,7 +8,7 @@ import glob
 from pyboy import PyBoy
 from src.compiler import full_compile
 
-data_segment_start = 0xC000
+data_segment_start = 0xC010
 program_start = 0x0150
 
 
@@ -578,6 +578,38 @@ def test_load_binary_tilemap_to_vram_behavior():
 
     teardown()
 
+def test_tileset_load_behaviour():
+    """
+    End-to-end test for including binary files in rom
+    """
+    source_code = """
+    tileset tileset1 = "tileset.2bpp";
+    display_tileset0 = tileset1;
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    # read out rom_0 (0x0000 - 0x3FFF)
+    rom_0 = pyboy.memory[0x0000:0x3FFF]
+
+    pyboy.stop()
+
+    # load in the binary file
+    with open('temp_files/tileset.2bpp', 'rb') as f:
+        binary_data = list(f.read())
+
+    # convert to string for comparison
+    binary_data = ''.join([chr(byte) for byte in binary_data])
+    rom_0 = ''.join([chr(byte) for byte in rom_0])
+
+    assert binary_data in rom_0
+
+    teardown()
+
 def test_function_call_inside_function_call():
     """
     End-to-end test for a function call inside function a call.
@@ -665,3 +697,30 @@ def test_function_call_inside_loop():
     pyboy.stop()
 
     assert result == 5
+
+# input test
+def test_input():
+    """
+    End-to-end test for input function.
+    """
+    source_code = """
+    int Result = 0;
+    int InputValue = 255;
+
+    control_updateInput();
+    Result = control_checkLeft();
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    # Simulate input
+    pyboy.button_press('left')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    result = pyboy.memory[data_segment_start]
+    pyboy.stop()
+
+    assert result == 1
