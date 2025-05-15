@@ -47,6 +47,9 @@ class CodeGenerator:
 
         assembly_code += "PenguinEntry:\n"
         assembly_code += "ld sp, $DFFF\n"
+        assembly_code += "ld a, 0\n"
+        assembly_code += "ld [wCurKeys], a\n"
+        assembly_code += "ld [wNewKeys], a\n"
 
         # Iterate over each instruction in the IR program
         for instruction in ir_program.main_instructions:
@@ -59,7 +62,8 @@ class CodeGenerator:
 
         for procedure in ir_program.procedures.items():
             # add label for procedure
-            assembly_code += f"Label{procedure[0]}:\n"
+            if procedure[0] not in self.footer():
+                assembly_code += f"Label{procedure[0]}:\n"
             
             for instruction in procedure[1].instructions:
                 assembly_line = self.generate(instruction)
@@ -68,9 +72,13 @@ class CodeGenerator:
                     assembly_code += assembly_line
             
         assembly_code += self.footer()
-
         total_binaries = "\n".join(self.include_binaries)
         assembly_code += total_binaries
+
+        assembly_code += "\n"
+        assembly_code += "SECTION \"Input Variables\", WRAM0\n"
+        assembly_code += "wCurKeys: db\n"
+        assembly_code += "wNewKeys: db\n"
 
         return assembly_code
 
@@ -85,10 +93,6 @@ class CodeGenerator:
         headerstr = """
         INCLUDE "hardware.inc"
         SECTION "Header", ROM0[$100]
-            ld a, 0
-            ld [wCurKeys], a
-            ld [wNewKeys], a
-
             jp PenguinEntry
 
             ds $150 - @, 0 ; Make room for the header
@@ -148,6 +152,13 @@ class CodeGenerator:
         jp c, Labelcontrol_waitVBlank    
         ret
         
+        Labelcontrol_initPalette:
+        ld a, 0b11100100
+        ld [rBGP], a
+        ld [$FF48], a
+        ld [$FF49], a
+        ret
+        
         Labelcontrol_initDisplayRegs:
         ld a, %11100100
         ld [rBGP], a
@@ -195,10 +206,6 @@ class CodeGenerator:
             and a, PADF_RIGHT
             ret
             
-        
-        SECTION "Input Variables", WRAM0
-        wCurKeys: db
-        wNewKeys: db
         """
 
         return footerstr 
@@ -824,6 +831,8 @@ class CodeGenerator:
             lines.append(f"ld {instruction.dest}, a")
 
         self.cmp_counter += 1
+
+        lines.append("\n")
         
         returnstr = "\n".join(lines)
             
