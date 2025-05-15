@@ -877,6 +877,101 @@ class CodeGenerator:
         
         return returnstr
 
+    def generate_HardwareIndexedDoubleLoad(self, instruction: IRHardwareIndexedDoubleLoad) -> str:
+
+        lines = [
+            "push bc",
+            "push de",
+            "push hl",
+            f"ld a, {instruction.index}",
+            f"ld hl, {self.registerDict[instruction.register]}",
+            f"ld de, 0",
+            f"ld d, {instruction.index2}",
+        ]
+
+        # Loop code
+        lines += [
+            f"HwLoadLoop{self.cmp_counter}:",
+            "cp 0",
+            "ld bc, 1",
+            f"jp z, HwLoadSecondLoopStart{self.cmp_counter}",  # Move to the second loop if a is zero
+            "add hl, bc",
+            "dec a",
+            f"jp HwLoadLoop{self.cmp_counter}",
+            f"HwLoadSecondLoopStart{self.cmp_counter}:",
+            "ld a, d",  # Load the outer loop counter into a
+            "ld de, 32",
+            "add a, 0",
+            f"HwSecondLoadLoop{self.cmp_counter}:",
+            "cp 0",
+            f"jp z, HwLoadLoopDone{self.cmp_counter}",  # Move to the final load if d is zero
+            "add hl, de",
+            "dec a",
+            f"jp HwSecondLoadLoop{self.cmp_counter}",
+            f"HwLoadLoopDone{self.cmp_counter}:",
+            "ld a, [hl]",
+            "pop hl",
+            "pop de",
+            "pop bc",
+        ]
+
+        # Optional register transfer
+        if instruction.dest != 'a':
+            lines.append(f"ld {instruction.dest}, a")
+
+        self.cmp_counter += 1
+
+        lines.append("\n")
+
+        returnstr = "\n".join(lines)
+
+        return returnstr
+
+    def generate_HardwareIndexedDoubleStore(self, instruction: IRHardwareIndexedDoubleStore) -> str:
+        lines = [
+            f"ld a, {instruction.index}",
+            f"ld d, {instruction.index2}",
+            f"ld e, {instruction.value}",  # The value to store will be in 'e'
+            "push bc",
+            "push de",
+            "push hl",
+            f"ld hl, {self.registerDict[instruction.register]}",
+            f"ld bc, 1",  # Default stride for the first index
+        ]
+
+        # Loop code for the first index
+        lines += [
+            f"HwStoreLoop{self.cmp_counter}:",
+            "cp 0",
+            f"jp z, HwStoreSecondLoopStart{self.cmp_counter}",  # Move to the second loop if a is zero
+            "add hl, bc",
+            "dec a",
+            f"jp HwStoreLoop{self.cmp_counter}",
+            f"HwStoreSecondLoopStart{self.cmp_counter}:",
+            "ld a, d",  # Load the outer loop counter into a
+            f"ld bc, 32",  # Stride for the second index
+            f"HwSecondStoreLoop{self.cmp_counter}:",
+            "cp 0",
+            f"jp z, HwStoreLoopDone{self.cmp_counter}",  # Move to the final store if d is zero
+            "add hl, bc",
+            "dec a",
+            f"jp HwSecondStoreLoop{self.cmp_counter}",
+            f"HwStoreLoopDone{self.cmp_counter}:",
+            "ld a, e",  # Load the value to store into 'a'
+            "ld [hl], a",
+            "pop hl",
+            "pop de",
+            "pop bc",
+        ]
+
+        self.cmp_counter += 1
+
+        lines.append("\n")
+
+        returnstr = "\n".join(lines)
+
+        return returnstr
+
     def generate_HardwareMemCpy(self,instruction: IRHardwareMemCpy) -> str:
         lines = [
             "push bc",
