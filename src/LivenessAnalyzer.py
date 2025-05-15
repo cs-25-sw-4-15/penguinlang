@@ -255,6 +255,16 @@ class LivenessAnalyzer:
         elif isinstance(instr, IRHardwareIndexedStore):
             self._add_if_var(self.use_vars[idx], instr.index)
             self._add_if_var(self.use_vars[idx], instr.value)
+
+        elif isinstance(instr, IRHardwareIndexedDoubleLoad):
+            self.def_vars[idx].add(instr.dest)
+            self._add_if_var(self.use_vars[idx], instr.index)
+            self._add_if_var(self.use_vars[idx], instr.index2)
+            
+        elif isinstance(instr, IRHardwareIndexedDoubleStore):
+            self._add_if_var(self.use_vars[idx], instr.index)
+            self._add_if_var(self.use_vars[idx], instr.index2)
+            self._add_if_var(self.use_vars[idx], instr.value)
             
         elif isinstance(instr, IRHardwareCall):
             for arg in instr.args:

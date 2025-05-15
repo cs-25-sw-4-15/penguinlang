@@ -237,6 +237,33 @@ class IRHardwareIndexedStore(IRInstruction):
     
     def __str__(self) -> str:
         return f"hw_indexed_store({self.register}, {self.index}, {self.value})"
+    
+
+
+class IRHardwareIndexedDoubleLoad(IRInstruction):
+    """Load from an indexed hardware register (like display.oam[i])"""
+    
+    def __init__(self, dest: str, register: str, index: str, index2: str):
+        self.dest = dest
+        self.register = register
+        self.index = index
+        self.index2 = index2
+    
+    def __str__(self) -> str:
+        return f"{self.dest} = hw_indexed_doubleload({self.register}, {self.index})"
+
+
+class IRHardwareIndexedDoubleStore(IRInstruction):
+    """Store to an indexed hardware register (like display.oam[i])"""
+    
+    def __init__(self, register: str, index: str, index2: str, value: str):
+        self.register = register
+        self.index = index
+        self.value = value
+        self.index2 = index2
+    
+    def __str__(self) -> str:
+        return f"hw_indexed_doublestore({self.register}, {self.index}, {self.value})"
 
 
 class IRHardwareCall(IRInstruction):
@@ -572,9 +599,8 @@ class IRGenerator:
                     # For locals, simple assignment (potentially register to register)
                     self.add_instruction(IRAssign(target_name, value_temp))
                     
-        elif isinstance(node.target, (TileMapType, TilesetType, SpriteType)):
+        #elif isinstance(node.target, (TileMapType, TilesetType, SpriteType)):
             # Do code here
-            logger.debug("oogabooge")
             
         elif isinstance(node.target, ListAccess):
             # List/array assignment
@@ -582,17 +608,24 @@ class IRGenerator:
             
             if isinstance(base_name, Variable):
                 base_name = base_name.name
-            
-            # Calculate the index
-            index_temp = self.visit(node.target.indices[0])  # Assuming single index for now
-            
-            # Check if this is a hardware register array
-            if base_name == "display.oam" or self.is_hardware_register(base_name):
-                # Hardware indexed store
-                self.add_instruction(IRHardwareIndexedStore(base_name, index_temp, value_temp))
+
+            if len(node.target.indices) == 1 :
+                # Calculate the index
+                index_temp = self.visit(node.target.indices[0])  # Assuming single index for now
+                # Check if this is a hardware register array
+                if base_name == "display.oam" or self.is_hardware_register(base_name):
+                    # Hardware indexed store
+                    self.add_instruction(IRHardwareIndexedStore(base_name, index_temp, value_temp))
+                else:
+                    # Normal indexed store
+                    self.add_instruction(IRIndexedStore(base_name, index_temp, value_temp))
+
             else:
-                # Normal indexed store
-                self.add_instruction(IRIndexedStore(base_name, index_temp, value_temp))
+                index_temp = self.visit(node.target.indices[0])
+                index_temp2 = self.visit(node.target.indices[1])
+                self.add_instruction(IRHardwareIndexedDoubleStore(base_name, index_temp, index_temp2, value_temp))
+                
+
         
     def visit_Initialization(self, node: Initialization) -> None:
         """Visit an Initialization node"""
@@ -775,18 +808,27 @@ class IRGenerator:
         if isinstance(base_name, Variable):
             base_name = base_name.name
         
-        # Calculate the index
-        index_temp = self.visit(node.indices[0])  # Assuming single index for now
-        
-        result_temp = self.new_temp()
-        
-        # Check if this is a hardware register array
-        if base_name == "display_oam" or self.is_hardware_register(base_name):
-            # Hardware indexed load
-            self.add_instruction(IRHardwareIndexedLoad(result_temp, base_name, index_temp))
+        if len(node.indices) == 1:
+            # Calculate the index
+            index_temp = self.visit(node.indices[0])  # Assuming single index for now
+
+
+            result_temp = self.new_temp()
+            
+            # Check if this is a hardware register array
+            if base_name == "display_oam" or self.is_hardware_register(base_name):
+                # Hardware indexed load
+                self.add_instruction(IRHardwareIndexedLoad(result_temp, base_name, index_temp))
+            else:
+                # Normal indexed load
+                self.add_instruction(IRIndexedLoad(result_temp, base_name, index_temp))
+
         else:
-            # Normal indexed load
-            self.add_instruction(IRIndexedLoad(result_temp, base_name, index_temp))
+            index_temp = self.visit(node.indices[0])  # Assuming single index for now
+            result_temp = self.new_temp()
+            index_temp2 = self.visit(node.indices[1])
+            self.add_instruction(IRHardwareIndexedDoubleLoad(result_temp, base_name, index_temp, index_temp2))
+
         
         return result_temp
     
