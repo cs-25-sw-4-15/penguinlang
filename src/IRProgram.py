@@ -312,7 +312,7 @@ class IRProgram:
         self.procedures: Dict[str, IRProcedure] = {}
         self.globals: Dict[str, Type] = {}
         self.global_address = {}
-        self.ram_address = 0xC000
+        self.ram_address = 0xC010
         self.main_instructions: List[IRInstruction] = []
 
         #Worlds worst solution to this shit
