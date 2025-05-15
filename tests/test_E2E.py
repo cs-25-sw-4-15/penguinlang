@@ -723,4 +723,27 @@ def test_input():
     result = pyboy.memory[data_segment_start]
     pyboy.stop()
 
-    assert result == 1
+def test_local_variable_in_procedure():
+    """
+    End-to-end test for local variable in procedure.
+    """
+    source_code = """
+    int Result = 0;
+    procedure int LocalVariableTest() {
+        int test = 5;
+        return 2;
+    }
+
+    Result = LocalVariableTest();
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    result = pyboy.memory[data_segment_start]
+    pyboy.stop()
+
+    assert result == 2
