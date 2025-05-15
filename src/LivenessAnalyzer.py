@@ -296,6 +296,9 @@ class LivenessAnalyzer:
         self.live_in = [set() for _ in range(n)]
         self.live_out = [set() for _ in range(n)]
         
+        for i in range(n):
+            self.live_out[i].update(self.def_vars[i])
+
         # Iterative algorithm to compute liveness
         changed = True
         while changed:
@@ -311,6 +314,8 @@ class LivenessAnalyzer:
                 new_live_out = set()
                 for succ in self.cfg[i]:
                     new_live_out.update(self.live_in[succ])
+
+                new_live_out.update(self.def_vars[i])
                 
                 # Check if anything changed
                 if new_live_in != self.live_in[i] or new_live_out != self.live_out[i]:
