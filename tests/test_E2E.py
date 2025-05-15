@@ -715,3 +715,42 @@ def test_local_variable_in_procedure():
     pyboy.stop()
 
     assert result == 2
+
+def test_double_index_tilemap_store():
+    """
+    End-to-end test for doubly indexed tilemap.
+    """
+    source_code = """
+    int Result = 123;
+    tileset tileset_block_0 = "tileset_block_0.2bpp";
+    tileset tileset_block_1 = "tileset_block_1.2bpp";
+    tileset tileset_block_2 = "tileset_block_2.2bpp";
+    tilemap tilemap0 = "tilemap_0.bin";
+
+    control_waitVBlank();
+    control_LCDoff();
+    display_tileset_block_0 = tileset_block_0;
+    display_tileset_block_1 = tileset_block_1;
+    display_tileset_block_2 = tileset_block_2;
+    display_tilemap0 = tilemap0;
+    control_LCDon();
+    control_waitVBlank();
+
+    display_tilemap0[8][8] = 33;
+    Result = display_tilemap0[8][8];
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    vram_tilemap = pyboy.memory[0x9800:0x9C00]
+    result = vram_tilemap[8 * 32 + 8]
+
+    pyboy.stop()
+
+    assert result == 33
+
+    teardown()
