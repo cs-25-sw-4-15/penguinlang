@@ -47,15 +47,13 @@ def initialize_hardware_elements() -> Tuple[Dict[str, Type], Dict[str, Tuple[Lis
     procedure_table["control_waitVBlank"] = ([], VoidType())
     procedure_table["control_updateInput"] = ([], VoidType())
     procedure_table["control_initDisplayRegs"] = ([], VoidType())
-   
-    # Input flags - these are boolean values represented as integers
-    symbol_table["input_Right"] = IntType()
-    symbol_table["input_Left"] = IntType()
-    symbol_table["input_Up"] = IntType()
-    symbol_table["input_Down"] = IntType()
-    symbol_table["input_A"] = IntType()
-    symbol_table["input_B"] = IntType()
-    symbol_table["input_Start"] = IntType()
-    symbol_table["input_Select"] = IntType()
+    procedure_table["control_checkLeft"] = ([], IntType())
+    procedure_table["control_checkRight"] = ([], IntType())
+    procedure_table["control_checkUp"] = ([], IntType())
+    procedure_table["control_checkDown"] = ([], IntType())
+    procedure_table["control_checkA"] = ([], IntType())
+    procedure_table["control_checkB"] = ([], IntType())
+    procedure_table["control_checkStart"] = ([], IntType())
+    procedure_table["control_checkSelect"] = ([], IntType())
    
     return symbol_table, procedure_table
