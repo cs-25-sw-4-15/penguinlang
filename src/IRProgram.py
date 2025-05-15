@@ -314,9 +314,6 @@ class IRProgram:
         self.global_address = {}
         self.ram_address = 0xC010
         self.main_instructions: List[IRInstruction] = []
-
-        #Worlds worst solution to this shit
-
     
     def add_procedure(self, procedure: IRProcedure) -> None:
         self.procedures[procedure.name] = procedure
@@ -364,6 +361,8 @@ class IRGenerator:
         # Initialize hardware registers
         self.hardware_registers = set()
         self.initialize_hardware_registers()
+
+        self.initialize_hardware_functions()
     
     def new_temp(self) -> str:
         """Generate a new temporary variable name"""
