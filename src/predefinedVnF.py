@@ -46,6 +46,7 @@ def initialize_hardware_elements() -> Tuple[Dict[str, Type], Dict[str, Tuple[Lis
     procedure_table["control_LCDoff"] = ([], VoidType())
     procedure_table["control_waitVBlank"] = ([], VoidType())
     procedure_table["control_updateInput"] = ([], VoidType())
+    procedure_table["control_initPalette"] = ([], VoidType())
     procedure_table["control_initDisplayRegs"] = ([], VoidType())
     procedure_table["control_checkLeft"] = ([], IntType())
     procedure_table["control_checkRight"] = ([], IntType())
