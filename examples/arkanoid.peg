@@ -105,10 +105,10 @@ procedure main() {
 
     	paddleBounce();
 
-    	if (input_Right and (gamecounter == 8)) {
+    	if (control_checkRight() and (gamecounter == 8)) {
         	paddleX = paddleX + 1;
     	}
-    	if (input_Left) {
+    	if (input_Left and (gamecounter == 8)) {
         	paddleX = paddleX - 1;
     	}
 
