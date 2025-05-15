@@ -85,6 +85,9 @@ class CodeGenerator:
         headerstr = """
         INCLUDE "hardware.inc"
         SECTION "Header", ROM0[$100]
+            ld a, 0
+            ld [wCurKeys], a
+            ld [wNewKeys], a
 
             jp PenguinEntry
 
@@ -152,6 +155,50 @@ class CodeGenerator:
         ld [rOBP0], a
         ret
         
+        Labelcontrol_updateInput:
+        ld a, P1F_GET_BTN
+        call .onenibble
+        ld b, a
+        
+        ld a, P1F_GET_DPAD
+        call .onenibble
+        swap a
+        xor a, b
+        ld b, a
+        ld a, P1F_GET_NONE
+        ldh [rP1], a
+        ld a, [wCurKeys]
+        xor a, b
+        and a, b
+        ld [wNewKeys], a
+        ld a, b
+        ld [wCurKeys], a
+        ret
+
+        .onenibble
+        ldh [rP1], a
+        call .knownret
+        ldh a, [rP1]
+        ldh a, [rP1]
+        ldh a, [rP1]
+        or a, $F0
+        .knownret
+        ret
+        
+        Labelcontrol_checkLeft:
+            ld a, [wCurKeys]
+            and a, PADF_LEFT
+            ret
+            
+        Labelcontrol_checkRight:
+            ld a, [wCurKeys]
+            and a, PADF_RIGHT
+            ret
+            
+        
+        SECTION "Input Variables", WRAM0
+        wCurKeys: db
+        wNewKeys: db
         """
 
         return footerstr 
