@@ -1,0 +1,74 @@
+tileset tileset_block_0 = "tileset_block_0_v2.2bpp";
+tileset tileset_block_2 = "tileset_block_1_v2.2bpp";
+tilemap tilemap0 = "tilemap_v2.bin";
+control_waitVBlank();
+control_LCDoff();
+display_tileset_block_0 = tileset_block_0;
+display_tileset_block_2 = tileset_block_2;
+display_tilemap0 = tilemap0;
+display_oam_x[0] = 61;
+display_oam_y[0] = 41;
+display_oam_tile[0] = 0;
+display_oam_attr[0] = 0;
+
+int i = 1;
+loop (i < 40) {
+    display_oam_x[i] = 0;
+    display_oam_y[i] = 0;
+    i = i + 1;
+}
+
+control_LCDon();
+control_initDisplayRegs();
+int frame_count = 0;
+int x_direction = 1; // 1 is right, 2 is left
+int y_direction = 1; // 1 is down, 2 is up
+int x_pos = 61;
+int y_pos = 41;
+loop (1) {
+    control_waitVBlank();
+    frame_count = frame_count + 1;
+    if (frame_count == 6) {
+        if (x_direction == 1) {
+            x_pos = x_pos + 1;
+            display_oam_x[0] = x_pos;
+        } else {
+            x_pos = x_pos - 1;
+            display_oam_x[0] = x_pos;
+        }
+
+        if (y_direction == 1) {
+            y_pos = y_pos + 1;
+            display_oam_y[0] = y_pos;
+        } else {
+            y_pos = y_pos - 1;
+            display_oam_y[0] = y_pos;
+        }
+
+        frame_count = 0;
+    }
+    if (x_pos >= 137 or x_pos <= 32) {
+        if (x_pos >= 137) {
+            x_pos = 137 - 1;
+        } else {
+            x_pos = 32 + 1;
+        }
+        if (x_direction == 1) {
+            x_direction = 2;
+        } else {
+            x_direction = 1;
+        }
+    }
+    if (y_pos >= 128 or y_pos <= 40) {
+        if (y_pos >= 128) {
+            y_pos = 128 - 1
+        } else {
+            y_pos = 40 + 1
+        }
+        if (y_direction == 1) {
+            y_direction = 2;
+        } else {
+            y_direction = 1;
+        }
+    }
+}

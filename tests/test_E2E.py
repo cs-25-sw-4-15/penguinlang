@@ -8,7 +8,7 @@ import glob
 from pyboy import PyBoy
 from src.compiler import full_compile
 
-data_segment_start = 0xC000
+data_segment_start = 0xC010
 program_start = 0x0150
 
 
@@ -137,19 +137,17 @@ def test_subtraction_1():
 
     teardown()
 
-
-@pytest.mark.xfail(reason="not implemented")
 def test_multiplication_1():
     """
     End-to-end test for simple multiplication operation.
     """
     source_code = """
     int Result = 0;
-    int Integer1 = 6;
+    int Integer1 = 8;
 
-    int Integer2 = 7;
+    int Integer2 = 8;
 
-    Result = Integer1 * Integer2;
+    Result = (Integer1 * Integer2) * 2;
     """
 
     binary_path = compile_source_to_binary(source_code)
@@ -161,7 +159,7 @@ def test_multiplication_1():
     result = pyboy.memory[data_segment_start]
     pyboy.stop()
 
-    assert result == 42
+    assert result == 128
 
     teardown()
 
@@ -327,7 +325,7 @@ def test_comparisons():
     teardown()
 
 
-@pytest.mark.xfail(reason="dropped attributes")
+@pytest.mark.xfail(reason="not implemented")
 def test_logical_operators():
     """
     End-to-end test for logical operators (and, or, not).
@@ -386,7 +384,7 @@ def test_bitwise_shifts():
     teardown()
 
 
-@pytest.mark.xfail(reason="dropped attributes")
+@pytest.mark.xfail(reason="not implemented")
 def test_bitwise_logical_operators():
     """
     End-to-end test for bitwise logical operators (&, |, ^, ~).
@@ -450,13 +448,14 @@ def test_loop_behavior():
 
     teardown()
 
-
 def test_binary_load_behavior():
     """
     End-to-end test for including binary files in rom
     """
     source_code = """
-    tileset tileset1 = "tileset.2bpp";
+    tileset tileset_block_0 = "tileset_block_0.2bpp";
+    tileset tileset_block_1 = "tileset_block_1.2bpp";
+    tileset tileset_block_2 = "tileset_block_2.2bpp";
     """
 
     binary_path = compile_source_to_binary(source_code)
@@ -471,17 +470,113 @@ def test_binary_load_behavior():
     pyboy.stop()
 
     # load in the binary file
-    with open('temp_files/tileset.2bpp', 'rb') as f:
-        binary_data = list(f.read())
+    with open('temp_files/tileset_block_0.2bpp', 'rb') as f:
+        tileset_block_0 = list(f.read())
+    with open('temp_files/tileset_block_1.2bpp', 'rb') as f:
+        tileset_block_1 = list(f.read())
+    with open('temp_files/tileset_block_2.2bpp', 'rb') as f:
+        tileset_block_2 = list(f.read())
 
     # convert to string for comparison
-    binary_data = ''.join([chr(byte) for byte in binary_data])
+    tileset_block_0 = ''.join([chr(byte) for byte in tileset_block_0])
+    tileset_block_1 = ''.join([chr(byte) for byte in tileset_block_1])
+    tileset_block_2 = ''.join([chr(byte) for byte in tileset_block_2])
     rom_0 = ''.join([chr(byte) for byte in rom_0])
 
-    assert binary_data in rom_0
+    assert tileset_block_0 in rom_0
+    assert tileset_block_1 in rom_0
+    assert tileset_block_2 in rom_0
 
     teardown()
 
+def test_binary_load_to_vram_behavior():
+    """
+    End-to-end test for including binary files in rom, and loading them to VRAM
+    """
+    source_code = """
+    tileset tileset_block_0 = "tileset_block_0.2bpp";
+    tileset tileset_block_1 = "tileset_block_1.2bpp";
+    tileset tileset_block_2 = "tileset_block_2.2bpp";
+    
+    control_waitVBlank();
+    control_LCDoff();
+    display_tileset_block_0 = tileset_block_0;
+    display_tileset_block_1 = tileset_block_1;
+    display_tileset_block_2 = tileset_block_2;
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    vram_tileset = pyboy.memory[0x8000:0x9800]
+
+    pyboy.stop()
+    # load in the binary files
+    with open('temp_files/tileset_block_0.2bpp', 'rb') as f:
+        tileset_block_0 = list(f.read())
+    with open('temp_files/tileset_block_1.2bpp', 'rb') as f:
+        tileset_block_1 = list(f.read())
+    with open('temp_files/tileset_block_2.2bpp', 'rb') as f:
+        tileset_block_2 = list(f.read())
+
+    vram_tileset_blocks = [vram_tileset[i:i + 2048] for i in range(0, len(vram_tileset), 2048)]
+
+    tileset_block_0 = ''.join([chr(byte) for byte in tileset_block_0])
+    tileset_block_1 = ''.join([chr(byte) for byte in tileset_block_1])
+    tileset_block_2 = ''.join([chr(byte) for byte in tileset_block_2])
+
+    for i in range(len(vram_tileset_blocks)):
+        vram_tileset_blocks[i] = ''.join([chr(byte) for byte in vram_tileset_blocks[i]])
+
+    assert tileset_block_0 in vram_tileset_blocks
+    assert tileset_block_1 in vram_tileset_blocks
+    assert tileset_block_2 in vram_tileset_blocks
+
+    teardown()
+
+# tilemap test
+
+def test_load_binary_tilemap_to_vram_behavior():
+    """
+    End-to-end test for including binary files in rom, and loading them to VRAM
+    """
+    source_code = """
+    tileset tileset_block_0 = "tileset_block_0.2bpp";
+    tileset tileset_block_1 = "tileset_block_1.2bpp";
+    tileset tileset_block_2 = "tileset_block_2.2bpp";
+    tilemap tilemap0 = "tilemap_0.bin";
+
+    control_waitVBlank();
+    control_LCDoff();
+    display_tileset_block_0 = tileset_block_0;
+    display_tileset_block_1 = tileset_block_1;
+    display_tileset_block_2 = tileset_block_2;
+    display_tilemap0 = tilemap0;
+    control_LCDon();
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    vram_tilemap = pyboy.memory[0x9800:0x9C00]
+
+    pyboy.stop()
+
+    with open('temp_files/tilemap_0.bin', 'rb') as f:
+        tilemap = list(f.read())
+
+    tilemap = ''.join([chr(byte) for byte in tilemap])
+    vram_tilemap = ''.join([chr(byte) for byte in vram_tilemap])
+
+    assert tilemap in vram_tilemap
+
+    teardown()
 
 def test_function_call_inside_function_call():
     """
@@ -513,4 +608,149 @@ def test_function_call_inside_function_call():
     assert result == 3
 
 
-# TODO: add tests for built-in functions, binary handling and the like, tileset, tilemaps, screen rendering, etc.
+def test_linear_recursion():
+    """
+    End-to-end test for a recursive function.
+    """
+    source_code = """
+    procedure int Recursive(int depth) {
+        if (depth == 0) {
+            return 0;
+        } else {
+            return 1 + Recursive(depth - 1);
+        }
+    }
+
+    int Result = 0;
+
+    Result = Recursive(20);
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    result = pyboy.memory[data_segment_start]
+    pyboy.stop()
+
+    assert result == 20
+
+def test_function_call_inside_loop():
+    """
+    End-to-end test for a function call inside a loop.
+    """
+    source_code = """
+    procedure int Increment(int a) {
+        return a + 1;
+    }
+
+    int Result = 0;
+    int i = 0;
+
+    loop (i < 5) {
+        Result = Increment(Result);
+        i = i + 1;
+    }
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    result = pyboy.memory[data_segment_start]
+    pyboy.stop()
+
+    assert result == 5
+
+# input test
+def test_input():
+    """
+    End-to-end test for input function.
+    """
+    source_code = """
+    int Result = 0;
+
+    control_updateInput();
+    Result = control_checkLeft();
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+    pyboy.button_press('left')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    result = pyboy.memory[data_segment_start]
+
+    assert result
+
+    pyboy.stop()
+
+def test_local_variable_in_procedure():
+    """
+    End-to-end test for local variable in procedure.
+    """
+    source_code = """
+    int Result = 0;
+    procedure int LocalVariableTest() {
+        int test = 5;
+        return 2;
+    }
+
+    Result = LocalVariableTest();
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    result = pyboy.memory[data_segment_start]
+    pyboy.stop()
+
+    assert result == 2
+
+def test_double_index_tilemap_store():
+    """
+    End-to-end test for doubly indexed tilemap.
+    """
+    source_code = """
+    int Result = 123;
+    tileset tileset_block_0 = "tileset_block_0.2bpp";
+    tileset tileset_block_1 = "tileset_block_1.2bpp";
+    tileset tileset_block_2 = "tileset_block_2.2bpp";
+    tilemap tilemap0 = "tilemap_0.bin";
+
+    control_waitVBlank();
+    control_LCDoff();
+    display_tileset_block_0 = tileset_block_0;
+    display_tileset_block_1 = tileset_block_1;
+    display_tileset_block_2 = tileset_block_2;
+    display_tilemap0 = tilemap0;
+    control_LCDon();
+    control_waitVBlank();
+
+    display_tilemap0[8][8] = 33;
+    Result = display_tilemap0[8][8];
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    vram_tilemap = pyboy.memory[0x9800:0x9C00]
+    result = vram_tilemap[8 * 32 + 8]
+
+    pyboy.stop()
+
+    assert result == 33
+
+    teardown()

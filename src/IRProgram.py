@@ -237,6 +237,33 @@ class IRHardwareIndexedStore(IRInstruction):
     
     def __str__(self) -> str:
         return f"hw_indexed_store({self.register}, {self.index}, {self.value})"
+    
+
+
+class IRHardwareIndexedDoubleLoad(IRInstruction):
+    """Load from an indexed hardware register (like display.oam[i])"""
+    
+    def __init__(self, dest: str, register: str, index: str, index2: str):
+        self.dest = dest
+        self.register = register
+        self.index = index
+        self.index2 = index2
+    
+    def __str__(self) -> str:
+        return f"{self.dest} = hw_indexed_doubleload({self.register}, {self.index})"
+
+
+class IRHardwareIndexedDoubleStore(IRInstruction):
+    """Store to an indexed hardware register (like display.oam[i])"""
+    
+    def __init__(self, register: str, index: str, index2: str, value: str):
+        self.register = register
+        self.index = index
+        self.value = value
+        self.index2 = index2
+    
+    def __str__(self) -> str:
+        return f"hw_indexed_doublestore({self.register}, {self.index}, {self.value})"
 
 
 class IRHardwareCall(IRInstruction):
@@ -312,7 +339,7 @@ class IRProgram:
         self.procedures: Dict[str, IRProcedure] = {}
         self.globals: Dict[str, Type] = {}
         self.global_address = {}
-        self.ram_address = 0xC000
+        self.ram_address = 0xC010
         self.main_instructions: List[IRInstruction] = []
     
     def add_procedure(self, procedure: IRProcedure) -> None:
@@ -361,6 +388,8 @@ class IRGenerator:
         # Initialize hardware registers
         self.hardware_registers = set()
         self.initialize_hardware_registers()
+
+        self.initialize_hardware_functions()
     
     def new_temp(self) -> str:
         """Generate a new temporary variable name"""
@@ -453,7 +482,9 @@ class IRGenerator:
         """Initialize the set of hardware registers"""
         
         # Display subsystem registers
-        self.hardware_registers.add("display_tileset0")
+        self.hardware_registers.add("display_tileset_block_0")
+        self.hardware_registers.add("display_tileset_block_1")
+        self.hardware_registers.add("display_tileset_block_2")
         self.hardware_registers.add("display_tilemap0")
         
         # OAM (Object Attribute Memory) registers
@@ -461,6 +492,7 @@ class IRGenerator:
         self.hardware_registers.add("display_oam_x")
         self.hardware_registers.add("display_oam_y")
         self.hardware_registers.add("display_oam_tile")
+        self.hardware_registers.add("display_oam_attr")
         
         # Input state registers
         self.hardware_registers.add("input_Right")
@@ -471,6 +503,24 @@ class IRGenerator:
         self.hardware_registers.add("input_B")
         self.hardware_registers.add("input_Start")
         self.hardware_registers.add("input_Select")
+
+    def initialize_hardware_functions(self):
+        procedure = IRProcedure('control_checkLeft',[], IntType())
+        self.program.add_procedure(procedure)
+        procedure = IRProcedure('control_checkRight',[], IntType())
+        self.program.add_procedure(procedure)
+        procedure = IRProcedure('control_checkUp',[], IntType())
+        self.program.add_procedure(procedure)
+        procedure = IRProcedure('control_checkDown',[], IntType())
+        self.program.add_procedure(procedure)
+        procedure = IRProcedure('control_checkA',[], IntType())
+        self.program.add_procedure(procedure)
+        procedure = IRProcedure('control_checkB',[], IntType())
+        self.program.add_procedure(procedure)
+        procedure = IRProcedure('control_checkStart',[], IntType())
+        self.program.add_procedure(procedure)
+        procedure = IRProcedure('control_checkSelect',[], IntType())
+        self.program.add_procedure(procedure)
     
     def is_hardware_register(self, name: str) -> bool:
         """Check if a name refers to a hardware register"""
@@ -549,9 +599,8 @@ class IRGenerator:
                     # For locals, simple assignment (potentially register to register)
                     self.add_instruction(IRAssign(target_name, value_temp))
                     
-        elif isinstance(node.target, (TileMapType, TilesetType, SpriteType)):
+        #elif isinstance(node.target, (TileMapType, TilesetType, SpriteType)):
             # Do code here
-            logger.debug("oogabooge")
             
         elif isinstance(node.target, ListAccess):
             # List/array assignment
@@ -559,17 +608,24 @@ class IRGenerator:
             
             if isinstance(base_name, Variable):
                 base_name = base_name.name
-            
-            # Calculate the index
-            index_temp = self.visit(node.target.indices[0])  # Assuming single index for now
-            
-            # Check if this is a hardware register array
-            if base_name == "display.oam" or self.is_hardware_register(base_name):
-                # Hardware indexed store
-                self.add_instruction(IRHardwareIndexedStore(base_name, index_temp, value_temp))
+
+            if len(node.target.indices) == 1 :
+                # Calculate the index
+                index_temp = self.visit(node.target.indices[0])  # Assuming single index for now
+                # Check if this is a hardware register array
+                if base_name == "display.oam" or self.is_hardware_register(base_name):
+                    # Hardware indexed store
+                    self.add_instruction(IRHardwareIndexedStore(base_name, index_temp, value_temp))
+                else:
+                    # Normal indexed store
+                    self.add_instruction(IRIndexedStore(base_name, index_temp, value_temp))
+
             else:
-                # Normal indexed store
-                self.add_instruction(IRIndexedStore(base_name, index_temp, value_temp))
+                index_temp = self.visit(node.target.indices[0])
+                index_temp2 = self.visit(node.target.indices[1])
+                self.add_instruction(IRHardwareIndexedDoubleStore(base_name, index_temp, index_temp2, value_temp))
+                
+
         
     def visit_Initialization(self, node: Initialization) -> None:
         """Visit an Initialization node"""
@@ -652,7 +708,7 @@ class IRGenerator:
         body_label = self.new_label()
         end_label = self.new_label()
         
-        # Start of loop
+        # Start of loop a
         self.add_instruction(IRLabel(start_label))
         
         # Evaluate condition
@@ -752,18 +808,27 @@ class IRGenerator:
         if isinstance(base_name, Variable):
             base_name = base_name.name
         
-        # Calculate the index
-        index_temp = self.visit(node.indices[0])  # Assuming single index for now
-        
-        result_temp = self.new_temp()
-        
-        # Check if this is a hardware register array
-        if base_name == "display_oam" or self.is_hardware_register(base_name):
-            # Hardware indexed load
-            self.add_instruction(IRHardwareIndexedLoad(result_temp, base_name, index_temp))
+        if len(node.indices) == 1:
+            # Calculate the index
+            index_temp = self.visit(node.indices[0])  # Assuming single index for now
+
+
+            result_temp = self.new_temp()
+            
+            # Check if this is a hardware register array
+            if base_name == "display_oam" or self.is_hardware_register(base_name):
+                # Hardware indexed load
+                self.add_instruction(IRHardwareIndexedLoad(result_temp, base_name, index_temp))
+            else:
+                # Normal indexed load
+                self.add_instruction(IRIndexedLoad(result_temp, base_name, index_temp))
+
         else:
-            # Normal indexed load
-            self.add_instruction(IRIndexedLoad(result_temp, base_name, index_temp))
+            index_temp = self.visit(node.indices[0])  # Assuming single index for now
+            result_temp = self.new_temp()
+            index_temp2 = self.visit(node.indices[1])
+            self.add_instruction(IRHardwareIndexedDoubleLoad(result_temp, base_name, index_temp, index_temp2))
+
         
         return result_temp
     

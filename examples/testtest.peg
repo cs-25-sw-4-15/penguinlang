@@ -1,0 +1,5 @@
+int Result = 0;
+int InputValue = 255;
+
+control_updateInput();
+Result = control_checkLeft();
