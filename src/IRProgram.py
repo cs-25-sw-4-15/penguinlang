@@ -314,6 +314,9 @@ class IRProgram:
         self.global_address = {}
         self.ram_address = 0xC000
         self.main_instructions: List[IRInstruction] = []
+
+        #Worlds worst solution to this shit
+
     
     def add_procedure(self, procedure: IRProcedure) -> None:
         self.procedures[procedure.name] = procedure
@@ -474,6 +477,24 @@ class IRGenerator:
         self.hardware_registers.add("input_B")
         self.hardware_registers.add("input_Start")
         self.hardware_registers.add("input_Select")
+
+    def initialize_hardware_functions(self):
+        procedure = IRProcedure('control_checkLeft',[], IntType())
+        self.program.add_procedure(procedure)
+        procedure = IRProcedure('control_checkRight',[], IntType())
+        self.program.add_procedure(procedure)
+        procedure = IRProcedure('control_checkUp',[], IntType())
+        self.program.add_procedure(procedure)
+        procedure = IRProcedure('control_checkDown',[], IntType())
+        self.program.add_procedure(procedure)
+        procedure = IRProcedure('control_checkA',[], IntType())
+        self.program.add_procedure(procedure)
+        procedure = IRProcedure('control_checkB',[], IntType())
+        self.program.add_procedure(procedure)
+        procedure = IRProcedure('control_checkStart',[], IntType())
+        self.program.add_procedure(procedure)
+        procedure = IRProcedure('control_checkSelect',[], IntType())
+        self.program.add_procedure(procedure)
     
     def is_hardware_register(self, name: str) -> bool:
         """Check if a name refers to a hardware register"""
