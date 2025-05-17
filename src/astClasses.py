@@ -381,7 +381,7 @@ class ProcedureDef(ASTNode):
     """
     
     def __init__(self, return_type: Optional[str], name: str, 
-                 params: List[Tuple[str, str]], body: List[ASTNode]) -> None: 
+                 params: List[Declaration], body: List[ASTNode]) -> None: 
         # Optional[str] for return_type, da det kan være None
         # List[Tuple[str, str]] for params, da det er en liste af tuples med (type, name)
         self.return_type = return_type 
