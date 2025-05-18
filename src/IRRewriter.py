@@ -105,9 +105,6 @@ class IRRewriter:
                 
             rewritten.extend(rewritten_instrs)
         
-        if any(not self._is_register(alloc) for alloc in self.current_allocations.values()):
-            rewritten.extend(self._generate_epilogue())
-        
         return rewritten
     
     def _rewrite_instruction(self, instr: IRInstruction) -> List[IRInstruction]:
