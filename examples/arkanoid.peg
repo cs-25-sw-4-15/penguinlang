@@ -1,4 +1,3 @@
-control_LCDon();
 control_waitVBlank();
 control_LCDoff();
 
@@ -40,16 +39,6 @@ procedure brickAndBreak(int x, int y, int tileN) {
 	if ((tileN == BRICK_LEFT) or (tileN == BRICK_RIGHT)) {
 		display_tilemap0[Xtile][Ytile] = BLANK_TILE;
     }
-}
-
-procedure int tileAtPixel(int x, int y){
-	int Xtile = x << 4;
-	int Ytile = y << 4;
-	Ytile = Ytile * 32;
-	
-	int tile = display_tilemap0[Xtile][Ytile];
-	
-	return tile;
 }
 
 procedure bounce(int dir) {

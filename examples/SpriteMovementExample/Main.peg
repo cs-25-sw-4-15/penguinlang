@@ -1,7 +1,7 @@
 tileset tileset_block_0 = "tileset_block_0_v2.2bpp";
 tileset tileset_block_2 = "tileset_block_1_v2.2bpp";
 tilemap tilemap0 = "tilemap_v2.bin";
-control_waitVBlank();
+control_waitVBlankStart();
 control_LCDoff();
 display_tileset_block_0 = tileset_block_0;
 display_tileset_block_2 = tileset_block_2;
@@ -25,10 +25,14 @@ int x_direction = 1; // 1 is right, 2 is left
 int y_direction = 1; // 1 is down, 2 is up
 int x_pos = 61;
 int y_pos = 41;
+control_LCDon();
+control_initDisplayRegs();
+control_initPalette();
 loop (1) {
-    control_waitVBlank();
+    control_waitVBlankOver();
+    control_waitVBlankStart();
     frame_count = frame_count + 1;
-    if (frame_count == 6) {
+    if (frame_count == 1) {
         if (x_direction == 1) {
             x_pos = x_pos + 1;
             display_oam_x[0] = x_pos;
