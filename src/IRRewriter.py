@@ -93,7 +93,6 @@ class IRRewriter:
     
     def rewrite_instructions(self, instructions: List[IRInstruction]) -> List[IRInstruction]:  
         rewritten = []
-        returnwritten = 0
         
         if any(not self._is_register(alloc) for alloc in self.current_allocations.values()):
             rewritten.extend(self._generate_prologue())
@@ -103,7 +102,6 @@ class IRRewriter:
             
             if isinstance(instr, IRReturn) and any(not self._is_register(alloc) for alloc in self.current_allocations.values()):
                 rewritten.extend(self._generate_epilogue())
-                returnwritten = returnwritten + 1
                 
             rewritten.extend(rewritten_instrs)
         
