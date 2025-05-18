@@ -144,11 +144,11 @@ def test_multiplication_1():
     """
     source_code = """
     int Result = 0;
-    int Integer1 = 8;
+    int Integer1 = 4;
 
-    int Integer2 = 8;
+    int Integer2 = 7;
 
-    Result = (Integer1 * Integer2) * 2;
+    Result = Integer1 * Integer2;
     """
 
     binary_path = compile_source_to_binary(source_code)
@@ -160,7 +160,33 @@ def test_multiplication_1():
     result = pyboy.memory[data_segment_start]
     pyboy.stop()
 
-    assert result == 128
+    assert result == 28
+
+    teardown()
+
+def test_multiplication_2():
+    """
+    End-to-end test for a multiplication operation with overflow.
+    """
+    source_code = """
+    int Result = 0;
+    int Integer1 = 255;
+
+    int Integer2 = 255;
+
+    Result = Integer1 * Integer2;
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    result = pyboy.memory[data_segment_start]
+    pyboy.stop()
+
+    assert result == 1
 
     teardown()
 
@@ -358,6 +384,27 @@ def test_logical_operators():
 
     teardown()
 
+def test_right_shift():
+    """
+    End-to-end test for right shift operator (>>).
+    """
+    source_code = """
+    int Result = 0;
+    int A = 24;
+
+    Result = (A >> 3) + (A >> 3);
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    result = pyboy.memory[data_segment_start]
+    pyboy.stop()
+
+    assert result == 6
 
 def test_bitwise_shifts():
     """
@@ -501,7 +548,7 @@ def test_binary_load_to_vram_behavior():
     tileset tileset_block_1 = "tileset_block_1.2bpp";
     tileset tileset_block_2 = "tileset_block_2.2bpp";
     
-    control_waitVBlank();
+    control_waitVBlankStart();
     control_LCDoff();
     display_tileset_block_0 = tileset_block_0;
     display_tileset_block_1 = tileset_block_1;
@@ -552,7 +599,7 @@ def test_load_binary_tilemap_to_vram_behavior():
     tileset tileset_block_2 = "tileset_block_2.2bpp";
     tilemap tilemap0 = "tilemap_0.bin";
 
-    control_waitVBlank();
+    control_waitVBlankStart();
     control_LCDoff();
     display_tileset_block_0 = tileset_block_0;
     display_tileset_block_1 = tileset_block_1;
@@ -735,16 +782,17 @@ def test_double_index_tilemap_store():
     tileset tileset_block_2 = "tileset_block_2.2bpp";
     tilemap tilemap0 = "tilemap_0.bin";
 
-    control_waitVBlank();
+    control_waitVBlankStart();
     control_LCDoff();
     display_tileset_block_0 = tileset_block_0;
     display_tileset_block_1 = tileset_block_1;
     display_tileset_block_2 = tileset_block_2;
     display_tilemap0 = tilemap0;
     control_LCDon();
-    control_waitVBlank();
+    control_waitVBlankOver();
+    control_waitVBlankStart();
 
-    display_tilemap0[8][8] = 33;
+    display_tilemap0[8][8] = 69;
     Result = display_tilemap0[8][8];
     """
 
@@ -756,9 +804,42 @@ def test_double_index_tilemap_store():
 
     vram_tilemap = pyboy.memory[0x9800:0x9C00]
     result = vram_tilemap[8 * 32 + 8]
+    result2 = pyboy.memory[data_segment_start]
 
     pyboy.stop()
 
-    assert result == 33
+    assert result == 69
+    assert result2 == 69
+
+    #teardown()
+
+def test_oam_index_tilemap_store():
+    """
+    End-to-end test for doubly indexed tilemap.
+    """
+    source_code = """
+    int Result = 123;
+
+    control_LCDon();
+    control_waitVBlankOver();
+    control_waitVBlankStart();
+
+    display_oam_x[12] = 69;
+    Result = display_oam_x[12];
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    result = pyboy.memory[0xFE00 + 12 * 4 + 1]
+    result2 = pyboy.memory[data_segment_start]
+
+    pyboy.stop()
+
+    assert result == 69
+    assert result2 == 69
 
     teardown()
