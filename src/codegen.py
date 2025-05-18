@@ -885,7 +885,7 @@ class CodeGenerator:
             "push hl",
             f"ld a, {instruction.index}",
             f"ld hl, {self.registerDict[instruction.register]}",
-            f"ld de, 0",
+            "ld de, 0",
             f"ld d, {instruction.index2}",
         ]
 
@@ -936,7 +936,7 @@ class CodeGenerator:
             "push de",
             "push hl",
             f"ld hl, {self.registerDict[instruction.register]}",
-            f"ld bc, 1",  # Default stride for the first index
+            "ld bc, 1",  # Default stride for the first index
         ]
 
         # Loop code for the first index
@@ -949,7 +949,7 @@ class CodeGenerator:
             f"jp HwStoreLoop{self.cmp_counter}",
             f"HwStoreSecondLoopStart{self.cmp_counter}:",
             "ld a, d",  # Load the outer loop counter into a
-            f"ld bc, 32",  # Stride for the second index
+            "ld bc, 32",  # Stride for the second index
             f"HwSecondStoreLoop{self.cmp_counter}:",
             "cp 0",
             f"jp z, HwStoreLoopDone{self.cmp_counter}",  # Move to the final store if d is zero

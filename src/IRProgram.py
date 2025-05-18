@@ -238,8 +238,7 @@ class IRHardwareIndexedStore(IRInstruction):
     def __str__(self) -> str:
         return f"hw_indexed_store({self.register}, {self.index}, {self.value})"
     
-
-
+    
 class IRHardwareIndexedDoubleLoad(IRInstruction):
     """Load from an indexed hardware register (like display.oam[i])"""
     
@@ -600,7 +599,7 @@ class IRGenerator:
                     # For locals, simple assignment (potentially register to register)
                     self.add_instruction(IRAssign(target_name, value_temp))
                     
-        #elif isinstance(node.target, (TileMapType, TilesetType, SpriteType)):
+        # elif isinstance(node.target, (TileMapType, TilesetType, SpriteType)):
             # Do code here
             
         elif isinstance(node.target, ListAccess):
@@ -610,7 +609,7 @@ class IRGenerator:
             if isinstance(base_name, Variable):
                 base_name = base_name.name
 
-            if len(node.target.indices) == 1 :
+            if len(node.target.indices) == 1:
                 # Calculate the index
                 index_temp = self.visit(node.target.indices[0])  # Assuming single index for now
                 # Check if this is a hardware register array
@@ -625,8 +624,6 @@ class IRGenerator:
                 index_temp = self.visit(node.target.indices[0])
                 index_temp2 = self.visit(node.target.indices[1])
                 self.add_instruction(IRHardwareIndexedDoubleStore(base_name, index_temp, index_temp2, value_temp))
-                
-
         
     def visit_Initialization(self, node: Initialization) -> None:
         """Visit an Initialization node"""
@@ -813,7 +810,6 @@ class IRGenerator:
             # Calculate the index
             index_temp = self.visit(node.indices[0])  # Assuming single index for now
 
-
             result_temp = self.new_temp()
             
             # Check if this is a hardware register array
@@ -829,7 +825,6 @@ class IRGenerator:
             result_temp = self.new_temp()
             index_temp2 = self.visit(node.indices[1])
             self.add_instruction(IRHardwareIndexedDoubleLoad(result_temp, base_name, index_temp, index_temp2))
-
         
         return result_temp
     

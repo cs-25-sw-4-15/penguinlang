@@ -538,7 +538,6 @@ class IRRewriter:
         elif not index_alloc:
             index_alloc = instr.index
 
-
         # Handle index
         if index_alloc2 and not self._is_register(index_alloc2):
             temp_reg = 'l'
@@ -633,14 +632,14 @@ class IRRewriter:
         return None
     
     def _is_register(self, allocation: str) -> bool:
-        #HANDLE IF WE MODIFY HOW REGISTERS ARE IDENTIFIED, GOOD FOR NOW
+        # TODO: HANDLE IF WE MODIFY HOW REGISTERS ARE IDENTIFIED, GOOD FOR NOW
         if self.is_register:
             return self.is_register(allocation)
         else:
             return allocation in ['a', 'b', 'c', 'd', 'e', 'h', 'l']
     
     def _get_temp_reg(self) -> str:
-        #For now, this is probably fine
+        # For now, this is probably fine
         return 'a'
     
     def _generate_prologue(self) -> List[IRInstruction]:

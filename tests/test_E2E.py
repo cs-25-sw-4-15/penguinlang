@@ -137,6 +137,7 @@ def test_subtraction_1():
 
     teardown()
 
+
 def test_multiplication_1():
     """
     End-to-end test for simple multiplication operation.
@@ -448,6 +449,7 @@ def test_loop_behavior():
 
     teardown()
 
+
 def test_binary_load_behavior():
     """
     End-to-end test for including binary files in rom
@@ -488,6 +490,7 @@ def test_binary_load_behavior():
     assert tileset_block_2 in rom_0
 
     teardown()
+
 
 def test_binary_load_to_vram_behavior():
     """
@@ -537,8 +540,8 @@ def test_binary_load_to_vram_behavior():
 
     teardown()
 
-# tilemap test
 
+# tilemap test
 def test_load_binary_tilemap_to_vram_behavior():
     """
     End-to-end test for including binary files in rom, and loading them to VRAM
@@ -577,6 +580,7 @@ def test_load_binary_tilemap_to_vram_behavior():
     assert tilemap in vram_tilemap
 
     teardown()
+
 
 def test_function_call_inside_function_call():
     """
@@ -637,6 +641,7 @@ def test_linear_recursion():
 
     assert result == 20
 
+
 def test_function_call_inside_loop():
     """
     End-to-end test for a function call inside a loop.
@@ -666,6 +671,7 @@ def test_function_call_inside_loop():
 
     assert result == 5
 
+
 # input test
 def test_input():
     """
@@ -691,6 +697,7 @@ def test_input():
 
     pyboy.stop()
 
+
 def test_local_variable_in_procedure():
     """
     End-to-end test for local variable in procedure.
@@ -715,6 +722,7 @@ def test_local_variable_in_procedure():
     pyboy.stop()
 
     assert result == 2
+
 
 def test_double_index_tilemap_store():
     """
