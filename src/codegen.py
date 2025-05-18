@@ -146,10 +146,16 @@ class CodeGenerator:
         ld [rLCDC], a
         ret
         
-        Labelcontrol_waitVBlank:
+        Labelcontrol_waitVBlankStart:
         ld a, [rLY]
         cp 144
-        jp c, Labelcontrol_waitVBlank    
+        jp c, Labelcontrol_waitVBlankStart
+        ret
+        
+        Labelcontrol_waitVBlankOver:
+        ld a, [rLY]
+        cp 144
+        jp nc, Labelcontrol_waitVBlankOver
         ret
         
         Labelcontrol_initPalette:
@@ -595,14 +601,17 @@ class CodeGenerator:
         
         # >> shift right (sign extension)
         elif instruction.op == '>>':
+
             # Generate unique labels for our shift loop
             loop_lbl = f"SHR_LOOP_{self.cmp_counter}"
             end_lbl = f"SHR_END_{self.cmp_counter}"
             self.cmp_counter += 1
-
+            returnstr += f"; shift right begin\n"
             # Load the value to shift into the accumulator (A) if needed
             if instruction.left != 'a':
                 returnstr += f"ld a, {instruction.left}\n"
+
+            returnstr += "push bc\n"
                 
             # Load the shift count into B
             returnstr += f"ld b, {instruction.right}\n"
@@ -613,9 +622,14 @@ class CodeGenerator:
             returnstr += "dec b\n"
             returnstr += f"jp nz, {loop_lbl}   ; repeat until B == 0\n"
 
+            returnstr += "pop bc\n"
+
             # After shifting, result is in A. Store it if dest ≠ A
             if instruction.dest != 'a':
                 returnstr += f"ld {instruction.dest}, a\n"
+
+            returnstr += f"; shift right end\n"
+
                 
             return returnstr
 
@@ -800,84 +814,109 @@ class CodeGenerator:
         return returnstr
 
     def generate_HardwareIndexedLoad(self, instruction: IRHardwareIndexedLoad) -> str:
+        if "display_oam" in instruction.register:
+            skip = 4
+        else:
+            skip = 1
+
+        self.cmp_counter += 2
+
         lines = [
-            f"ld a, {instruction.index}",
             "push bc",
             "push de",
             "push hl",
-            f"ld hl, {self.registerDict[instruction.register]}",
-        ]
-
-        # Conditional load size
-        lines.append("ld bc, 4" if "display_oam" in instruction.register else "ld bc, 1")
-
-        # Loop code
-        lines += [
-            f"HwLoadLoop{self.cmp_counter}:",
-            "cp 0",
-            f"jp z, HwLoadLoopDone{self.cmp_counter}",
+            f"ld e, {skip}",
+            f"ld c, {instruction.index}",
+            "ld b, 0",
+            "ld d, 8",
+            "ld hl, 0",
+            f"loop{self.cmp_counter-1}:",
+            "srl e",
+            f"jp nc, no_add{self.cmp_counter-2}",
             "add hl, bc",
-            "dec a",
-            f"jp HwLoadLoop{self.cmp_counter}",
-            f"HwLoadLoopDone{self.cmp_counter}:",
-            "ld a, [hl]",
-            "pop hl",
-            "pop de",
+            f"no_add{self.cmp_counter-2}:",
+            "sla c",
+            "rl b",
+            "dec d",
+            f"jp nz, loop{self.cmp_counter-1}",
+            f"ld bc, {self.registerDict[instruction.register]}", # offset in hl, base in bc
+            f"add hl, bc",
             "pop bc",
+            f"ld {instruction.dest}, [hl]",
+            "pop hl",
+            "pop de\n",
         ]
 
-        # Optional register transfer
-        if instruction.dest != 'a':
-            lines.append(f"ld {instruction.dest}, a")
-
-        self.cmp_counter += 1
-
-        lines.append("\n")
-        
-        returnstr = "\n".join(lines)
-            
-        return returnstr
+        return "\n".join(lines)
 
     def generate_HardwareIndexedStore(self, instruction: IRHardwareIndexedStore) -> str:
+        if "display_oam" in instruction.register:
+            skip = 4
+        else:
+            skip = 1
+
+        self.cmp_counter += 2
+
         lines = [
-            f"ld a, {instruction.index}",
-            f"ld d, {instruction.value}",
             "push bc",
             "push de",
             "push hl",
-            f"ld hl, {self.registerDict[instruction.register]}",
-        ]
-
-        # Conditionally add the `ld bc` line
-        if "display_oam" in instruction.register:
-            lines.append("ld bc, 4")
-        else:
-            lines.append("ld bc, 1")
-
-        lines += [
-            f"HwStoreLoop{self.cmp_counter}:",
-            "cp 0",
-            f"jp z, HwStoreLoopDone{self.cmp_counter}",
+            f"ld a, {instruction.value}",
+            f"ld e, {skip}",
+            f"ld c, {instruction.index}",
+            "ld b, 0",
+            "ld d, 8",
+            "ld hl, 0",
+            f"loop{self.cmp_counter-1}:",
+            "srl e",
+            f"jp nc, no_add{self.cmp_counter-2}",
             "add hl, bc",
-            "dec a",
-            f"jp HwStoreLoop{self.cmp_counter}",
-            f"HwStoreLoopDone{self.cmp_counter}:",
-            "ld a, d",
-            "ld [hl], a",
+            f"no_add{self.cmp_counter-2}:",
+            "sla c",
+            "rl b",
+            "dec d",
+            f"jp nz, loop{self.cmp_counter-1}",
+            f"ld bc, {self.registerDict[instruction.register]}", # offset in hl, base in bc
+            f"add hl, bc",
+            f"ld [hl], a",
             "pop hl",
             "pop de",
-            "pop bc",
+            "pop bc\n",
         ]
 
-        self.cmp_counter += 1
-
-        lines.append("\n")
-
-        returnstr = "\n".join(lines)
-        
-        return returnstr
+        return "\n".join(lines)
 
     def generate_HardwareIndexedDoubleLoad(self, instruction: IRHardwareIndexedDoubleLoad) -> str:
+        self.cmp_counter += 2
+
+        lines = [
+            "push hl",
+            "push de",
+            "push bc",
+            f"ld l, {instruction.index}",
+            f"ld e, 32",
+            f"ld c, {instruction.index2}",
+            "ld b, 0",
+            "ld d, 8",
+            "ld h, 0",
+            f"loop{self.cmp_counter-1}:",
+            "srl e",
+            f"jp nc, no_add{self.cmp_counter-2}",
+            "add hl, bc",
+            f"no_add{self.cmp_counter-2}:",
+            "sla c",
+            "rl b",
+            "dec d",
+            f"jp nz, loop{self.cmp_counter-1}",
+            f"ld bc, {self.registerDict[instruction.register]}", # offset in hl, base in bc
+            f"add hl, bc",
+            "pop bc",
+            "pop de",
+            f"ld {instruction.dest}, [hl]",
+            "pop hl\n"
+        ]
+
+        return "\n".join(lines)
 
         lines = [
             "push bc",
@@ -885,7 +924,7 @@ class CodeGenerator:
             "push hl",
             f"ld a, {instruction.index}",
             f"ld hl, {self.registerDict[instruction.register]}",
-            "ld de, 0",
+            f"ld de, 0",
             f"ld d, {instruction.index2}",
         ]
 
@@ -928,49 +967,37 @@ class CodeGenerator:
         return returnstr
 
     def generate_HardwareIndexedDoubleStore(self, instruction: IRHardwareIndexedDoubleStore) -> str:
+        self.cmp_counter += 2
+
         lines = [
-            f"ld a, {instruction.index}",
-            f"ld d, {instruction.index2}",
-            f"ld e, {instruction.value}",  # The value to store will be in 'e'
             "push bc",
             "push de",
             "push hl",
-            f"ld hl, {self.registerDict[instruction.register]}",
-            "ld bc, 1",  # Default stride for the first index
-        ]
-
-        # Loop code for the first index
-        lines += [
-            f"HwStoreLoop{self.cmp_counter}:",
-            "cp 0",
-            f"jp z, HwStoreSecondLoopStart{self.cmp_counter}",  # Move to the second loop if a is zero
+            f"ld a, {instruction.value}",
+            f"ld l, {instruction.index}",
+            f"ld e, 32",
+            f"ld c, {instruction.index2}",
+            "ld b, 0",
+            "ld d, 8",
+            "ld h, 0",
+            f"loop{self.cmp_counter-1}:",
+            "srl e",
+            f"jp nc, no_add{self.cmp_counter-2}",
             "add hl, bc",
-            "dec a",
-            f"jp HwStoreLoop{self.cmp_counter}",
-            f"HwStoreSecondLoopStart{self.cmp_counter}:",
-            "ld a, d",  # Load the outer loop counter into a
-            "ld bc, 32",  # Stride for the second index
-            f"HwSecondStoreLoop{self.cmp_counter}:",
-            "cp 0",
-            f"jp z, HwStoreLoopDone{self.cmp_counter}",  # Move to the final store if d is zero
-            "add hl, bc",
-            "dec a",
-            f"jp HwSecondStoreLoop{self.cmp_counter}",
-            f"HwStoreLoopDone{self.cmp_counter}:",
-            "ld a, e",  # Load the value to store into 'a'
-            "ld [hl], a",
+            f"no_add{self.cmp_counter-2}:",
+            "sla c",
+            "rl b",
+            "dec d",
+            f"jp nz, loop{self.cmp_counter-1}",
+            f"ld bc, {self.registerDict[instruction.register]}", # offset in hl, base in bc
+            f"add hl, bc",
+            f"ld [hl], a",
             "pop hl",
             "pop de",
-            "pop bc",
+            "pop bc\n"
         ]
 
-        self.cmp_counter += 1
-
-        lines.append("\n")
-
-        returnstr = "\n".join(lines)
-
-        return returnstr
+        return "\n".join(lines)
 
     def generate_HardwareMemCpy(self,instruction: IRHardwareMemCpy) -> str:
         lines = [
