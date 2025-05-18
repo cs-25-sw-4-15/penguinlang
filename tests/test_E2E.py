@@ -164,6 +164,7 @@ def test_multiplication_1():
 
     teardown()
 
+
 def test_multiplication_2():
     """
     End-to-end test for a multiplication operation with overflow.
@@ -384,6 +385,7 @@ def test_logical_operators():
 
     teardown()
 
+
 def test_right_shift():
     """
     End-to-end test for right shift operator (>>).
@@ -405,6 +407,8 @@ def test_right_shift():
     pyboy.stop()
 
     assert result == 6
+
+    teardown()
 
 def test_bitwise_shifts():
     """
@@ -588,7 +592,6 @@ def test_binary_load_to_vram_behavior():
     teardown()
 
 
-# tilemap test
 def test_load_binary_tilemap_to_vram_behavior():
     """
     End-to-end test for including binary files in rom, and loading them to VRAM
@@ -658,6 +661,8 @@ def test_function_call_inside_function_call():
 
     assert result == 3
 
+    teardown()
+
 
 def test_linear_recursion():
     """
@@ -687,6 +692,8 @@ def test_linear_recursion():
     pyboy.stop()
 
     assert result == 20
+
+    teardown()
 
 
 def test_function_call_inside_loop():
@@ -718,6 +725,8 @@ def test_function_call_inside_loop():
 
     assert result == 5
 
+    teardown()
+
 
 # input test
 def test_input():
@@ -744,6 +753,8 @@ def test_input():
 
     pyboy.stop()
 
+    teardown()
+
 
 def test_local_variable_in_procedure():
     """
@@ -769,6 +780,8 @@ def test_local_variable_in_procedure():
     pyboy.stop()
 
     assert result == 2
+
+    teardown()
 
 
 def test_double_index_tilemap_store():
@@ -811,7 +824,7 @@ def test_double_index_tilemap_store():
     assert result == 69
     assert result2 == 69
 
-    #teardown()
+    teardown()
 
 def test_oam_index_tilemap_store():
     """
