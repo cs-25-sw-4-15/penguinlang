@@ -470,6 +470,7 @@ class IRGenerator:
                     
                 for stmt in statement.body:
                     self.visit(stmt)
+                self.add_instruction(IRReturn())
                 self.current_procedure = None
                 
             else:
