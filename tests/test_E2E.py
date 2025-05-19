@@ -880,3 +880,45 @@ def test_oam_index_tilemap_store():
     assert result2 == 69
 
     teardown()
+
+
+def test_if_else_in_procedure():
+    """
+    End-to-end test for if-else branching in a procedure and multiple procedures modifying the same global variable.
+    """
+    source_code = """
+    int Result = 0;
+    int Condition = 1;
+
+    procedure test() {
+        if (Condition == 1) {
+            Result = 10;
+        } else {
+            Result = 20;
+        }
+    }
+    
+    procedure test2() {
+        Result = Result + 10;
+    }
+
+    procedure main() {
+        test();
+        test2();
+    }
+    main();
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    result = pyboy.memory[data_segment_start]
+
+    pyboy.stop()
+
+    assert result == 20
+
+    teardown()
