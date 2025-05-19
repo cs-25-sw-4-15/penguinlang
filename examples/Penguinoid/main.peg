@@ -1,7 +1,7 @@
-tileset tileset_block_0 = "unbricked_tileset.2bpp";
-tileset tileset_block_1 = "unbricked_tileset.2bpp";
-tileset tileset_block_2 = "unbricked_tileset.2bpp";
-tilemap tilemap0 = "unbricked_tilemap.bin";
+tileset tileset_block_0 = "penguinoid_tileset.2bpp";
+tileset tileset_block_1 = "penguinoid_tileset.2bpp";
+tileset tileset_block_2 = "penguinoid_tileset.2bpp";
+tilemap tilemap0 = "penguinoid_tilemap.bin";
 
 control_waitVBlankStart();
 control_LCDoff();
@@ -20,7 +20,7 @@ int WALL_BOTTOM = 9;
 int WALL_TOP = 1;
 
 int paddleX = 16;
-int paddleY = 128;
+int paddleY = 145;
 int ballX = 25;
 int ballY = 100;
 
@@ -63,14 +63,14 @@ procedure main() {
             left = control_checkLeft();
             right = control_checkRight();
             if (Xmomentum == 1) {
-                ballX = ballX + 1;
+                ballX = ballX + 2;
             } else {
-                ballX = ballX - 1;
+                ballX = ballX - 2;
             }
             if (Ymomentum == 1) {
-                ballY = ballY + 1;
+                ballY = ballY + 2;
             } else {
-                ballY = ballY - 1;
+                ballY = ballY - 2;
             }
 
 
@@ -155,7 +155,6 @@ procedure main() {
             display_oam_x[1] = ballX;
             display_oam_y[1] = ballY;
             display_oam_x[0] = paddleX;
-            display_oam_y[0] = paddleY;
             frame_count = 0;
         }
     }
