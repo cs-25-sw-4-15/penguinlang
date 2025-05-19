@@ -270,7 +270,7 @@ class TestTypeProcedureDef:
     def test_procedure_def_type3(self):
         # Test wrong procedure definition with sprite return type
         try:
-            taast = build_taast("procedure sprite foo() { int t = 2; }")
+            build_taast("procedure sprite foo() { int t = 2; }")
         except Exception as e:
             assert isinstance(e, InvalidTypeError), "InvalidTypeError #1 proc def -foo-> sprite"
     
@@ -313,21 +313,21 @@ class TestTypeProcedureDef:
     def test_procedure_def_scope1(self):
         # Test procedure definition inside body scope
         try:
-            taast = build_taast("procedure foo() { int x; int x; }")
+            build_taast("procedure foo() { int x; int x; }")
         except Exception as e:
             assert isinstance(e, DuplicateDeclarationError), "DuplicateDeclarationError #1 -x-> duplicate declaration"            
     
     def test_procedure_def_scope2(self):
         # test procedure definition formal param scope
         try:
-            taast = build_taast("procedure foo(int x) { int x; }")
+            build_taast("procedure foo(int x) { int x; }")
         except Exception as e:
             assert isinstance(e, DuplicateDeclarationError), "DuplicateDeclarationError #3 -x-> duplicate declaration"
     
     def test_procedure_def_scope3(self):
         # test procedure definition formal param scope
         try:
-            taast = build_taast("procedure foo(int x) { int y; sprite x; }")
+            build_taast("procedure foo(int x) { int y; sprite x; }")
         except Exception as e:
             assert isinstance(e, DuplicateDeclarationError), "DuplicateDeclarationError #4 -x-> duplicate declaration"
     
@@ -570,7 +570,7 @@ class TestTypeVariable:
     
     def test_variable_scope2(self):
         try:
-            taast = build_taast("x = 3;")
+            build_taast("x = 3;")
         except Exception as e:
             assert isinstance(e, UndeclaredVariableError), "UndeclaredVariableError #1 -x-> undeclared"
     
@@ -579,7 +579,7 @@ class TestTypeVariable:
         # attribute access case
         # this has been removed from use, and new dots cannot be made
         try: 
-            taast = build_taast("int x; x.x = 2;")
+            build_taast("int x; x.x = 2;")
         except Exception as e:
             assert isinstance(e, InvalidAttributeError), "InvalidAttributeError #1 -x-> invalid"
     

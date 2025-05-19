@@ -509,7 +509,6 @@ class IRGenerator:
         
         return method(node)
     
-    
     def visit_Program(self, node: Program) -> None:
         
         for statement in node.statements:
@@ -520,9 +519,7 @@ class IRGenerator:
         if self.current_procedure:
             pass
         
-    
     def visit_Assignment(self, node: Assignment) -> None:
-        
         value_temp = self.visit(node.value)
         
         if isinstance(node.target, Variable):
@@ -539,7 +536,6 @@ class IRGenerator:
                 else:
                     self.add_instruction(IRAssign(target_name, value_temp))
                     
-            
         elif isinstance(node.target, ListAccess):
             base_name = node.target.name
             

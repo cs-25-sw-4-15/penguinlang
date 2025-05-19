@@ -410,6 +410,7 @@ def test_right_shift():
 
     teardown()
 
+
 def test_left_shift():
     """
     End-to-end test for left shift operator (<<).
@@ -433,6 +434,7 @@ def test_left_shift():
     assert result == 12
 
     teardown()
+
 
 def test_bitwise_shifts():
     """
@@ -849,6 +851,7 @@ def test_double_index_tilemap_store():
     assert result2 == 69
 
     teardown()
+
 
 def test_oam_index_tilemap_store():
     """
