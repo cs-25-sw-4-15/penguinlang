@@ -519,7 +519,7 @@ class CodeGenerator:
             loop_lbl = f"SHR_LOOP_{self.cmp_counter}"
             end_lbl = f"SHR_END_{self.cmp_counter}"
             self.cmp_counter += 1
-            returnstr += f"; shift right begin\n"
+            returnstr += "; shift right begin\n"
             if instruction.left != 'a':
                 returnstr += f"ld a, {instruction.left}\n"
 
@@ -537,9 +537,8 @@ class CodeGenerator:
             if instruction.dest != 'a':
                 returnstr += f"ld {instruction.dest}, a\n"
 
-            returnstr += f"; shift right end\n"
+            returnstr += "; shift right end\n"
 
-                
             return returnstr
 
     def generate_UnaryOp(self,instruction: IRUnaryOp) -> str:
@@ -745,7 +744,7 @@ class CodeGenerator:
             "dec d",
             f"jp nz, loop{self.cmp_counter-1}",
             f"ld bc, {self.registerDict[instruction.register]}", # offset in hl, base in bc
-            f"add hl, bc",
+            "add hl, bc",
             "pop bc",
             f"ld {instruction.dest}, [hl]",
             "pop hl",
@@ -782,8 +781,8 @@ class CodeGenerator:
             "dec d",
             f"jp nz, loop{self.cmp_counter-1}",
             f"ld bc, {self.registerDict[instruction.register]}", # offset in hl, base in bc
-            f"add hl, bc",
-            f"ld [hl], a",
+            "add hl, bc",
+            "ld [hl], a",
             "pop hl",
             "pop de",
             "pop bc\n",
@@ -799,7 +798,7 @@ class CodeGenerator:
             "push de",
             "push bc",
             f"ld l, {instruction.index}",
-            f"ld e, 32",
+            "ld e, 32",
             f"ld c, {instruction.index2}",
             "ld b, 0",
             "ld d, 8",
@@ -814,7 +813,7 @@ class CodeGenerator:
             "dec d",
             f"jp nz, loop{self.cmp_counter-1}",
             f"ld bc, {self.registerDict[instruction.register]}", # offset in hl, base in bc
-            f"add hl, bc",
+            "add hl, bc",
             "pop bc",
             "pop de",
             f"ld {instruction.dest}, [hl]",
@@ -832,7 +831,7 @@ class CodeGenerator:
             "push hl",
             f"ld a, {instruction.value}",
             f"ld l, {instruction.index}",
-            f"ld e, 32",
+            "ld e, 32",
             f"ld c, {instruction.index2}",
             "ld b, 0",
             "ld d, 8",
@@ -847,8 +846,8 @@ class CodeGenerator:
             "dec d",
             f"jp nz, loop{self.cmp_counter-1}",
             f"ld bc, {self.registerDict[instruction.register]}", # offset in hl, base in bc
-            f"add hl, bc",
-            f"ld [hl], a",
+            "add hl, bc",
+            "ld [hl], a",
             "pop hl",
             "pop de",
             "pop bc\n"
