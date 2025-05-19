@@ -1,16 +1,8 @@
-""" Code Generation for the Penguin Compiler
-
-Generates assembly code from an IR program.
-"""
-
-# Stdlib imports
 import os
 import sys
 
-# Extend module paths
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-# Custom modules
 from src.IRProgram import *
 from src.codegenRegisters import *
 from src.logger import logger
@@ -19,9 +11,6 @@ from src.logger import logger
 class CodeGenerator:
 
     def __init__(self):
-        """
-        Initialize the code generator.
-        """
         
         self.variable_address_dict = {}
         self.cmp_counter = 0
@@ -29,18 +18,8 @@ class CodeGenerator:
         self.include_binaries = []
 
     def generate_code(self, ir_program: IRProgram) -> str:
-        """
-        Generate assembly code from an IR program.
-        
-        Args:
-            ir_program: The IR program to generate code for
-            
-        Returns:
-            A string containing the generated assembly code
-        """
         
         self.variable_address_dict = ir_program.global_address
-        # Initialize the assembly code string
         assembly_code = ""
         
         assembly_code += self.header()
@@ -51,17 +30,13 @@ class CodeGenerator:
         assembly_code += "ld [wCurKeys], a\n"
         assembly_code += "ld [wNewKeys], a\n"
 
-        # Iterate over each instruction in the IR program
         for instruction in ir_program.main_instructions:
-            # Convert the instruction to assembly code
             assembly_line = self.generate(instruction)
             
-            # Append the assembly line to the code string
             if assembly_line:
                 assembly_code += assembly_line + "\n"
 
         for procedure in ir_program.procedures.items():
-            # add label for procedure
             if procedure[0] not in self.footer():
                 assembly_code += f"Label{procedure[0]}:\n"
             
@@ -91,12 +66,6 @@ class CodeGenerator:
         return "\n".join(formatted_lines)
 
     def header(self) -> str:
-        """
-        Generate the header for the assembly code.
-        
-        Returns:
-            A string containing the header
-        """
 
         headerstr = """
         INCLUDE "hardware.inc"
@@ -110,12 +79,6 @@ class CodeGenerator:
         return headerstr
 
     def footer(self) -> str:
-        """
-        Generate the footer for the assembly code.
-        
-        Returns:
-            A string containing the footer
-        """
         footerstr = """
         PenguinDone:
         nop
@@ -294,32 +257,24 @@ class CodeGenerator:
             
         # ==
         elif instruction.op == '==':
-            # If the left operand is already in the accumulator, we can skip loading and directly compare to the right.
-            # Otherwise we load left into A first.
             true_lbl = f"EQ_TRUE_{self.cmp_counter}"
             end_lbl = f"EQ_END_{self.cmp_counter}"
             self.cmp_counter += 1
 
-            # load left into accumulator if needed, then compare to right
             if instruction.left != 'a':
                 returnstr += f"ld a, {instruction.left}\n"
                 
             returnstr += f"cp {instruction.right}\n"
 
-            # default false
             returnstr += f"ld {instruction.dest}, 0\n"
             
-            # if zero flag set (A == right), jump to true
             returnstr += f"jp z, {true_lbl}\n"
             
-            # else skip to end
             returnstr += f"jp {end_lbl}\n"
 
-            # true branch: set dest = 1
             returnstr += f"{true_lbl}:\n"
             returnstr += f"ld {instruction.dest}, 1\n"
             
-            # end label
             returnstr += f"{end_lbl}:\n"
 
             return returnstr
@@ -342,16 +297,13 @@ class CodeGenerator:
             returnstr += f"{end_lbl}:\n"
             
             return returnstr
-        # Bitwise and, &
+        
         elif instruction.op == '&':
-            # If A already holds one operand, AND the other; otherwise load left into A first
             if instruction.left == 'a':
                 returnstr += f"and {instruction.right}\n"
-            # If the right operand is already in the accumulator, AND the left
             elif instruction.right == 'a':
                 returnstr += f"and {instruction.left}\n"
             else:
-                # Neither operand is in A
                 returnstr += f"ld a, {instruction.left}   ; load left into A\n"
                 returnstr += f"and {instruction.right}\n"
             if instruction.dest != 'a':
@@ -359,13 +311,11 @@ class CodeGenerator:
             return returnstr
 
         # Logical AND 
-            # A And B = Must be 0
         elif instruction.op == 'and':
             true_lbl = f"AND_TRUE_{self.cmp_counter}"
             end_lbl = f"AND_END_{self.cmp_counter}"
             self.cmp_counter += 1
 
-            # assume false. If both are ≠ 0, then jump to true label
             returnstr += f"ld {instruction.dest}, 0    ; assume false\n"
             # if left == 0, end (false)
             if instruction.left != 'a':
@@ -388,23 +338,18 @@ class CodeGenerator:
         elif instruction.op == '|':
             if instruction.left == 'a':
                 returnstr += f"or {instruction.right}\n"
-            # If the right operand is in A, OR the left
             elif instruction.right == 'a':
                 returnstr += f"or {instruction.left}\n"
             else:
-                # Neither operand in A, so load left first
                 returnstr += f"ld a, {instruction.left}   ; load left into A\n"
                 returnstr += f"or {instruction.right}\n"
 
-            # Store the result if dest ≠ A
             if instruction.dest != 'a':
                 returnstr += f"ld {instruction.dest}, a   ; store\n"
             return returnstr
 
         # Logical OR
-            # A OR B Must not be 0
         elif instruction.op == 'or':
-            # Assume true. If both operands == 0, then jump to false label
             true_lbl = f"OR_TRUE_{self.cmp_counter}"
             end_lbl = f"OR_END_{self.cmp_counter}"
             self.cmp_counter += 1
@@ -432,19 +377,15 @@ class CodeGenerator:
         
         # ^, xor
         elif instruction.op == '^':
-            # If the left operand is already in the accumulator, we can skip loading and just 'xor' the right.
             if instruction.left == 'a':
                 returnstr += f"xor {instruction.right}\n"
                 
-            # if the right operand is already in the accumulator, we can just 'xor' the left.
             elif instruction.right == 'a':
                 returnstr += f"xor {instruction.left}\n"
             else:
-                # None of the operands are in the accumulator, so we load left into the accumulator first.
                 returnstr += f"ld a, {instruction.left}\n"
                 returnstr += f"xor {instruction.right}\n"
 
-            # After the 'xor' instruction, the result is in the accumulator.
             if instruction.dest != 'a':
                 returnstr += f"ld {instruction.dest}, a\n"
                 
@@ -452,156 +393,121 @@ class CodeGenerator:
         
         # > greater than
         elif instruction.op == '>':
-            # If the left operand is not already in the accumulator, load it into A.
             true_lbl = f"GT_TRUE_{self.cmp_counter}"
             end_lbl = f"GT_END_{self.cmp_counter}"
             self.cmp_counter += 1
 
-            # Load left into the accumulator if needed, then compare to right
             if instruction.left != 'a':
                 returnstr += f"ld a, {instruction.left}\n"
                 
             returnstr += f"cp {instruction.right}\n"
 
-            # Assume false: set dest = 0
             returnstr += f"ld {instruction.dest}, 0\n"
             
-            # If carry flag set (A < right), skip the true branch
             returnstr += f"jp c, {end_lbl}\n"
             
-            # If zero flag set (A == right), skip the true branch
             returnstr += f"jp z, {end_lbl}\n"
 
-            # True branch: A > right
             returnstr += f"{true_lbl}:\n"
             returnstr += f"ld {instruction.dest}, 1\n"
             
-            # End label
             returnstr += f"{end_lbl}:\n"
             
             return returnstr
         
         # < less than
         elif instruction.op == '<':
-            # If the left operand is not already in the accumulator, load it into A.
             true_lbl = f"LT_TRUE_{self.cmp_counter}"
             end_lbl = f"LT_END_{self.cmp_counter}"
             self.cmp_counter += 1
 
-            # Load left into the accumulator (A) if needed, then compare to right
             if instruction.left != 'a':
                 returnstr += f"ld a, {instruction.left}\n"
                 
             returnstr += f"cp {instruction.right}\n"
 
-            # Assume false: set dest = 0
             returnstr += f"ld {instruction.dest}, 0\n"
             
-            # If carry flag set (A < right), skip the true branch
             returnstr += f"jp c, {true_lbl}\n"
             
-            # Otherwise skip over the true branch. 
             returnstr += f"jp {end_lbl}\n"
 
-            # True branch: A < right, so dest = 1
             returnstr += f"{true_lbl}:\n"
             returnstr += f"ld {instruction.dest}, 1\n"
             
-            # End label
             returnstr += f"{end_lbl}:\n"
 
             return returnstr
         
         # <= less than or equal
         elif instruction.op == '<=':
-            # Generate unique labels for the true and end branches
             true_lbl = f"LE_TRUE_{self.cmp_counter}"
             end_lbl = f"LE_END_{self.cmp_counter}"
             self.cmp_counter += 1
 
-            # Load left into A if needed, then compare to right
             if instruction.left != 'a':
                 returnstr += f"ld a, {instruction.left}\n"
                 
             returnstr += f"cp {instruction.right}\n"
 
-            # Assume false: dest = 0
             returnstr += f"ld {instruction.dest}, 0\n"
             
-            # If carry flag set (A < right), jump to true branch
             returnstr += f"jp c, {true_lbl}\n"
             
-            # If zero flag set (A == right), also jump to true branch
             returnstr += f"jp z, {true_lbl}\n"
             
-            # Otherwise skip over the true branch
             returnstr += f"jp {end_lbl}\n"
 
-            # True branch: A <= right, so dest = 1
             returnstr += f"{true_lbl}:\n"
             
             returnstr += f"ld {instruction.dest}, 1\n"
             
-            # End label
             returnstr += f"{end_lbl}:\n"
 
             return returnstr
         
         # >= greater than or equal to
         elif instruction.op == '>=':
-            # Generate unique labels for the true and end branches
             true_lbl = f"GE_TRUE_{self.cmp_counter}"
             end_lbl = f"GE_END_{self.cmp_counter}"
             self.cmp_counter += 1
 
-            # Load left into the accumulator if needed, then compare to right
             if instruction.left != 'a':
                 returnstr += f"ld a, {instruction.left}\n"
                 
             returnstr += f"cp {instruction.right}\n"
 
-            # Assume false: set dest = 0
             returnstr += f"ld {instruction.dest}, 0\n"
             
-            # If zero flag set (A == right), jump to true branch
             returnstr += f"jp z, {true_lbl}\n"
             
-            # If carry flag is not set (A >= right), jump to true branch
             returnstr += f"jp nc, {true_lbl}\n"
             
-            # Otherwise skip over the true branch
             returnstr += f"jp {end_lbl}\n"
 
-            # True branch: A >= right, so dest = 1
             returnstr += f"{true_lbl}:\n"
             returnstr += f"ld {instruction.dest}, 1\n"
             
-            # End label
             returnstr += f"{end_lbl}:\n"
 
             return returnstr
         
         # << shift left
         elif instruction.op == '<<':
-            # Generate unique labels for our shift loop
             loop_lbl = f"SHL_LOOP_{self.cmp_counter}"
             end_lbl = f"SHL_END_{self.cmp_counter}"
             self.cmp_counter += 1
 
-            # Load the value to shift into the accumulator (A) if needed
             if instruction.left != 'a':
                 returnstr += f"ld a, {instruction.left}\n"
                 
-            # Load the shift count into B
             returnstr += f"ld b, {instruction.right}\n"
 
-            # Loop: When shifting left, all newly-inserted bits are reset. Shifted on to A, then decrement B, repeat while B ≠ 0
             returnstr += f"{loop_lbl}:\n"
             returnstr += "sla a       ; shift A left by 1 bit\n"
             returnstr += "dec b       ; decrement loop counter\n"
             returnstr += f"jp nz, {loop_lbl}   ; repeat until B == 0\n"
 
-            # After shifting, result is in A. Store it if dest ≠ A
             if instruction.dest != 'a':
                 returnstr += f"ld {instruction.dest}, a\n"
                 
@@ -610,21 +516,17 @@ class CodeGenerator:
         # >> shift right (sign extension)
         elif instruction.op == '>>':
 
-            # Generate unique labels for our shift loop
             loop_lbl = f"SHR_LOOP_{self.cmp_counter}"
             end_lbl = f"SHR_END_{self.cmp_counter}"
             self.cmp_counter += 1
             returnstr += f"; shift right begin\n"
-            # Load the value to shift into the accumulator (A) if needed
             if instruction.left != 'a':
                 returnstr += f"ld a, {instruction.left}\n"
 
             returnstr += "push bc\n"
                 
-            # Load the shift count into B
             returnstr += f"ld b, {instruction.right}\n"
 
-            # Loop: when shifting right, they are copies of the original most significant bit instead. repeat while B ≠ 0
             returnstr += f"{loop_lbl}:\n"
             returnstr += "srl a       ; shift A right by (logical)\n"
             returnstr += "dec b\n"
@@ -632,7 +534,6 @@ class CodeGenerator:
 
             returnstr += "pop bc\n"
 
-            # After shifting, result is in A. Store it if dest ≠ A
             if instruction.dest != 'a':
                 returnstr += f"ld {instruction.dest}, a\n"
 
@@ -646,11 +547,11 @@ class CodeGenerator:
 
         # ~
         if instruction.op == '~':
-            returnstr += 'temp\n'
+            returnstr += ';Not implemented\n'
 
         # not
         elif instruction.op == 'not':
-            returnstr += 'temp\n'
+            returnstr += ';Not implemented\n'
 
         return returnstr  
 
@@ -744,7 +645,6 @@ class CodeGenerator:
         lines.append("push de")
         lines.append("push hl")
 
-        # Place variables on the stack
         for param in instruction.args:
             lines.append("dec sp")
             lines.append("ld hl, sp + 0")
@@ -756,15 +656,12 @@ class CodeGenerator:
             lines.append(f"ld {listofregs[i]}, [hl]")
             lines.append("add sp, 1")
 
-        # Call the procedure
         lines.append(f"call Label{instruction.proc_name}")
 
-        # Result is in A
         lines.append("pop hl")
         lines.append("pop de")
         lines.append("pop bc")
 
-        # Store result in destination register if specified
         if instruction.dest:
             lines.append(f"ld {instruction.dest}, a")
 

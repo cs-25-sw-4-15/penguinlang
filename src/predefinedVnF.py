@@ -1,35 +1,17 @@
-"""Prdefines Functions and Variables for the Penguin Language
-
-Predefined hardware registers and functions for the Penguin language.
-This file defines built-in hardware elements that are available to all programs.
-"""
-
-# Stdlib imports
 import os
 import sys
 from typing import Dict, List, Tuple
 
-# Extend module paths
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-# Custom modules
 from src.astTypes import *
 
 
 def initialize_hardware_elements() -> Tuple[Dict[str, Type], Dict[str, Tuple[List[Tuple[str, Type]], Type]]]:
-    """
-    Initialize all predefined hardware modules, registers, and functions.
-   
-    Returns:
-        Tuple containing:
-        - Dictionary mapping variable names to their types
-        - Dictionary mapping procedure names to (param_types, return_type)
-    """
+
     symbol_table: Dict[str, Type] = {}
     procedure_table: Dict[str, Tuple[List[Tuple[str, Type]], Type]] = {}
    
-    # Display subsystems - these are special hardware elements
-    # They are of their specific type, but can be indexed like arrays
     symbol_table["display_tileset_block_0"] = TilesetType()  # Tileset that can be indexed
     symbol_table["display_tileset_block_1"] = TilesetType()  # Tileset that can be indexed
     symbol_table["display_tileset_block_2"] = TilesetType()  # Tileset that can be indexed

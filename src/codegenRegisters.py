@@ -1,8 +1,3 @@
-""" Register file for the Penguin compiler
-
-This file contains memory addresses for the hardware registers
-"""
-
 
 def codegenRegister() -> dict[str,str]:
     dict_to_return = {}

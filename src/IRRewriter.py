@@ -1,30 +1,14 @@
-"""IR Rewriter for Penguin Language Compiler
-
-This module rewrites the intermediate representation (IR) to use allocated
-registers and handle spilled variables.
-"""
-
-# Stdlib imports
 import os
 import sys
 from typing import Dict, List, Optional
 
-# Extend module paths
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-# Custom modules
 from src.IRProgram import *
 from src.logger import logger
 
 
 class IRRewriter:
-    """
-    Rewrites the IR code to use register allocations and handle spilled variables.
-    
-    After register allocation, this class transforms the IR to:
-    1. Replace variable references with register references
-    2. Insert load/store instructions for spilled variables
-    """
     
     def __init__(self):
         self.current_allocations = {}  # Current variable allocations for the procedure
@@ -34,25 +18,12 @@ class IRRewriter:
         self.is_register = None  # Function to check if an allocation is a register
         
     def rewrite_program(self, ir_program: IRProgram, allocations: Dict[str, Dict[str, str]]) -> IRProgram:
-        """
-        Rewrite an entire IR program to use register allocations.
         
-        Args:
-            ir_program: The original IR program
-            allocations: Register allocations for each procedure
-            
-        Returns:
-            A new IR program with register allocations applied
-        """
-        
-        # Create a new IR program
         new_program = IRProgram()
         
-        # Copy globals
         new_program.globals = ir_program.globals.copy()
         new_program.global_address = ir_program.global_address.copy()
         
-        # Rewrite main section
         if ir_program.main_instructions:
             self.proc_name = "main"
             self.current_allocations = allocations.get("_global", {})
@@ -62,32 +33,22 @@ class IRRewriter:
             rewritten_main = self.rewrite_instructions(ir_program.main_instructions)
             new_program.main_instructions = rewritten_main
         
-        # Rewrite each procedure
         for proc_name, procedure in ir_program.procedures.items():
             self.proc_name = proc_name
             self.current_allocations = allocations.get(proc_name, {})
             self.spill_slots = {}
             self.next_spill_slot = 0
             
-            # Create a new procedure with the same signature
             new_proc = IRProcedure(procedure.name, procedure.params.copy(), procedure.return_type)
             
-            # Rewrite the procedure body
             rewritten_body = self.rewrite_instructions(procedure.instructions)
             new_proc.instructions = rewritten_body
             
-            # Add the procedure to the new program
             new_program.add_procedure(new_proc)
         
         return new_program
     
     def set_is_register_fn(self, is_register_fn):
-        """
-        Set the function to check if an allocation is a register.
-        
-        Args:
-            is_register_fn: A function that takes an allocation string and returns True if it's a register
-        """
         
         self.is_register = is_register_fn
     
@@ -115,7 +76,6 @@ class IRRewriter:
         if rewrite_method:
             return rewrite_method(instr)
         else:
-            # Default: just return the instruction unchanged
             return [instr]
     
     def _rewrite_IRAssign(self, instr: IRAssign) -> List[IRInstruction]:
@@ -144,7 +104,6 @@ class IRRewriter:
                 result.append(IRStore(dest_alloc, temp_reg))
                 
         else:
-            # Destination doesn't have an allocation - keep original
             result.append(instr)
         
         return result
