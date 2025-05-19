@@ -1,31 +1,14 @@
-"""
-Liveness Analyzer for Penguin Language Compiler
-
-This module analyzes the liveness of variables in the intermediate representation (IR)
-to enable efficient register allocation.
-"""
-
-# Stdlib imports
 import os
 import sys
 from typing import Dict, List, Set, Tuple
 
-# Extend module paths
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-# Custom modules
 from src.IRProgram import *
 from src.logger import logger
 
 
 class LivenessAnalyzer:
-    """
-    Analyzes the liveness of variables in the IR code.
-    
-    Liveness analysis determines which variables are "live" at each point in the program.
-    A variable is live at a particular program point if its value may be read before 
-    its next definition.
-    """
     
     def __init__(self):
         self.cfg = {}  # Control flow graph: mapping from instruction index to list of successor indices
@@ -38,17 +21,7 @@ class LivenessAnalyzer:
         self.proc_name = ""  # Current procedure name
     
     def analyze_program(self, ir_program: IRProgram) -> Dict[str, Dict[int, Set[str]]]:
-        """
-        Analyze liveness for all procedures in the program.
-        
-        Args:
-            ir_program: The IR program to analyze
-            
-        Returns:
-            A dictionary mapping procedure names to their liveness information
-            (which maps instruction indices to sets of live variables)
-        """
-        
+
         result = {}
         
         # Analyze main section
@@ -64,15 +37,6 @@ class LivenessAnalyzer:
         return result
     
     def analyze_instructions(self, instructions: List[IRInstruction]) -> Dict[int, Set[str]]:
-        """
-        Analyze liveness for a set of instructions.
-        
-        Args:
-            instructions: The list of IR instructions to analyze
-            
-        Returns:
-            A dictionary mapping instruction indices to sets of live variables
-        """
         
         if not instructions:
             return {}
@@ -91,13 +55,6 @@ class LivenessAnalyzer:
         return result
     
     def identify_basic_blocks(self) -> None:
-        """
-        Identify the basic blocks in the instructions.
-        A basic block is a sequence of instructions with:
-        - One entry point (the first instruction)
-        - One exit point (the last instruction)
-        - No branching except at the last instruction
-        """
         
         # TODO: make less complex
         
@@ -130,12 +87,7 @@ class LivenessAnalyzer:
                             self.leaders.add(j)
                             break
     
-    def build_cfg(self) -> None:
-        """
-        Build the control flow graph (CFG) for the instructions.
-        The CFG represents the flow of control between basic blocks.
-        """
-        
+    def build_cfg(self) -> None:        
         # TODO: make less complex
         
         self.cfg = {i: [] for i in range(len(self.instructions))}
@@ -173,11 +125,6 @@ class LivenessAnalyzer:
                     self.cfg[i].append(i + 1)
     
     def initialize_def_use(self) -> None:
-        """
-        Initialize the def_vars and use_vars lists for each instruction.
-        def_vars: variables defined (written to) by the instruction
-        use_vars: variables used (read from) by the instruction
-        """
         
         self.def_vars = [set() for _ in range(len(self.instructions))]
         self.use_vars = [set() for _ in range(len(self.instructions))]
@@ -186,14 +133,6 @@ class LivenessAnalyzer:
             self._analyze_instr_def_use(i, instr)
     
     def _analyze_instr_def_use(self, idx: int, instr: IRInstruction) -> None:
-        """
-        Analyze which variables are defined and used by a single instruction.
-        
-        Args:
-            idx: The index of the instruction
-            instr: The instruction to analyze
-        """
-        
         # TODO: make less complex
         
         if isinstance(instr, IRAssign):
@@ -274,23 +213,11 @@ class LivenessAnalyzer:
             self.def_vars[idx].add(instr.dest)
     
     def _add_if_var(self, var_set: Set[str], name: str) -> None:
-        """
-        Add a name to a set if it's a variable (not a constant or label).
-        
-        Args:
-            var_set: The set to add to
-            name: The name to add
-        """
         
         if isinstance(name, str) and not name.isdigit() and not name.startswith('"') and not name.startswith("'"):
             var_set.add(name)
     
     def compute_liveness(self) -> None:
-        """
-        Compute the liveness information for all instructions.
-        Uses an iterative algorithm to propagate liveness information
-        backward through the control flow graph.
-        """
         
         n = len(self.instructions)
         self.live_in = [set() for _ in range(n)]
@@ -324,13 +251,6 @@ class LivenessAnalyzer:
                     self.live_out[i] = new_live_out
     
     def get_live_ranges(self) -> Dict[str, Tuple[int, int]]:
-        """
-        Compute the live ranges for each variable.
-        A live range is the span of instructions where a variable is live.
-        
-        Returns:
-            A dictionary mapping variable names to their live ranges as (start, end) tuples
-        """
         
         variables = set()
         for i in range(len(self.instructions)):
@@ -354,13 +274,6 @@ class LivenessAnalyzer:
         return ranges
     
     def get_interference_graph(self) -> Dict[str, Set[str]]:
-        """
-        Compute the interference graph for variables.
-        Two variables interfere if they are live at the same time.
-        
-        Returns:
-            A dictionary mapping variable names to sets of variables they interfere with
-        """
         
         variables = set()
         for i in range(len(self.instructions)):
