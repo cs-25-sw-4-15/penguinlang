@@ -36,6 +36,8 @@ class CodeGenerator:
             if assembly_line:
                 assembly_code += assembly_line + "\n"
 
+        assembly_code += "jp PenguinDone\n"
+
         for procedure in ir_program.procedures.items():
             if procedure[0] not in self.footer():
                 assembly_code += f"Label{procedure[0]}:\n"

@@ -925,3 +925,32 @@ def test_if_else_in_procedure():
     assert result == 20
 
     teardown()
+
+
+# function that returns nothing, returning test
+def test_procedure_return_nothing():
+    """
+    End-to-end test for a procedure that returns nothing.
+    """
+    source_code = """
+    int Result = 0;
+
+    procedure ReturnNothing() {
+        return;
+    }
+
+    ReturnNothing();
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    result = pyboy.memory[data_segment_start]
+    pyboy.stop()
+
+    assert result == 0
+
+    teardown()
