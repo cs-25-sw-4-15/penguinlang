@@ -410,6 +410,30 @@ def test_right_shift():
 
     teardown()
 
+def test_left_shift():
+    """
+    End-to-end test for left shift operator (<<).
+    """
+    source_code = """
+    int Result = 0;
+    int A = 3;
+
+    Result = (A << 2) + (A << 2);
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    result = pyboy.memory[data_segment_start]
+    pyboy.stop()
+
+    assert result == 12
+
+    teardown()
+
 def test_bitwise_shifts():
     """
     End-to-end test for left (<<) and right (>>) shift operators.
