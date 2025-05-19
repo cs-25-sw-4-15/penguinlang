@@ -215,7 +215,7 @@ class Return(ASTNode):
         value (Any): The value to return from the function. (Sematically should only be integers)
     """
     
-    def __init__(self, value: ASTNode) -> None: 
+    def __init__(self, value: ASTNode | None) -> None: 
         self.value = value 
 
 

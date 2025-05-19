@@ -317,7 +317,10 @@ class TypeChecker:
         logger.info("Type checking return statement")
         
         # Type check the return value
-        value_type = self.check_node(node.value)
+        if(node.value):
+            value_type = self.check_node(node.value)
+        else:
+            value_type = VoidType()
         
         # Store the type in the node for later use 
         node.var_type = value_type 

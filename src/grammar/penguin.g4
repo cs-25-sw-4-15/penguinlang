@@ -92,7 +92,7 @@ argumentList
     ;
 
 returnStatement
-    : 'return' expression ';'
+    : 'return' expression ';' | 'return' ';' 
     ;
 
 procedureCallStatement

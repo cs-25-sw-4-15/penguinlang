@@ -266,13 +266,13 @@ class ASTGenerator(penguinVisitor):
         """Visits the return statement context and creates a Return AST node."""
         
         logger.info(f"Visiting return statement: {context.getText()}")
-        
-        value = self.visit(context.expression())
-        
-        assert value, "Return statement missing value"
-        logger.debug(f"Return statement value: {value}")
-        
-        return Return(value)
+        if(context.expression()):
+            value = self.visit(context.expression())
+            assert value, "Return statement missing value"
+            logger.debug(f"Return statement value: {value}")
+            return Return(value)
+        return Return(None)
+    
     
     def visitProcedureCallStatement(self, context: penguinParser.ProcedureCallStatementContext) -> ProcedureCallStatement:
         """Visit the procedure call statement context and creates a ProcedureCallStatement AST node."""
