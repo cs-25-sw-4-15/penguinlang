@@ -80,7 +80,15 @@ class CodeGenerator:
         assembly_code += "wCurKeys: db\n"
         assembly_code += "wNewKeys: db\n"
 
-        return assembly_code
+        formatted_lines = []
+        for line in assembly_code.splitlines():
+            stripped_line = line.strip()
+            if stripped_line:
+                if stripped_line.endswith(":"):
+                    formatted_lines.append(stripped_line)
+                else:
+                    formatted_lines.append("  " + stripped_line)
+        return "\n".join(formatted_lines)
 
     def header(self) -> str:
         """
