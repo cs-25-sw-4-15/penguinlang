@@ -175,7 +175,7 @@ class CodeGenerator:
         .knownret
         ret
         
-        Lab'elcontrol_checkLeft:
+        Labelcontrol_checkLeft:
             ld a, [wCurKeys]
             and a, PADF_LEFT
             ret
@@ -528,14 +528,12 @@ class CodeGenerator:
         elif instruction.op == '>>':
 
             loop_lbl = f"SHR_LOOP_{self.cmp_counter}"
-            end_lbl = f"SHR_END_{self.cmp_counter}"
             self.cmp_counter += 1
-            returnstr += "; shift right begin\n"
             if instruction.left != 'a':
                 returnstr += f"ld a, {instruction.left}\n"
 
             returnstr += "push bc\n"
-                
+
             returnstr += f"ld b, {instruction.right}\n"
 
             returnstr += f"{loop_lbl}:\n"
