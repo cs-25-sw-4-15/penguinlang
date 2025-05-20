@@ -175,7 +175,7 @@ class CodeGenerator:
         .knownret
         ret
         
-        Labelcontrol_checkLeft:
+        Lab'elcontrol_checkLeft:
             ld a, [wCurKeys]
             and a, PADF_LEFT
             ret
@@ -230,8 +230,9 @@ class CodeGenerator:
                 if instruction.left == 'a':
                     returnstr += f"dec {instruction.left}, {instruction.right}\n"
                 else:
-                    returnstr += ""
-                    returnstr += f"dec {instruction.right}, {instruction.left}\n"
+                    returnstr+= f"ld h, {instruction.right}\n"
+                    returnstr+= f"ld a, {instruction.left}\n"
+                    returnstr += f"dec a, h\n"
 
             # Case when a is not involved
             else:
@@ -263,10 +264,18 @@ class CodeGenerator:
             end_lbl = f"EQ_END_{self.cmp_counter}"
             self.cmp_counter += 1
 
-            if instruction.left != 'a':
+            # if register a is already involved
+            if instruction.left == 'a' or instruction.right == 'a':
+                if instruction.left == 'a':
+                    returnstr += f"cp {instruction.right}\n"
+                else:
+                    returnstr += f"cp {instruction.left}\n"
+
+            else:
                 returnstr += f"ld a, {instruction.left}\n"
-                
-            returnstr += f"cp {instruction.right}\n"
+                returnstr += f"cp {instruction.right}\n"
+
+
 
             returnstr += f"ld {instruction.dest}, 0\n"
             
