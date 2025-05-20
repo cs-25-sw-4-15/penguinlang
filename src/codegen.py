@@ -232,7 +232,7 @@ class CodeGenerator:
                 else:
                     returnstr+= f"ld h, {instruction.right}\n"
                     returnstr+= f"ld a, {instruction.left}\n"
-                    returnstr += f"dec a, h\n"
+                    returnstr += f"sub a, h\n"
 
             # Case when a is not involved
             else:
