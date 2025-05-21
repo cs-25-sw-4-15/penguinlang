@@ -50,7 +50,7 @@ class TypeChecker:
         
         self.env = TypeEnv() # Symbol table
         self.procedures = ProcedureEnv() # Procedure table
-        self.current_return_type: Optional[Type] = None  # Return type of the current procedure
+        self.current_return_type: Optional[Type] = None 
         
         self._init_predefined_elements()
     
@@ -58,11 +58,9 @@ class TypeChecker:
 
         hardware_symbols, hardware_procedures = initialize_hardware_elements()
         
-        # add to symboltable (env)
         for symbol, typ in hardware_symbols.items():
             self.env.define(symbol, typ)
         
-        # Add procedures to the procedure table
         for name, (params, ret_type) in hardware_procedures.items():
             self.procedures.define(name, params, ret_type)
         
@@ -91,7 +89,6 @@ class TypeChecker:
     def get_procedure_name(self, node: Union[ProcedureCall, ProcedureDef]) -> str:
         # hjælper methodf forr getting qa procedure namer, where the procedure might accessed with an attribute
         
-        # node is usually a Variable or an AttributeAccess (possibly nested)
         if isinstance(node, str):
             return node
         elif hasattr(node, 'name') and hasattr(node, 'attribute'):
@@ -116,7 +113,6 @@ class TypeChecker:
         return method(node)
     
     def check_program(self, node: Program) -> None:
-        """Type check a Program node."""
         logger.info("Type checking program")
         
         for stmt in node.statements:
@@ -125,12 +121,10 @@ class TypeChecker:
     def check_Declaration(self, node: Declaration) -> None:
         logger.info(f"Type checking declaration: {node.name} of type {node.var_type}")
         
-        # Check if the variable has already been declared in the current scope
         if self.env.lookup(node.name) is not None:
             if node.name in self.env.current_scope():
                 raise DuplicateDeclarationError(f"Variable '{node.name}' already declared in this scope")
         
-        # Convert the type string to a Type object
         var_type = self.string_to_type(node.var_type)
         
         self.env.define(node.name, var_type)
@@ -312,19 +306,16 @@ class TypeChecker:
             raise TypeError(f"Unknown unary operator: {node.op}")
     
     def check_IntegerLiteral(self, node: IntegerLiteral) -> Type:
-        """Type check an IntegerLiteral node."""
         logger.debug(f"Integer literal: {node.value}")
         node.var_type = IntType() 
         return IntType()
     
     def check_StringLiteral(self, node: StringLiteral) -> Type:
-        """Type check a StringLiteral node."""
         logger.debug(f"String literal: {node.value}")
         node.var_type = StringType() 
         return StringType()
     
     def check_Variable(self, node: Variable) -> Type:
-        """Type check a Variable node."""
         logger.info(f"Type checking variable: {node.name}")
         
         if isinstance(node.name, AttributeAccess):
@@ -460,9 +451,7 @@ class TypeChecker:
             raise TypeMismatchError(f"Procedure '{proc_name}' expects {len(param_types)} arguments, got {len(node.params)}")
         
         for i, (arg, (param_name, expected_type)) in enumerate(zip(node.params, param_types)):
-            # check the type of the argument
             actual_type = self.check_node(arg)
-            # see if the type of the argument matches the expected type from the procedure table
             if actual_type != expected_type:
                 logger.error(f"Argument {i+1} ('{param_name}') of procedure '{proc_name}' has wrong type: expected {expected_type}, got {actual_type}")
                 raise TypeMismatchError(f"Argument {i+1} ('{param_name}') of procedure '{proc_name}' has wrong type: expected {expected_type}, got {actual_type}")
@@ -508,7 +497,6 @@ class TypeChecker:
 
 
 def type_check(ast: ASTNode) -> None:
-    """Type check an AST."""
     type_checker = TypeChecker()
     if isinstance(ast, Program):
         type_checker.check_program(ast)

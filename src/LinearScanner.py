@@ -1,46 +1,33 @@
-"""
-Linear Scanner for Penguin Language Compiler
-
-This module implements a linear scan register allocation algorithm.
-Linear scan is a simple but effective register allocation algorithm that
-allocates registers to variables in a single pass through the code.
-"""
-
-# Stdlib imports
 import os
 import sys
 from typing import Dict, List, Set
 
-# Extend module paths
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-# Custom modules
 from src.IRProgram import *
 from src.LivenessAnalyzer import LivenessAnalyzer
 from src.logger import logger
 
 
 class LiveRange:
-    """Represents the live range of a variable."""
     
     def __init__(self, var_name: str, start: int, end: int):
-        self.var_name = var_name  # Variable name
-        self.start = start  # First instruction where variable is live
-        self.end = end  # Last instruction where variable is live
-        self.register = None  # Allocated register or None if spilled to memory
-        self.spill_location = None  # Memory location if spilled
+        self.var_name = var_name 
+        self.start = start 
+        self.end = end 
+        self.register = None 
+        self.spill_location = None 
     
     def __lt__(self, other):
-        """Comparison operator for sorting live ranges by start point."""
         
         return self.start < other.start
     
     def overlaps(self, other) -> bool:
-        """Check if this live range overlaps with another."""
         
         return not (self.end < other.start or self.start > other.end)
     
     def __repr__(self):
+
         return f"LiveRange({self.var_name}, {self.start}-{self.end}, reg={self.register}, spill={self.spill_location})"
 
 
@@ -65,15 +52,12 @@ class LinearScanner:
         #Returns a mapping from procedures, that goes from variable names to registers
         result = {}
         
-        # Analyze liveness for the entire program
         liveness_info = self.liveness_analyzer.analyze_program(ir_program)
         
-        # Allocate registers for main section
         if ir_program.main_instructions:
             result["_global"] = self.allocate_procedure(
                 "_global", ir_program.main_instructions, liveness_info["_global"])
         
-        # Allocate registers for each procedure
         for proc_name, procedure in ir_program.procedures.items():
             result[proc_name] = self.allocate_procedure(
                 proc_name, procedure.instructions, liveness_info[proc_name])
@@ -81,23 +65,12 @@ class LinearScanner:
         return result
     
     def allocate_procedure(self, proc_name: str, instructions: List[IRInstruction], liveness_info: Dict[int, Set[str]]) -> Dict[str, str]:
-        """
-        Allocate registers for a single procedure.
-        
-        Args:
-            proc_name: Name of the procedure
-            instructions: The IR instructions in the procedure
-            liveness_info: The liveness information for the procedure
-            
-        Returns:
-            A dictionary mapping variable names to register names or spill locations
-        """
         
         self.active = []
         self.allocation = {}
         self.spill_counter = 0
         
-        # Find parameter variables by looking for IRArgLoad instructions
+        # Find parametre ved at finde IRArgLoad, som altid er i toppen af procedure
         param_vars = []
         for i, instr in enumerate(instructions):
             if isinstance(instr, IRArgLoad):
@@ -112,23 +85,18 @@ class LinearScanner:
             if i < len(register_order):
                 self.allocation[param_var] = register_order[i]
         
-        # Build live ranges from liveness information
         self.build_live_ranges(instructions, liveness_info)
         
-        # Filter out parameters from live ranges to prevent them from being reallocated
         self.live_ranges = [lr for lr in self.live_ranges if lr.var_name not in self.allocation]
         
-        # Sort live ranges by start point
         self.live_ranges.sort()
         
-        # Adjust number of available registers
         original_num_registers = self.num_registers
+
         self.num_registers = original_num_registers - len(param_vars)
         
-        # Perform linear scan with remaining registers
         self.linear_scan()
         
-        # Restore original number of registers
         self.num_registers = original_num_registers
         
         return self.allocation
@@ -137,12 +105,10 @@ class LinearScanner:
         
         self.live_ranges = []
         
-        # Find all variables in the procedure
         variables = set()
         for live_set in liveness_info.values():
             variables.update(live_set)
         
-        # Determine live range for each variable
         for var in variables:
             start = float('inf')
             end = -1
@@ -158,19 +124,15 @@ class LinearScanner:
     def linear_scan(self) -> None:
         
         for live_range in self.live_ranges:
-            # Expire old intervals
             self.expire_old_intervals(live_range.start)
             
             if len(self.active) >= self.num_registers:
-                # Need to spill either this or another live range
                 self.handle_spill(live_range)
             else:
-                # Allocate a free register
                 reg = self.get_free_register()
                 live_range.register = reg
                 self.allocation[live_range.var_name] = reg
                 
-                # Add to active list
                 self.active.append(live_range)
                 # Sort active by end point
                 self.active.sort(key=lambda lr: lr.end)
@@ -186,8 +148,8 @@ class LinearScanner:
     
     def handle_spill(self, live_range: LiveRange) -> None:
         
-        # Find the active live range with the furthest end point
-        spill_candidate = self.active[-1]  # Last in active (sorted by end point)
+        # Live range with the furthest spill point is found
+        spill_candidate = self.active[-1]
         
         if spill_candidate.end > live_range.end:
             # Spill the candidate with later end point
@@ -200,12 +162,10 @@ class LinearScanner:
             spill_candidate.spill_location = spill_loc
             self.allocation[spill_candidate.var_name] = spill_loc
             
-            # Replace in active list
             self.active[-1] = live_range
-            # Re-sort active by end point
             self.active.sort(key=lambda lr: lr.end)
+        #Spill nuværende
         else:
-            # Spill the current live range
             spill_loc = self.get_spill_location()
             live_range.register = None
             live_range.spill_location = spill_loc
@@ -218,13 +178,13 @@ class LinearScanner:
             if reg not in used_regs:
                 return reg
         
-        # Should never reach here if we've handled spills correctly
+        # Hvis spills fungerer ender vi aldrig her
         raise RuntimeError("No free registers found")
     
     def get_spill_location(self) -> str:
         
         loc = f"[sp+{self.spill_counter}]"
-        self.spill_counter += 1  # Increment by 1 byte (word size)
+        self.spill_counter += 1  # 1 = word size, altså 8 bit
         
         return loc
     
