@@ -253,13 +253,12 @@ class ASTGenerator(penguinVisitor):
     def visitReturnStatement(self, context: penguinParser.ReturnStatementContext) -> Return:
         
         logger.info(f"Visiting return statement: {context.getText()}")
-        if(context.expression()):
+        if (context.expression()):
             value = self.visit(context.expression())
             assert value, "Return statement missing value"
             logger.debug(f"Return statement value: {value}")
             return Return(value)
         return Return(None)
-    
     
     def visitProcedureCallStatement(self, context: penguinParser.ProcedureCallStatementContext) -> ProcedureCallStatement:
         
@@ -465,7 +464,6 @@ class ASTGenerator(penguinVisitor):
         args: List[ASTNode] = self.visit(context.argumentList()) if context.argumentList() else []
         
         return ProcedureCall(name, args)
-    
     
     def visitExpressions(self, context: penguinParser.ExpressionsContext) -> list[ASTNode]:
         

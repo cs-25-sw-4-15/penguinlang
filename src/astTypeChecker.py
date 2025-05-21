@@ -11,7 +11,6 @@ from src.customErrors import *
 from src.logger import logger
 
 
-
 class TypeEnv: 
     def __init__(self):
         self.stack: List[Dict] = [{}]
@@ -46,9 +45,7 @@ class ProcedureEnv:
         return self.table.get(name)
 
 
-class TypeChecker:
-
-    
+class TypeChecker:    
     def __init__(self):
         
         self.env = TypeEnv() # Symbol table
@@ -236,7 +233,7 @@ class TypeChecker:
     def check_Return(self, node: Return) -> Type:
         logger.info("Type checking return statement")
         
-        if(node.value):
+        if (node.value):
             value_type = self.check_node(node.value)
         else:
             value_type = VoidType()
