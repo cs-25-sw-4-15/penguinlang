@@ -42,7 +42,6 @@ class LivenessAnalyzer:
             return {}
             
         self.instructions = instructions
-        self.identify_basic_blocks()
         self.build_cfg()
         self.initialize_def_use()
         self.compute_liveness()
