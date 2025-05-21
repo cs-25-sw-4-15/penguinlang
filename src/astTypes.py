@@ -26,7 +26,6 @@ class Type:
     
     def is_indexable(self) -> bool:
 
-        
         return False
     
     def index_result_type(self) -> None:
@@ -104,7 +103,6 @@ class IntType(Type):
 
 
 class StringType(Type):
-    """String type."""
     
     def __init__(self) -> None:
 
@@ -114,7 +112,7 @@ class StringType(Type):
         
         return "string"
 
-#Deprecated, remaining uses still exist in type checker and tests
+# Deprecated, remaining uses still exist in type checker and tests
 # TODO Remove said uses
 class OAMEntryType(Type):
     
