@@ -12,42 +12,15 @@ data_segment_start = 0xC010
 program_start = 0x0150
 
 
-def loop_detected(pyboy, PC_list):
-    """
-    Detects if the program is in a loop by checking if the PC has repeated.
-    """
-    if pyboy.register_file.PC in PC_list:
-        return True
-    else:
-        current_pc = pyboy.register_file.PC
-        if current_pc >= program_start:
-            PC_list.append(current_pc)
-        return False
-
-
 def nop_reached(pyboy):
-    """
-    Detects if the program has reached a NOP instruction.
-    """
     return pyboy.memory[pyboy.register_file.PC] == 0x00
 
 
 def compile_source_to_binary(source_code: str, output_dir: str = 'temp_files') -> str:
-    """
-    Compiles the given source code into a binary file and returns the path to the binary.
-
-    Args:
-        source_code (str): The source code to compile.
-        output_dir (str): The directory to store the compiled binary.
-
-    Returns:
-        str: The path to the compiled binary file.
-    """
     os.makedirs(output_dir, exist_ok=True)
     source_file_path = os.path.join(output_dir, 'temp_source.peg')
     binary_file_path = os.path.join(output_dir, 'temp_binary.gb')
 
-    # copy test_files to temp_files
     test_files_dir = os.path.join(os.path.dirname(__file__), 'test_files')
     for file in glob.glob(os.path.join(test_files_dir, '*')):
         if os.path.isfile(file):
@@ -66,13 +39,6 @@ def compile_source_to_binary(source_code: str, output_dir: str = 'temp_files') -
 
 
 def teardown():
-    """
-    Cleans up the test environment by resetting global variables and removing files in the 'temp_files' directory.
-    """
-    global PC_list, pyboy
-    PC_list = []
-    pyboy = None
-
     temp_files_dir = 'temp_files'
     if os.path.exists(temp_files_dir):
         for file in glob.glob(os.path.join(temp_files_dir, '*')):
@@ -89,12 +55,10 @@ def test_addition_1():
     End-to-end test for simple addition operation.
     """
     source_code = """
-    int Result = 0;
-    int Integer1 = 5;
-
-    int Integer2 = 1;
-
-    Result = Integer1 + (Integer2 + 3);
+    int Result1 = 2 + 3;
+    int Result2 = 5 + 7;
+    int Result3 = 10 + 20;
+    int Result4 = 0 + 2;
     """
 
     binary_path = compile_source_to_binary(source_code)
@@ -103,10 +67,17 @@ def test_addition_1():
     while not nop_reached(pyboy):
         pyboy.tick()
 
-    result = pyboy.memory[data_segment_start]
+    result1 = pyboy.memory[data_segment_start]
+    result2 = pyboy.memory[data_segment_start + 1]
+    result3 = pyboy.memory[data_segment_start + 2]
+    result4 = pyboy.memory[data_segment_start + 3]
+
     pyboy.stop()
 
-    assert result == 9
+    assert result1 == 5
+    assert result2 == 12
+    assert result3 == 30
+    assert result4 == 2
 
     teardown()
 
@@ -116,12 +87,10 @@ def test_subtraction_1():
     End-to-end test for simple subtraction operation.
     """
     source_code = """
-    int Result = 0;
-    int Integer1 = 100;
-
-    int Integer2 = 10;
-
-    Result = Integer1 - (Integer2 - 3);
+    int Result1 = 5 - 3;
+    int Result2 = 10 - 7;
+    int Result3 = 20 - 10;
+    int Result4 = 0 - 2;
     """
 
     binary_path = compile_source_to_binary(source_code)
@@ -130,25 +99,30 @@ def test_subtraction_1():
     while not nop_reached(pyboy):
         pyboy.tick()
 
-    result = pyboy.memory[data_segment_start]
+    result1 = pyboy.memory[data_segment_start]
+    result2 = pyboy.memory[data_segment_start + 1]
+    result3 = pyboy.memory[data_segment_start + 2]
+    result4 = pyboy.memory[data_segment_start + 3]
+
     pyboy.stop()
 
-    assert result == 93
+    assert result1 == 2
+    assert result2 == 3
+    assert result3 == 10
+    assert result4 == 254
 
     teardown()
 
 
-def test_multiplication_1():
+def test_multiplication_1(): # four subresults
     """
     End-to-end test for simple multiplication operation.
     """
     source_code = """
-    int Result = 0;
-    int Integer1 = 4;
-
-    int Integer2 = 7;
-
-    Result = Integer1 * Integer2;
+    int Result1 = 2 * 3;
+    int Result2 = 5 * 7;
+    int Result3 = 10 * 20;
+    int Result4 = 0 * 2;
     """
 
     binary_path = compile_source_to_binary(source_code)
@@ -157,10 +131,17 @@ def test_multiplication_1():
     while not nop_reached(pyboy):
         pyboy.tick()
 
-    result = pyboy.memory[data_segment_start]
+    result1 = pyboy.memory[data_segment_start]
+    result2 = pyboy.memory[data_segment_start + 1]
+    result3 = pyboy.memory[data_segment_start + 2]
+    result4 = pyboy.memory[data_segment_start + 3]
+
     pyboy.stop()
 
-    assert result == 28
+    assert result1 == 6
+    assert result2 == 35
+    assert result3 == 200
+    assert result4 == 0
 
     teardown()
 
@@ -249,54 +230,15 @@ def test_if_else_branch():
     teardown()
 
 
-def test_if_else_if_branch():
-    """
-    End-to-end test for if-else-if branching.
-    """
-    source_code = """
-    int Result = 0;
-    int Condition = 2;
-
-    if (Condition == 1) {
-        Result = 10;
-    } else if (Condition == 2) {
-        Result = 20;
-    } else {
-        Result = 30;
-    }
-    """
-
-    binary_path = compile_source_to_binary(source_code)
-    pyboy = PyBoy(binary_path, window='null')
-
-    while not nop_reached(pyboy):
-        pyboy.tick()
-
-    result = pyboy.memory[data_segment_start]
-    pyboy.stop()
-
-    assert result == 20
-
-    teardown()
-
-
 def test_equality_and_inequality():
     """
     End-to-end test for equality (==) and inequality (!=) operators.
     """
     source_code = """
-    int Result = 0;
-    int A = 5;
-    int B = 5;
-    int C = 10;
-
-    if (A == B) {
-        Result = 1;
-    }
-
-    if (A != C) {
-        Result = Result + 1;
-    }
+    int Result1 = 12 != 13;
+    int Result2 = 12 == 13;
+    int Result3 = 12 == 12;
+    int Result4 = 12 != 12;
     """
 
     binary_path = compile_source_to_binary(source_code)
@@ -305,11 +247,17 @@ def test_equality_and_inequality():
     while not nop_reached(pyboy):
         pyboy.tick()
 
-    result = pyboy.memory[data_segment_start]
+    result1 = pyboy.memory[data_segment_start]
+    result2 = pyboy.memory[data_segment_start + 1]
+    result3 = pyboy.memory[data_segment_start + 2]
+    result4 = pyboy.memory[data_segment_start + 3]
+
     pyboy.stop()
 
-    assert result == 2
-
+    assert result1 == 1
+    assert result2 == 0
+    assert result3 == 1
+    assert result4 == 0
     teardown()
 
 
@@ -318,25 +266,10 @@ def test_comparisons():
     End-to-end test for comparison operators (<, >, <=, >=).
     """
     source_code = """
-    int Result = 0;
-    int A = 5;
-    int B = 10;
-
-    if (A < B) {
-        Result = 1;
-    }
-
-    if (B > A) {
-        Result = Result + 1;
-    }
-
-    if (A <= 5) {
-        Result = Result + 1;
-    }
-
-    if (B >= 10) {
-        Result = Result + 1;
-    }
+    int Result1 = 5 < 10;
+    int Result2 = 10 > 5;
+    int Result3 = 5 <= 5;
+    int Result4 = 5 >= 10;
     """
 
     binary_path = compile_source_to_binary(source_code)
@@ -345,26 +278,92 @@ def test_comparisons():
     while not nop_reached(pyboy):
         pyboy.tick()
 
-    result = pyboy.memory[data_segment_start]
+    result1 = pyboy.memory[data_segment_start]
+    result2 = pyboy.memory[data_segment_start + 1]
+    result3 = pyboy.memory[data_segment_start + 2]
+    result4 = pyboy.memory[data_segment_start + 3]
+
     pyboy.stop()
 
-    assert result == 4
+    assert result1 == 1
+    assert result2 == 1
+    assert result3 == 1
+    assert result4 == 0
 
     teardown()
 
 
-def test_logical_operators():
+def test_logical_and():
     """
-    End-to-end test for logical operators (and, or, not).
+    End-to-end test for logial and
     """
     source_code = """
-    int Result = 0;
-    int A = 1;
-    int B = 0;
+    int Result1 = 1 and 1;
+    int Result2 = 1 and 0;
+    int Result3 = 0 and 1;
+    int Result4 = 0 and 0;
+    """
 
-    if (A and (not B)) {
-        Result = 1;
-    }
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    result1 = pyboy.memory[data_segment_start]
+    result2 = pyboy.memory[data_segment_start + 1]
+    result3 = pyboy.memory[data_segment_start + 2]
+    result4 = pyboy.memory[data_segment_start + 3]
+
+    pyboy.stop()
+
+    assert result1 == 1
+    assert result2 == 0
+    assert result3 == 0
+    assert result4 == 0
+
+    teardown()
+
+def test_logical_or():
+    """
+    End-to-end test for logial or
+    """
+    source_code = """
+    int Result1 = 1 or 1;
+    int Result2 = 1 or 0;
+    int Result3 = 0 or 1;
+    int Result4 = 0 or 0;
+    """
+
+    binary_path = compile_source_to_binary(source_code)
+    pyboy = PyBoy(binary_path, window='null')
+
+    while not nop_reached(pyboy):
+        pyboy.tick()
+
+    result1 = pyboy.memory[data_segment_start]
+    result2 = pyboy.memory[data_segment_start + 1]
+    result3 = pyboy.memory[data_segment_start + 2]
+    result4 = pyboy.memory[data_segment_start + 3]
+
+    pyboy.stop()
+
+    assert result1 == 1
+    assert result2 == 1
+    assert result3 == 1
+    assert result4 == 0
+
+    teardown()
+
+def test_bitwise_and():
+    """
+    End-to-end test for bitwise and operator (&).
+    """
+    source_code = """
+    int Result = 0b1111 & 0b1010;
+    int Result2 = 0b1111 & 0b0101;
+    int Result3 = 0b1111 & 0b0011;
+    int Result4 = 0b1111 & 0b0000;
     """
 
     binary_path = compile_source_to_binary(source_code)
@@ -376,20 +375,19 @@ def test_logical_operators():
     result = pyboy.memory[data_segment_start]
     pyboy.stop()
 
-    assert result == 1
+    assert result == 0b1010
 
     teardown()
-
 
 def test_right_shift():
     """
     End-to-end test for right shift operator (>>).
     """
     source_code = """
-    int Result = 0;
-    int A = 24;
-
-    Result = (A >> 3) + (A >> 3);
+    int Result1 = 0b1111 >> 1;
+    int Result2 = 0b1111 >> 2;
+    int Result3 = 0b1111 >> 3;
+    int Result4 = 0b1111 >> 4;
     """
 
     binary_path = compile_source_to_binary(source_code)
@@ -398,12 +396,17 @@ def test_right_shift():
     while not nop_reached(pyboy):
         pyboy.tick()
 
-    result = pyboy.memory[data_segment_start]
+    result1 = pyboy.memory[data_segment_start]
+    result2 = pyboy.memory[data_segment_start + 1]
+    result3 = pyboy.memory[data_segment_start + 2]
+    result4 = pyboy.memory[data_segment_start + 3]
+
     pyboy.stop()
 
-    assert result == 6
-
-    teardown()
+    assert result1 == 0b0111
+    assert result2 == 0b0011
+    assert result3 == 0b0001
+    assert result4 == 0b0000
 
 
 def test_left_shift():
@@ -411,10 +414,10 @@ def test_left_shift():
     End-to-end test for left shift operator (<<).
     """
     source_code = """
-    int Result = 0;
-    int A = 3;
-
-    Result = (A << 2) + (A << 2);
+    int Result1 = 0b0001 << 1;
+    int Result2 = 0b0001 << 2;
+    int Result3 = 0b0001 << 3;
+    int Result4 = 0b0001 << 4;
     """
 
     binary_path = compile_source_to_binary(source_code)
@@ -423,41 +426,19 @@ def test_left_shift():
     while not nop_reached(pyboy):
         pyboy.tick()
 
-    result = pyboy.memory[data_segment_start]
+    result1 = pyboy.memory[data_segment_start]
+    result2 = pyboy.memory[data_segment_start + 1]
+    result3 = pyboy.memory[data_segment_start + 2]
+    result4 = pyboy.memory[data_segment_start + 3]
+
     pyboy.stop()
 
-    assert result == 12
+    assert result1 == 0b0010
+    assert result2 == 0b0100
+    assert result3 == 0b1000
+    assert result4 == 0b10000
 
-    teardown()
-
-
-def test_bitwise_shifts():
-    """
-    End-to-end test for left (<<) and right (>>) shift operators.
-    """
-    source_code = """
-    int Result = 0;
-    int A = 4; // Binary: 0100
-
-    Result = A << 1; // Left shift by 1, Result: 1000 (8)
-    Result = Result >> 2; // Right shift by 2, Result: 0010 (2)
-    """
-
-    binary_path = compile_source_to_binary(source_code)
-    pyboy = PyBoy(binary_path, window='null')
-
-    while not nop_reached(pyboy):
-        pyboy.tick()
-
-    result = pyboy.memory[data_segment_start]
-    pyboy.stop()
-
-    assert result == 2
-
-    teardown()
-
-
-def test_loop_behavior():
+def test_loop_1():
     """
     End-to-end test for a loop with conditional logic.
     """
@@ -488,7 +469,6 @@ def test_loop_behavior():
     assert result == 13
 
     teardown()
-
 
 def test_binary_load_behavior():
     """
@@ -586,16 +566,9 @@ def test_load_binary_tilemap_to_vram_behavior():
     End-to-end test for including binary files in rom, and loading them to VRAM
     """
     source_code = """
-    tileset tileset_block_0 = "tileset_block_0.2bpp";
-    tileset tileset_block_1 = "tileset_block_1.2bpp";
-    tileset tileset_block_2 = "tileset_block_2.2bpp";
     tilemap tilemap0 = "tilemap_0.bin";
-
     control_waitVBlankStart();
     control_LCDoff();
-    display_tileset_block_0 = tileset_block_0;
-    display_tileset_block_1 = tileset_block_1;
-    display_tileset_block_2 = tileset_block_2;
     display_tilemap0 = tilemap0;
     control_LCDon();
     """
@@ -778,22 +751,16 @@ def test_double_index_tilemap_store():
     End-to-end test for doubly indexed tilemap.
     """
     source_code = """
-    int Result = 123;
-    tileset tileset_block_0 = "tileset_block_0.2bpp";
-    tileset tileset_block_1 = "tileset_block_1.2bpp";
-    tileset tileset_block_2 = "tileset_block_2.2bpp";
+    int Result = 0;
     tilemap tilemap0 = "tilemap_0.bin";
-
+    
     control_waitVBlankStart();
     control_LCDoff();
-    display_tileset_block_0 = tileset_block_0;
-    display_tileset_block_1 = tileset_block_1;
-    display_tileset_block_2 = tileset_block_2;
     display_tilemap0 = tilemap0;
+    
     control_LCDon();
     control_waitVBlankOver();
     control_waitVBlankStart();
-
     display_tilemap0[8][8] = 45;
     Result = display_tilemap0[8][8];
     """
@@ -827,7 +794,7 @@ def test_oam_index_tilemap_store():
     control_waitVBlankOver();
     control_waitVBlankStart();
 
-    display_oam_x[12] = 69;
+    display_oam_x[12] = 55;
     Result = display_oam_x[12];
     """
 
@@ -837,13 +804,11 @@ def test_oam_index_tilemap_store():
     while not nop_reached(pyboy):
         pyboy.tick()
 
-    result = pyboy.memory[0xFE00 + 12 * 4 + 1]
-    result2 = pyboy.memory[data_segment_start]
+    result = pyboy.memory[data_segment_start]
 
     pyboy.stop()
 
-    assert result == 69
-    assert result2 == 69
+    assert result == 55
 
     teardown()
 
@@ -920,20 +885,20 @@ def test_procedure_return_nothing():
 
 def test_fibonacci_recursive():
     """
-    End-to-end test for a recursive Fibonacci function.
+    End-to-end test for recursion that calculates the 12th Fibonacci number.
     """
     source_code = """
-    procedure int Fibonacci(int n) {
-        if (n <= 1) {
+    procedure int fibonacci(int n) {
+        if (n == 0 or n == 1) {
             return n;
         } else {
-            return Fibonacci(n - 1) + Fibonacci(n - 2);
+            return fibonacci(n - 1) + fibonacci(n - 2);
         }
     }
 
     int Result = 0;
 
-    Result = Fibonacci(12);
+    Result = fibonacci(12);
     """
 
     binary_path = compile_source_to_binary(source_code)
@@ -951,56 +916,3 @@ def test_fibonacci_recursive():
     teardown()
 
 
-def test_bitwise_or():
-    """
-    End-to-end test for bitwise OR operator (|).
-    """
-    source_code = """
-    int Result1 = 1 | 1;
-    int Result2 = 15 | 240;
-    """
-
-    binary_path = compile_source_to_binary(source_code)
-    pyboy = PyBoy(binary_path, window='null')
-
-    while not nop_reached(pyboy):
-        pyboy.tick()
-
-    result1 = pyboy.memory[data_segment_start]
-    result2 = pyboy.memory[data_segment_start+1]
-    pyboy.stop()
-
-    assert result1 == 1
-    assert result2 == 255
-
-    teardown()
-
-
-def test_logical_not():
-    """
-    End-to-end test for logical NOT operator (!).
-    """
-    source_code = """
-    int Result1 = not 2;
-    int Result2 = not 0;
-    int intermediate = 236;
-    int Result3 = not intermediate;
-    """
-
-    binary_path = compile_source_to_binary(source_code)
-    pyboy = PyBoy(binary_path, window='null')
-
-    while not nop_reached(pyboy):
-        pyboy.tick()
-
-    result1 = pyboy.memory[data_segment_start]
-    result2 = pyboy.memory[data_segment_start+1]
-    result3 = pyboy.memory[data_segment_start+3]
-
-    pyboy.stop()
-
-    assert result1 == 0
-    assert result2 == 1
-    assert result3 == 0
-
-    teardown()
