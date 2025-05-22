@@ -215,7 +215,7 @@ class Return(ASTNode):
         value (Any): The value to return from the function. (Sematically should only be integers)
     """
     
-    def __init__(self, value: ASTNode) -> None: 
+    def __init__(self, value: ASTNode | None) -> None: 
         self.value = value 
 
 
@@ -223,7 +223,7 @@ class ProcedureCallStatement(ASTNode):
     """Procedure Call Statement AST Node.
     
     Attributes:
-    Call (str): The name of the procedure to call.
+        Call (str): The name of the procedure to call.
     """
     
     def __init__(self, call: "ProcedureCall") -> None: # noqa: ProcedureCall
@@ -239,7 +239,6 @@ class ProcedureCallStatement(ASTNode):
 
 class BinaryOp(ASTNode):
     """Binary Operation Expression AST Node.
-
     Args:
         ASTNode (none): Base class for all AST nodes.
         
@@ -357,7 +356,7 @@ class ProcedureCall(ASTNode):
         
     Attributes:
         name (str): The name of the procedure to call.
-        args (list[ASTNode]): The arguments to pass to the procedure.
+        params (list[ASTNode]): The arguments to pass to the procedure.
     """
     
     def __init__(self, name: str, params: List[ASTNode]) -> None:
@@ -376,12 +375,12 @@ class ProcedureDef(ASTNode):
     
     Attributes:
         name (str): The name of the procedure.
-        params (list[ASTNode]): The parameters of the procedure.
-        body (list[ASTNode]): The body of the procedure.
+        params (List[Declaration]): The parameters of the procedure.
+        body (List[ASTNode]): The body of the procedure.
     """
     
     def __init__(self, return_type: Optional[str], name: str, 
-                 params: List[Tuple[str, str]], body: List[ASTNode]) -> None: 
+                 params: List[Declaration], body: List[ASTNode]) -> None: 
         # Optional[str] for return_type, da det kan være None
         # List[Tuple[str, str]] for params, da det er en liste af tuples med (type, name)
         self.return_type = return_type 

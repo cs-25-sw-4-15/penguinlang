@@ -241,18 +241,6 @@ class ASTGenerator(penguinVisitor):
             
             parametres = parametres_raw
             
-            """ for i in range(len(parametres_raw)):
-                logger.debug(f"Visiting parameter {i}: {parametres_raw[i].name}")
-                
-                parametre_type_: str = parametres_raw[i].var_type
-                parametre_name: str = parametres_raw[i].name # IDENTIFIER fordi procedure calls can ikek have dot notation eller liste ting
-                # TODO vær sikekr på at IDENTIFIER har getText()
-                
-                assert parametre_type_ and parametre_name, "Procedure declaration missing parameter type or name"
-                
-                parametres.append((parametre_type_, parametre_name))
-            
-            assert parametres, "Procedure declaration missing parameters" """
             logger.debug(f"Procedure declaration parameters: {parametres}")
             
         statements: List[ASTNode] = self.visit(context.statementBlock())
@@ -263,19 +251,16 @@ class ASTGenerator(penguinVisitor):
         return ProcedureDef(return_type, name, parametres, statements)
     
     def visitReturnStatement(self, context: penguinParser.ReturnStatementContext) -> Return:
-        """Visits the return statement context and creates a Return AST node."""
         
         logger.info(f"Visiting return statement: {context.getText()}")
-        
-        value = self.visit(context.expression())
-        
-        assert value, "Return statement missing value"
-        logger.debug(f"Return statement value: {value}")
-        
-        return Return(value)
+        if (context.expression()):
+            value = self.visit(context.expression())
+            assert value, "Return statement missing value"
+            logger.debug(f"Return statement value: {value}")
+            return Return(value)
+        return Return(None)
     
     def visitProcedureCallStatement(self, context: penguinParser.ProcedureCallStatementContext) -> ProcedureCallStatement:
-        """Visit the procedure call statement context and creates a ProcedureCallStatement AST node."""
         
         logger.info(f"Visiting procedure call statement: {context.getText()}")
         
@@ -289,20 +274,6 @@ class ASTGenerator(penguinVisitor):
     """Expressions"""
     
     def visitExpression(self, context: penguinParser.ExpressionContext) -> BinaryOp | UnaryOp | ASTNode:
-        """Visits the given expression as an BinaryOp, UnaryOp or visits a value from Expr_val (terminal value)
-        
-        Expressions kan enten være:
-        - terminal værdier, hvilket er indikeret med ét navn/hvadend acesss, procedurecall eller sybere expression
-        - unary operation, bestående af 2 child nodes
-        - binary operation, ebstående af 3 child nodes
-        
-        EN ordenlig håndfuld, men overkommelig
-        
-        Hvis det ikke er casen, er det noget galt...
-        
-        Return:
-            BinaryOp | UnaryOp | ASTNode
-        """
         
         logger.info(f"Visiting expression: {context.getText()}")
         
@@ -341,22 +312,7 @@ class ASTGenerator(penguinVisitor):
         raise UnknownExpressionTypeError(f"Unknown expression type from {context.getText()}")
     
     def visitExpr_val(self, context: penguinParser.Expr_valContext) -> ASTNode:
-        """Visits the expr_val context and creates an AST node.
-        
-        Forstil dig en verden af variabler, som alle er integers, og måske en streg
-        Men hvordan er vi fundet frem til disse varabler? det ser vi på i denen episode af
-        "Sebastian skal huske at skrive aaaaaalllle de forskellgie værdiskabende ekspressions ind
-        
-        reminder:
-            : literal           // numre
-            | name              // variabler
-            | listAccess        // værdier i lister
-            | procedureCall     // værdi af procedure
-            | attributeAccess   // værdi af attribut i struct
-            | LPAREN expression RPAREN // parenteser
-        """
-        # Can probably be incorporated in where it is implemented
-        # Can også være dejligt med clean sepration
+
         logger.info(f"Visiting expr_val: {context.getText()}")
         
         # vi prøver at finde ud af havd det nu er vi leger med, og så håndtere en anden funktion det derfra
@@ -385,13 +341,7 @@ class ASTGenerator(penguinVisitor):
         raise UnknownValueTypeError(f"Unknown expr_val type from {context.getText()}") 
     
     def visitLiteral(self, context: penguinParser.LiteralContext) -> Union[IntegerLiteral, StringLiteral]:
-        """Visits the literal context and creates an AST node (Finally).
-        
-        Forstil dig en verden af variabler, som alle er integers, og måske en streg
-        Men henne gang kan det være skreven med hiroglyffer eller noget andet
-        
-        kig i visitLiteral classen i genereret antlr-py code for at finde ud af hvad der sker
-        """
+
         logger.info(f"Visiting literal: {context.getText()}")
         
         if context.DECIMAL():
@@ -419,7 +369,6 @@ class ASTGenerator(penguinVisitor):
         raise UnknownLiteralTypeError(f"Unknown literal type from {context.getText()}")
     
     def visitName(self, context: penguinParser.NameContext) -> Union[AttributeAccess, Variable, ListAccess]:
-        """Visits the name context and creates a Variable, AttributeAccess, or ListAccess AST node."""
         logger.info(f"Visiting name: {context.getText()}")
         assert context.IDENTIFIER(), "Name node has no identifiers"
         
@@ -427,19 +376,16 @@ class ASTGenerator(penguinVisitor):
         current_node = Variable(None, context.IDENTIFIER(0).getText())
         logger.debug(f"Base variable: {current_node}")
         
-        # Parse the context to build up the access chain
-        i = 1  # Start from the first token after the initial identifier
+        i = 1  
         
-        # Count how many expressions we've processed
         expression_idx = 0
-        identifier_idx = 1  # Skip the first identifier which was already processed
+        identifier_idx = 1  
         
         while i < len(context.children):
             child = context.children[i]
             token_text = child.getText()
             
             if token_text == '.':
-                # Attribute access: get the next identifier
                 if identifier_idx < len(context.IDENTIFIER()):
                     attr_name = context.IDENTIFIER(identifier_idx).getText()
                     current_node = AttributeAccess(current_node, attr_name)
@@ -478,7 +424,6 @@ class ASTGenerator(penguinVisitor):
         return current_node
     
     def visitListAccess(self, context: penguinParser.ListAccessContext) -> ListAccess:
-        """visit the list access context and creates a ListAccess AST node with flattened indices."""
         logger.info(f"Visiting list access: {context.getText()}")
         
         name = self.visit(context.name())
@@ -496,7 +441,6 @@ class ASTGenerator(penguinVisitor):
             return ListAccess(name, current_indices)
     
     def visitAttributeAccess(self, context: penguinParser.AttributeAccessContext) -> AttributeAccess:
-        """Visit the attribute access context and creates an AttributeAccess AST node."""
         
         logger.info(f"Visiting attribute access: {context.getText()}")
         
@@ -509,7 +453,6 @@ class ASTGenerator(penguinVisitor):
         return AttributeAccess(name, attribute)
     
     def visitProcedureCall(self, context: penguinParser.ProcedureCallContext) -> ProcedureCall:
-        """Visit the procedure call context and creates a ProcedureCall AST node."""
         
         logger.info(f"Visiting procedure call: {context.getText()}")
         
@@ -522,13 +465,7 @@ class ASTGenerator(penguinVisitor):
         
         return ProcedureCall(name, args)
     
-    """Visit Handlers
-    
-    En masse af det samme, men det ser pænere ud
-    """
-    
     def visitExpressions(self, context: penguinParser.ExpressionsContext) -> list[ASTNode]:
-        """Handles the visit to multiple expressions in the CST."""
         
         logger.info(f"Visiting list of nodes: {context.getText()}")
         
@@ -542,32 +479,11 @@ class ASTGenerator(penguinVisitor):
         return expressions
     
     def visitParameterList(self, context: penguinParser.ParameterListContext) -> List[Variable]:
-        """Handles the visit to multiple parameters in the CST.
-        
-        Skal bruges til at generere AST'en for en procedure declaration
-        """
         
         logger.info(f"Visiting parameter list: {context.getText()}")
         
-        # Visit each parameter in the parameter list
         parametres: List[ASTNode] = []
-        
-        """
-        Hvis du ikke kender Zip metoden (class dims), er det ligt ligesom en lynlås for lister.
-        Tager en mægnde lister af samme størrelkse og pair listindekserne sammen så man ender med en masse små lister
-        
-        Eksempel:
-        https://www.w3schools.com/python/ref_func_zip.asp
-        
-        a = ("John", "Charles", "Mike")
-        b = ("Jenny", "Christy", "Monica")
-        x = zip(a, b)
-        print(tuple(x)) # tuple gør edt ligt mere lækkert at se på
-        
-        output: (('John', 'Jenny'), ('Charles', 'Christy'), ('Mike', 'Monica')) 
-        """
 
-        # assert that type and identifier are the same length
         assert len(context.type_()) == len(context.IDENTIFIER()), "Parameter list type and identifier length mismatch"
         
         # Zip de to lister sammen, så vi kan få fat i type og navn på samme tid
@@ -578,14 +494,12 @@ class ASTGenerator(penguinVisitor):
         assert all(isinstance(param, ASTNode) for param in parametres), "Not all parameters are ASTNodes"
         logger.debug(f"Parameter list: {parametres}")
         
-        return parametres # liste af en typle af to strenge
+        return parametres 
     
     def visitArgumentList(self, context: penguinParser.ArgumentListContext) -> List[ASTNode]:
-        """Visits the argument list context and creates a list of AST nodes."""
         
         logger.info(f"Visiting argument list: {context.getText()}")
         
-        # Arguments could could all come in some form of expression
         arguments: List[ASTNode] = [self.visitExpression(expression) for expression in context.expression()]
         
         assert all(isinstance(arg, ASTNode) for arg in arguments), "Not all arguments are ASTNodes" + "\n" + str(arguments)
@@ -600,8 +514,7 @@ class ASTGenerator(penguinVisitor):
         return super().visitType(context)
     
     def visitStatementBlock(self, context: penguinParser.StatementBlockContext) -> List[ASTNode]:
-        """Visits a block of statements"""
-
+        
         logger.info(f"Visiting statement block: {context.getText()}")
         
         statements: List[ASTNode] = [self.visit(statement) for statement in context.statement()]

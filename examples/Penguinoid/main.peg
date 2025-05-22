@@ -1,0 +1,176 @@
+tileset tileset_block_0 = "penguinoid_tileset.2bpp";
+tileset tileset_block_2 = "penguinoid_tileset.2bpp";
+tilemap tilemap0 = "penguinoid_tilemap.bin";
+
+control_waitVBlankStart();
+control_LCDoff();
+
+display_tileset_block_0 = tileset_block_0;
+display_tileset_block_2 = tileset_block_2;
+display_tilemap0 = tilemap0;
+
+int BRICK_LEFT = 5;
+int BRICK_RIGHT = 6;
+int BLANK_TILE = 8;
+int WALL_RIGHT = 7;
+int WALL_LEFT = 4;
+int WALL_BOTTOM = 9;
+int WALL_TOP = 1;
+int TOP_RIGHT_CORNER = 0;
+int TOP_LEFT_CORNER = 2;
+
+int paddleX = 16;
+int paddleY = 145;
+int ballX = 25;
+int ballY = 100;
+
+int i = 0;
+loop (i < 40) {
+    display_oam_y[i] = 0;
+    i = i + 1;
+}
+
+display_oam_tile[0] = 10;
+display_oam_x[0] = paddleX;
+display_oam_y[0]= paddleY;
+display_oam_tile[1] = 11;
+display_oam_x[1] = ballX;
+display_oam_y[1] = ballY;
+
+int Xtile = 0;
+int Ytile = 0;
+int Xmomentum = 1; // 1 = right, 2 = left
+int Ymomentum = 2; // 1 = down, 2 = up
+int tile = 0;
+int test = 0;
+int left = 0;
+int right = 0;
+
+procedure handleWallCollision() {
+    if (tile == WALL_LEFT or tile == WALL_RIGHT or tile == TOP_LEFT_CORNER or tile == TOP_RIGHT_CORNER) {
+        if (Xmomentum == 1) {
+            Xmomentum = 2;
+        } else {
+            Xmomentum = 1;
+        }
+    }
+
+    if (tile == WALL_TOP or tile == WALL_BOTTOM) {
+        if (Ymomentum == 1) {
+            Ymomentum = 2;
+        } else {
+            Ymomentum = 1;
+        }
+    }
+}
+
+procedure handlePaddleCollision() {
+    if (Ymomentum == 1) {
+        if (((ballY+5) >= 145)) {
+            if (((ballY+3) <= 145)) {
+                if (ballX <= (paddleX+8)) {
+                    if (ballX >= (paddleX - 8)) {
+                        Ymomentum = 2;
+                    }
+                }
+            }
+        }
+    }
+    if (Ymomentum == 2) {
+        if (((ballY) >= 145)) {
+            if (((ballY-3) <= 145)) {
+                if (ballX <= (paddleX+8)) {
+                    if (ballX >= (paddleX - 8)) {
+                        Ymomentum = 1;
+                    }
+                }
+            }
+        }
+    }
+}
+
+procedure updateBallPosition() {
+    if (Xmomentum == 1) {
+        ballX = ballX + 2;
+    } else {
+        ballX = ballX - 2;
+    }
+    if (Ymomentum == 1) {
+        ballY = ballY + 2;
+    } else {
+        ballY = ballY - 2;
+    }
+}
+
+procedure setBallAndPaddlePosition() {
+    display_oam_x[1] = ballX;
+    display_oam_y[1] = ballY;
+    display_oam_x[0] = paddleX;
+    display_oam_y[0] = 145;
+}
+
+int frame_count = 0;
+procedure main() {
+    control_LCDon();
+    control_initDisplayRegs();
+    control_initPalette();
+
+    loop (1) {
+        control_waitVBlankOver();
+        control_waitVBlankStart();
+
+        if (frame_count == 0) {
+            control_updateInput();
+            left = control_checkLeft();
+            right = control_checkRight();
+
+            updateBallPosition();
+
+            Xtile = (ballX-9) >> 3;
+            Ytile = (ballY-16) >> 3;
+            tile = display_tilemap0[Xtile][Ytile];
+
+            if (tile == BRICK_LEFT or tile == BRICK_RIGHT) {
+                display_tilemap0[Xtile][Ytile] = BLANK_TILE;
+                if (Ymomentum == 1) {
+                    Ymomentum = 2;
+                } else {
+                    Ymomentum = 1;
+                }
+                control_waitVBlankOver();
+                control_waitVBlankStart();
+                if (tile == BRICK_LEFT) {
+                    display_tilemap0[Xtile+1][Ytile] = BLANK_TILE;
+                } else {
+                    display_tilemap0[Xtile-1][Ytile] = BLANK_TILE;
+                }
+            }
+
+            handleWallCollision();
+            handlePaddleCollision();
+
+            if (left) {
+                if (paddleX > 16) {
+                    paddleX = paddleX - 2;
+                }
+            }
+            if (right) {
+                if (paddleX < 104) {
+                    paddleX = paddleX + 2;
+                }
+            }
+        } else {
+            if (frame_count == 1) {
+                setBallAndPaddlePosition();
+            }
+        }
+
+        if (frame_count == 1) {
+            frame_count = 0;
+        } else {
+            frame_count = frame_count + 1;
+        }
+    }
+}
+
+main();
