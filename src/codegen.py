@@ -321,25 +321,27 @@ class CodeGenerator:
 
         # Logical AND 
         elif instruction.op == 'and':
-            true_lbl = f"AND_TRUE_{self.cmp_counter}"
+            false_lbl = f"AND_FALSE_{self.cmp_counter}"
             end_lbl = f"AND_END_{self.cmp_counter}"
             self.cmp_counter += 1
 
-            returnstr += f"ld {instruction.dest}, 0    ; assume false\n"
-            # if left == 0, end (false)
+            # if left == 0 jump to false
             if instruction.left != 'a':
                 returnstr += f"ld a, {instruction.left}   ; load left\n"
             returnstr += "cp 0\n"
-            returnstr += f"jp z, {end_lbl}\n"
+            returnstr += f"jp z, {false_lbl}\n"
 
-            # if right == 0, end (false)
+            # if right == 0 jump to false
             returnstr += f"ld a, {instruction.right}   ; load right\n"
             returnstr += "cp 0\n"
-            returnstr += f"jp z, {end_lbl}\n"
+            returnstr += f"jp z, {false_lbl}\n"
 
             # both ≠ 0 (true)
-            returnstr += f"{true_lbl}:\n"
             returnstr += f"ld {instruction.dest}, 1   ; set true\n"
+            returnstr += f"jp {end_lbl}\n"  # Jump to end to avoid falling through to the 'false' logic if true
+
+            returnstr += f"{false_lbl}:\n"  # This label is no longer strictly needed but kept for clarity if you restructure
+            returnstr += f"ld {instruction.dest}, 0   ; set false (this line will only be reached if one of the 'jp z' branches is taken)\n"
             returnstr += f"{end_lbl}:\n"
             return returnstr
         
