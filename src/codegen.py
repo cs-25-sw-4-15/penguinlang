@@ -230,9 +230,9 @@ class CodeGenerator:
                 if instruction.left == 'a':
                     returnstr += f"dec {instruction.left}, {instruction.right}\n"
                 else:
-                    returnstr+= f"ld h, {instruction.right}\n"
-                    returnstr+= f"ld a, {instruction.left}\n"
-                    returnstr += f"sub a, h\n"
+                    returnstr += f"ld h, {instruction.right}\n"
+                    returnstr += f"ld a, {instruction.left}\n"
+                    returnstr += "sub a, h\n"
 
             # Case when a is not involved
             else:
@@ -274,8 +274,6 @@ class CodeGenerator:
             else:
                 returnstr += f"ld a, {instruction.left}\n"
                 returnstr += f"cp {instruction.right}\n"
-
-
 
             returnstr += f"ld {instruction.dest}, 0\n"
             

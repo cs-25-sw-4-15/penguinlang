@@ -16,8 +16,7 @@ def initialize_hardware_elements() -> Tuple[Dict[str, Type], Dict[str, Tuple[Lis
     symbol_table["display_tileset_block_1"] = TilesetType()  # Tileset that can be indexed
     symbol_table["display_tileset_block_2"] = TilesetType()  # Tileset that can be indexed
     symbol_table["display_tilemap0"] = TileMapType()  # TileMap that can be indexed
-    
-    # OAM (Object Attribute Memory) is a special list that contains sprite attributes
+
     symbol_table["display_oam_x"] = ListType(IntType())  # List of OAM entries
     symbol_table["display_oam_y"] = ListType(IntType())   # List of OAM entries
     symbol_table["display_oam_tile"] = ListType(IntType())   # List of OAM entries

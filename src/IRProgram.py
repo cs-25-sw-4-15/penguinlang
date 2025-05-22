@@ -721,7 +721,7 @@ class IRGenerator:
 
             result_temp = self.new_temp()
             
-            # Check if this is a hardware register array
+            #Levn fra da ideen var at bruge display_oam[4].x f.eks
             if base_name == "display_oam" or self.is_hardware_register(base_name):
                 # Hardware indexed load
                 self.add_instruction(IRHardwareIndexedLoad(result_temp, base_name, index_temp))

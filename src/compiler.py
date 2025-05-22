@@ -72,12 +72,6 @@ class ASTEncoder(json.JSONEncoder):
 
 
 def write_output_file(output_file: str, data: str, p: bool = False):
-    """Writes the output data to a file.
-    
-    Args:
-        output_file (str): The path to the output file.
-        data (str): The data to write to the file.
-    """
     
     if not p: 
         print("Writing output file...")
@@ -90,11 +84,6 @@ def write_output_file(output_file: str, data: str, p: bool = False):
 
 
 def print_tree(tree: ASTNode):
-    """Prints the tree in a readable format.
-    
-    Args:
-        tree (ASTNode): The tree to print.
-    """
     
     print("JSON STARTS HERE")
     print(json.dumps(tree, cls=ASTEncoder, indent=4))
@@ -102,11 +91,6 @@ def print_tree(tree: ASTNode):
 
 
 def read_input_file(input_file: str, p: bool = False):
-    """Reads the input file and returns a FileStream.
-    
-    Args:
-        input_file (str): The path to the input file.
-    """
     
     if not p: 
         print("Reading file...")
@@ -115,16 +99,6 @@ def read_input_file(input_file: str, p: bool = False):
 
 
 def concrete_syntax_tree(input_stream: str, p: bool = False):
-    """Creates a concrete syntax tree (CST) from the input stream.
-    
-    Lexing -> tokenstresm -> parsing -> parse tree (CST)
-    
-    Args:
-        input_stream (str): The input stream to parse.
-        
-    Returns:
-        tree (str): The parse tree (CST).
-    """
     
     if not p: 
         print("Lexing file...")
@@ -149,13 +123,6 @@ def concrete_syntax_tree(input_stream: str, p: bool = False):
 
 
 def abstact_syntax_tree(cst: str, p: bool = False):
-    """Creates an abstract syntax tree (AST) from the concrete syntax tree (CST).
-    
-    CST -> AST
-
-    Args:
-        cst (str): The concrete syntax tree (CST).
-    """
 
     if not p: 
         print("Generating abstract syntax tree...")
@@ -167,13 +134,6 @@ def abstact_syntax_tree(cst: str, p: bool = False):
     
 
 def typed_annotated_abstact_syntax_tree(ast: ASTNode, p: bool = False):
-    """Creates a type annotated abstract syntax tree (TAST) from the abstract syntax tree (AST).
-    
-    AST -> TAST
-
-    Args:
-        ast (str): The abstract syntax tree (AST).
-    """
     
     if not p: 
         print("Generating typed abstract syntax tree...")
@@ -186,13 +146,6 @@ def typed_annotated_abstact_syntax_tree(ast: ASTNode, p: bool = False):
 
 
 def intermediate_representation(taast: ASTNode, p: bool = False):
-    """Generates the intermediate representation (IR) from the typed abstract syntax tree (TAST).
-    
-    TAST -> IR
-    
-    Args:
-        taast (ASTNode[List]): The typed abstract syntax tree (TAST).
-    """
     
     if not p: 
         print("Generating intermediate representation...")
@@ -204,13 +157,6 @@ def intermediate_representation(taast: ASTNode, p: bool = False):
     
 
 def register_allocation(ir_program: IRProgram, num_registers: int = 4, p: bool = False):
-    """Generates the register allocation for the intermediate representation (IR).
-    
-    IR -> RA
-    
-    Args:
-        ir_program (IRProgram): The intermediate representation (IR).
-    """
     
     if not p: 
         print("Allocating registers...")
@@ -222,13 +168,7 @@ def register_allocation(ir_program: IRProgram, num_registers: int = 4, p: bool =
 
 
 def code_generation(ra_program: IRProgram, p: bool = False):
-    """Generates the final code from the register allocated intermediate representation (IR).
-    
-    RA -> Code
-    
-    Args:
-        ra_program (IRProgram): The register allocated intermediate representation (IR).
-    """
+
     if not p: 
         print("Generating code...")
     
@@ -239,18 +179,12 @@ def code_generation(ra_program: IRProgram, p: bool = False):
 
 
 def compile_rgbasm(rgbasm_code: str, output_file: str = "out.gb", p: bool = False):
-    """Compiles the RGBASM code to binary.
-
-    Args:
-        rgbasm_code (str): The RGBASM code to compile.
-        output_file (str): The output file path.
-    """
 
     if not p: 
         print("Compiling RGBASM code to binary...")
 
     output_dir = Path(output_file).parent
-    output_dir.mkdir(parents=True, exist_ok=True)  # Ensure that it happens that the output directory exists
+    output_dir.mkdir(parents=True, exist_ok=True)  # Ensure that it happens via ensuring that the output directory exists
 
     write_output_file(f"{output_dir}/main.asm", rgbasm_code, p=p)
 
@@ -266,12 +200,6 @@ def compile_rgbasm(rgbasm_code: str, output_file: str = "out.gb", p: bool = Fals
 
 
 def full_compile(input_file: str, output_file: str = "out.gb", p: bool = False):
-    """Full compile process from input file to output file.
-    
-    Args:
-        input_file (str): The input file path.
-        output_file (str): The output file path.
-    """
     
     if not p: 
         print("Compiling...")
@@ -283,11 +211,8 @@ def full_compile(input_file: str, output_file: str = "out.gb", p: bool = False):
 
 
 def main(input_file: str, output_file: str = "out.gb", p: bool = False):
-    """main logic for the compiler."""
     
     input_stream: str = read_input_file(input_file, p=p)
-    
-    # Frontend
     
     cst = concrete_syntax_tree(input_stream, p=p)
     
@@ -295,15 +220,11 @@ def main(input_file: str, output_file: str = "out.gb", p: bool = False):
     
     taast = typed_annotated_abstact_syntax_tree(ast, p=p)
     
-    # Backend
-    
     ir = intermediate_representation(taast, p=p)
     
     ra = register_allocation(ir, p=p)
     
     rgbasm_code = code_generation(ra, p=p)
-    
-    # Compile to binary
         
     compile_rgbasm(rgbasm_code, output_file, p=p)
 
