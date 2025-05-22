@@ -529,24 +529,18 @@ class CodeGenerator:
 
             loop_lbl = f"SHR_LOOP_{self.cmp_counter}"
             self.cmp_counter += 1
+
             if instruction.left != 'a':
                 returnstr += f"ld a, {instruction.left}\n"
-
             returnstr += "push bc\n"
-
             returnstr += f"ld b, {instruction.right}\n"
-
             returnstr += f"{loop_lbl}:\n"
-            returnstr += "srl a       ; shift A right by (logical)\n"
+            returnstr += "srl a\n"
             returnstr += "dec b\n"
-            returnstr += f"jp nz, {loop_lbl}   ; repeat until B == 0\n"
-
+            returnstr += f"jp nz, {loop_lbl}\n"
             returnstr += "pop bc\n"
-
             if instruction.dest != 'a':
                 returnstr += f"ld {instruction.dest}, a\n"
-
-            returnstr += "; shift right end\n"
 
             return returnstr
 
@@ -555,11 +549,32 @@ class CodeGenerator:
 
         # ~
         if instruction.op == '~':
-            returnstr += ';Not implemented\n'
+            if instruction.operand == 'a':
+                returnstr += f"cpl\n"
+            else:
+                returnstr += f"ld a, {instruction.operand}\n"
+                returnstr += f"cpl\n"
+
+            if instruction.dest != 'a':
+                returnstr += f"ld {instruction.dest}, a\n"
 
         # not
         elif instruction.op == 'not':
-            returnstr += ';Not implemented\n'
+            returnstr = ""
+            self.cmp_counter += 1
+
+            returnstr += f";begin\n"
+            if instruction.operand != 'a':
+                returnstr += f"ld a, {instruction.operand}\n"
+            returnstr += f"cp 0\n"
+            returnstr += f"jp nz, lnot_zero_{self.cmp_counter}\n"
+            returnstr += f"ld a, 1\n"
+            returnstr += f"jp lnot_end_{self.cmp_counter-1}\n"
+            returnstr += f"lnot_zero_{self.cmp_counter}:\n"
+            returnstr += f"ld a, 0\n"
+            returnstr += f"lnot_end_{self.cmp_counter-1}:\n"
+            returnstr += f"ld {instruction.dest}, a\n"
+            returnstr += f";end\n"
 
         return returnstr  
 

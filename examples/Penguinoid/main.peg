@@ -66,30 +66,22 @@ procedure handleWallCollision() {
 
 procedure handlePaddleCollision() {
     if (Ymomentum == 1) {
-        if (((ballY+5) >= paddleY)) {
-            if (((ballY+3) <= paddleY)) {
+        if (((ballY+5) >= 145)) {
+            if (((ballY+3) <= 145)) {
                 if (ballX <= (paddleX+8)) {
                     if (ballX >= (paddleX - 8)) {
-                        if (Ymomentum == 1) {
-                            Ymomentum = 2;
-                        } else {
-                            Ymomentum = 1;
-                        }
+                        Ymomentum = 2;
                     }
                 }
             }
         }
     }
     if (Ymomentum == 2) {
-        if (((ballY) >= paddleY)) {
-            if (((ballY-3) <= paddleY)) {
+        if (((ballY) >= 145)) {
+            if (((ballY-3) <= 145)) {
                 if (ballX <= (paddleX+8)) {
                     if (ballX >= (paddleX - 8)) {
-                        if (Ymomentum == 1) {
-                            Ymomentum = 2;
-                        } else {
-                            Ymomentum = 1;
-                        }
+                        Ymomentum = 1;
                     }
                 }
             }
@@ -114,6 +106,7 @@ procedure setBallAndPaddlePosition() {
     display_oam_x[1] = ballX;
     display_oam_y[1] = ballY;
     display_oam_x[0] = paddleX;
+    display_oam_y[0] = 145;
 }
 
 int frame_count = 0;
@@ -144,6 +137,8 @@ procedure main() {
                 } else {
                     Ymomentum = 1;
                 }
+                control_waitVBlankOver();
+                control_waitVBlankStart();
                 if (tile == BRICK_LEFT) {
                     display_tilemap0[Xtile+1][Ytile] = BLANK_TILE;
                 } else {
@@ -164,12 +159,16 @@ procedure main() {
                     paddleX = paddleX + 2;
                 }
             }
-            frame_count = 1;
         } else {
             if (frame_count == 1) {
                 setBallAndPaddlePosition();
-                frame_count = 0;
             }
+        }
+
+        if (frame_count == 1) {
+            frame_count = 0;
+        } else {
+            frame_count = frame_count + 1;
         }
     }
 }
