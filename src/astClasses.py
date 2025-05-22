@@ -190,7 +190,7 @@ class Conditional(ASTNode):
 
 
 class Loop(ASTNode):
-        """Loop Statement AST Node.
+    """Loop Statement AST Node.
     
     Args:
         ASTNode (none): Base class for all AST nodes.

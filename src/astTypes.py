@@ -7,8 +7,9 @@ from typing import TYPE_CHECKING, Any, Optional, List
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-#Undgår cirkulære imports
+# Type checking imports 
 if TYPE_CHECKING:
+    # Avoid circular imports
     from astTypes import IntType
 
 
@@ -113,7 +114,9 @@ class StringType(Type):
         return "string"
 
 # Deprecated, remaining uses still exist in type checker and tests
-# TODO Remove said uses
+# TODO: Remove said uses
+
+
 class OAMEntryType(Type):
     
     def __init__(self) -> None:
@@ -179,5 +182,5 @@ VOID = VoidType()
 TILESET = TilesetType()
 TILEMAP = TileMapType()
 SPRITE = SpriteType()
-#Deprecated af
+# Deprecated af
 OAM_ENTRY = OAMEntryType()

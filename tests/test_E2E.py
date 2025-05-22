@@ -970,10 +970,11 @@ def test_bitwise_or():
     result2 = pyboy.memory[data_segment_start+1]
     pyboy.stop()
 
-    assert result1 == 1;
-    assert result2 == 255;
+    assert result1 == 1
+    assert result2 == 255
 
     teardown()
+
 
 def test_logical_not():
     """

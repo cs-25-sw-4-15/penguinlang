@@ -49,7 +49,7 @@ class LinearScanner:
         self.live_ranges = []
     
     def allocate_program(self, ir_program: IRProgram) -> Dict[str, Dict[str, str]]:
-        #Returns a mapping from procedures, that goes from variable names to registers
+        # Returns a mapping from procedures, that goes from variable names to registers
         result = {}
         
         liveness_info = self.liveness_analyzer.analyze_program(ir_program)
@@ -164,7 +164,8 @@ class LinearScanner:
             
             self.active[-1] = live_range
             self.active.sort(key=lambda lr: lr.end)
-        #Spill nuværende
+            
+        # Spill nuværende
         else:
             spill_loc = self.get_spill_location()
             live_range.register = None

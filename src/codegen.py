@@ -548,10 +548,10 @@ class CodeGenerator:
         # ~
         if instruction.op == '~':
             if instruction.operand == 'a':
-                returnstr += f"cpl\n"
+                returnstr += "cpl\n"
             else:
                 returnstr += f"ld a, {instruction.operand}\n"
-                returnstr += f"cpl\n"
+                returnstr += "cpl\n"
 
             if instruction.dest != 'a':
                 returnstr += f"ld {instruction.dest}, a\n"
@@ -561,18 +561,18 @@ class CodeGenerator:
             returnstr = ""
             self.cmp_counter += 1
 
-            returnstr += f";begin\n"
+            returnstr += ";begin\n"
             if instruction.operand != 'a':
                 returnstr += f"ld a, {instruction.operand}\n"
-            returnstr += f"cp 0\n"
+            returnstr += "cp 0\n"
             returnstr += f"jp nz, lnot_zero_{self.cmp_counter}\n"
-            returnstr += f"ld a, 1\n"
+            returnstr += "ld a, 1\n"
             returnstr += f"jp lnot_end_{self.cmp_counter-1}\n"
             returnstr += f"lnot_zero_{self.cmp_counter}:\n"
-            returnstr += f"ld a, 0\n"
+            returnstr += "ld a, 0\n"
             returnstr += f"lnot_end_{self.cmp_counter-1}:\n"
             returnstr += f"ld {instruction.dest}, a\n"
-            returnstr += f";end\n"
+            returnstr += ";end\n"
 
         return returnstr  
 
