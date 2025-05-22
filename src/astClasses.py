@@ -106,6 +106,15 @@ class Program(ASTNode):
 
 
 class Declaration(ASTNode):
+    """Declaration Statement AST Node.
+    
+    Args:
+        ASTNode (none): Base class for all AST nodes.
+    
+    Attributes:
+        var_type (Type): The type of the variable.
+        name (str): The name of the variable.
+    """
     
     def __init__(self, var_type: str, name: str) -> None: 
         self.var_type = var_type
@@ -113,6 +122,15 @@ class Declaration(ASTNode):
 
 
 class Assignment(ASTNode):
+    """Assignment Statement AST Node.
+    
+    Args:
+        ASTNode (none): Base class for all AST nodes.
+    
+    Attributes:
+        target (str): The target variable to assign to. (Varaible, ListAccess, AttributeAccess)
+        value (Any): The value to assign to the target. (Variable, Number, String, ListAccess, AttributeAccess)
+    """
     
     def __init__(self, target: ASTNode, value: ASTNode) -> None:
         self.target = target
@@ -120,6 +138,16 @@ class Assignment(ASTNode):
 
 
 class Initialization(ASTNode):
+    """Initialization Statement AST Node.
+    
+    Args:
+        ASTNode (none): Base class for all AST nodes.
+    
+    Attributes:
+        var_type (Type): The type of the variable.
+        name (str): The name of the variable.
+        value (Any): The value to assign to the target. (Variable, Number, String, ListAccess, AttributeAccess)
+    """
     
     def __init__(self, var_type: str, name: str, value: ASTNode) -> None:
         self.var_type = var_type
@@ -128,6 +156,15 @@ class Initialization(ASTNode):
 
 
 class ListInitialization(ASTNode):
+    """List Initialization Statement AST Node.
+    
+    Args:
+        ASTNode (none): Base class for all AST nodes.
+    
+    Attributes:
+        name (str): The name of the variable.
+        value (Any): The value to assign to the target. (Variable, Number, String, ListAccess, AttributeAccess)
+    """
     
     def __init__(self, name: str, values: List[ASTNode]) -> None: 
         self.name = name
@@ -135,6 +172,16 @@ class ListInitialization(ASTNode):
 
 
 class Conditional(ASTNode):
+    """If Statement AST Node.
+    
+    Args:
+        ASTNode (none): Base class for all AST nodes.
+    
+    Attributes:
+        condition (Any): The condition to evaluate the if statement.
+        body (list[ASTNode]): The statements to execute if the condition is true.
+        else_body (list[ASTNode]): Default: None. The statements to execute if the condition is false. 
+    """
     
     def __init__(self, condition: ASTNode, then_body: List[ASTNode], else_body: Optional[List[ASTNode]] = None) -> None:
         self.condition = condition
@@ -143,6 +190,15 @@ class Conditional(ASTNode):
 
 
 class Loop(ASTNode):
+        """Loop Statement AST Node.
+    
+    Args:
+        ASTNode (none): Base class for all AST nodes.
+    
+    Attributes:
+        condition (Any): The condition to evaluate the loop statement.
+        body (list[ASTNode]): The statements to execute if the condition is true.
+    """
     
     def __init__(self, condition: ASTNode, body: List[ASTNode]) -> None:
         self.condition = condition
@@ -150,12 +206,25 @@ class Loop(ASTNode):
         
         
 class Return(ASTNode):
+    """Return Statement AST Node.
+    
+    Args:
+        ASTNode (none): Base class for all AST nodes.
+    
+    Attributes:
+        value (Any): The value to return from the function. (Sematically should only be integers)
+    """
     
     def __init__(self, value: ASTNode | None) -> None: 
         self.value = value 
 
 
 class ProcedureCallStatement(ASTNode):
+    """Procedure Call Statement AST Node.
+    
+    Attributes:
+        Call (str): The name of the procedure to call.
+    """
     
     def __init__(self, call: "ProcedureCall") -> None: # noqa: ProcedureCall
         # ProcedureCall er en klasse, der repræsenterer et procedurekald
@@ -169,6 +238,15 @@ class ProcedureCallStatement(ASTNode):
 
 
 class BinaryOp(ASTNode):
+    """Binary Operation Expression AST Node.
+    Args:
+        ASTNode (none): Base class for all AST nodes.
+        
+    Attributes:
+        left (ASTNode): The left operand of the binary operation.
+        op (str): The operator of the binary operation.
+        right (ASTNode): The right operand of the binary operation.
+    """
     
     def __init__(self, left: ASTNode, op: str, right: ASTNode) -> None:
         self.left = left
@@ -177,6 +255,15 @@ class BinaryOp(ASTNode):
 
 
 class UnaryOp(ASTNode):
+    """Unary Operation Expression AST Node.
+    
+    Args:
+        ASTNode (none): Base class for all AST nodes.
+        
+    Attributes:
+        op (str): The operator of the unary operation.
+        operand (ASTNode): The operand of the unary operation.
+    """
     
     def __init__(self, op: str, operand: ASTNode) -> None:
         self.op = op
@@ -184,6 +271,14 @@ class UnaryOp(ASTNode):
 
 
 class IntegerLiteral(ASTNode):
+    """Integer Literal Expression AST Node.
+    
+    Args:
+        ASTNode (none): Base class for all AST nodes.
+        
+    Attributes:
+        value (str): The value of the integer.
+    """
     
     def __init__(self, value: Union[int, str]) -> None:
         # value kan være int eller str, da det kan være en hex- eller binærværdi
@@ -192,6 +287,14 @@ class IntegerLiteral(ASTNode):
         
 
 class StringLiteral(ASTNode):
+    """String Literal Expression AST Node.
+    
+    Args:
+        ASTNode (none): Base class for all AST nodes.
+        
+    Attributes:
+        value (str): The value of the string.
+    """
     
     def __init__(self, value: str) -> None:
         # value kan være str, da det er det det er
@@ -199,13 +302,30 @@ class StringLiteral(ASTNode):
         
 
 class Variable(ASTNode):
-
+    """Variable Expression AST Node.
+    
+    Args:
+        ASTNode (none): Base class for all AST nodes.
+        
+    Attributes:
+        name (str): The name of the variable.
+    """
+    
     def __init__(self, var_type: str, name: str) -> None:
         self.var_type = var_type
         self.name = name
         
         
 class ListAccess(ASTNode):
+    """List Access Expression AST Node.
+    
+    Args:
+        ASTNode (none): Base class for all AST nodes.
+        
+    Attributes:
+        name (str): The name of the list.
+        index (int): The index of the element in the list.
+    """
     
     def __init__(self, name: str, indices: List[ASTNode]) -> None:
         self.name = name
@@ -213,6 +333,15 @@ class ListAccess(ASTNode):
 
 
 class AttributeAccess(ASTNode):
+    """Attribute Access Expression AST Node.
+    
+    Args:
+        ASTNode (none): Base class for all AST nodes.
+        
+    Attributes:
+        name (str): The name of the attribute.
+        attribute (str): The name of the attribute to access.
+    """
     
     def __init__(self, name: str, attribute: str) -> None:
         self.name = name
@@ -220,6 +349,15 @@ class AttributeAccess(ASTNode):
         
 
 class ProcedureCall(ASTNode):
+    """Procedure Call Expression AST Node.
+    
+    Args:
+        ASTNode (none): Base class for all AST nodes.
+        
+    Attributes:
+        name (str): The name of the procedure to call.
+        params (list[ASTNode]): The arguments to pass to the procedure.
+    """
     
     def __init__(self, name: str, params: List[ASTNode]) -> None:
         self.name = name
@@ -230,6 +368,16 @@ class ProcedureCall(ASTNode):
 
 
 class ProcedureDef(ASTNode):
+    """Procedure Definition AST Node
+    
+    Args:
+        ASTNode (none): Base class for all AST nodes.
+    
+    Attributes:
+        name (str): The name of the procedure.
+        params (List[Declaration]): The parameters of the procedure.
+        body (List[ASTNode]): The body of the procedure.
+    """
     
     def __init__(self, return_type: Optional[str], name: str, 
                  params: List[Declaration], body: List[ASTNode]) -> None: 
