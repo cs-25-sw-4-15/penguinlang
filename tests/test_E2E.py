@@ -914,5 +914,3 @@ def test_fibonacci_recursive():
     assert result == 144
 
     teardown()
-
-
