@@ -64,23 +64,37 @@ procedure handleWallCollision() {
     }
 }
 
+procedure handleBrickCollision() {
+    if (tile == BRICK_LEFT or tile == BRICK_RIGHT) {
+        display_tilemap0[Xtile][Ytile] = BLANK_TILE;
+        if (Ymomentum == 1) {
+            Ymomentum = 2;
+        } else {
+            Ymomentum = 1;
+        }
+        control_waitVBlankOver();
+        control_waitVBlankStart();
+        if (tile == BRICK_LEFT) {
+            display_tilemap0[Xtile+1][Ytile] = BLANK_TILE;
+        } else {
+            display_tilemap0[Xtile-1][Ytile] = BLANK_TILE;
+        }
+    }
+}
+
 procedure handlePaddleCollision() {
-    if (Ymomentum == 1) {
-        if (((ballY+5) >= 145)) {
-            if (((ballY+3) <= 145)) {
-                if (ballX <= (paddleX+8)) {
-                    if (ballX >= (paddleX - 8)) {
+    if (ballX <= (paddleX+8)) {
+        if (ballX >= (paddleX - 8)) {
+            if (((ballY+5) >= 145)) {
+                if (((ballY+3) <= 145)) {
+                    if (Ymomentum == 1) {
                         Ymomentum = 2;
                     }
                 }
             }
-        }
-    }
-    if (Ymomentum == 2) {
-        if (((ballY) >= 145)) {
-            if (((ballY-3) <= 145)) {
-                if (ballX <= (paddleX+8)) {
-                    if (ballX >= (paddleX - 8)) {
+            if (((ballY) >= 145)) {
+                if (((ballY-3) <= 145)) {
+                    if (Ymomentum == 2) {
                         Ymomentum = 1;
                     }
                 }
@@ -103,14 +117,25 @@ procedure updateBallPosition() {
 }
 
 procedure setBallAndPaddlePosition() {
+    if (left) {
+        if (paddleX > 16) {
+            paddleX = paddleX - 2;
+        }
+    }
+    if (right) {
+        if (paddleX < 104) {
+            paddleX = paddleX + 2;
+        }
+    }
+
     display_oam_x[1] = ballX;
     display_oam_y[1] = ballY;
     display_oam_x[0] = paddleX;
     display_oam_y[0] = 145;
 }
 
-int frame_count = 0;
 procedure main() {
+    int frame = 0;
     control_LCDon();
     control_initDisplayRegs();
     control_initPalette();
@@ -119,7 +144,7 @@ procedure main() {
         control_waitVBlankOver();
         control_waitVBlankStart();
 
-        if (frame_count == 0) {
+        if (frame == 0) {
             control_updateInput();
             left = control_checkLeft();
             right = control_checkRight();
@@ -130,45 +155,15 @@ procedure main() {
             Ytile = (ballY-16) >> 3;
             tile = display_tilemap0[Xtile][Ytile];
 
-            if (tile == BRICK_LEFT or tile == BRICK_RIGHT) {
-                display_tilemap0[Xtile][Ytile] = BLANK_TILE;
-                if (Ymomentum == 1) {
-                    Ymomentum = 2;
-                } else {
-                    Ymomentum = 1;
-                }
-                control_waitVBlankOver();
-                control_waitVBlankStart();
-                if (tile == BRICK_LEFT) {
-                    display_tilemap0[Xtile+1][Ytile] = BLANK_TILE;
-                } else {
-                    display_tilemap0[Xtile-1][Ytile] = BLANK_TILE;
-                }
-            }
-
+            handleBrickCollision();
             handleWallCollision();
             handlePaddleCollision();
-
-            if (left) {
-                if (paddleX > 16) {
-                    paddleX = paddleX - 2;
-                }
-            }
-            if (right) {
-                if (paddleX < 104) {
-                    paddleX = paddleX + 2;
-                }
-            }
+            frame = 1;
         } else {
-            if (frame_count == 1) {
+            if (frame == 1) {
                 setBallAndPaddlePosition();
+                frame = 0;
             }
-        }
-
-        if (frame_count == 1) {
-            frame_count = 0;
-        } else {
-            frame_count = frame_count + 1;
         }
     }
 }
