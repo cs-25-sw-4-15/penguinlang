@@ -42,7 +42,6 @@ int Ytile = 0;
 int Xmomentum = 1; // 1 = right, 2 = left
 int Ymomentum = 2; // 1 = down, 2 = up
 int tile = 0;
-int test = 0;
 int left = 0;
 int right = 0;
 
