@@ -47,13 +47,6 @@ app = typer.Typer()
 
 # Define the command line interface (CLI) for the project
 @app.command()
-def compile(input_path: Annotated[str, typer.Argument(help="Input file path")], 
-            output_path: Annotated[str, typer.Argument(help="Output file path")] = "out.gb"):
-    print(input_path)
-    print(output_path)
-
-
-@app.command()
 def test():
     print("Test function called")
 
@@ -134,14 +127,19 @@ def codegen(input_path: Annotated[str, typer.Argument(help="Input file path")],
     
     output_dir = Path(output_path).parent
     write_output_file(f"{output_dir}/main.asm", rgbasm_code)
-    
+
 
 @app.command()
 def compile(input_path: Annotated[str, typer.Argument(help="Input file path")],
             output_path: Annotated[str, typer.Argument(help="Output file path")] = "out.gb"):
     full_compile(input_path, output_path, True)
     
+@app.command()
+def crgbasm(input_path: Annotated[str, typer.Argument(help="Input file path")],
+            output_path: Annotated[str, typer.Argument(help="Output file path")] = "out.gb"):
+    # input path is the path to the RGBASM source code, read it, dont use read_input_file
+    input_code = Path(input_path).read_text()
+    compile_rgbasm(input_code, output_path)
 
 if __name__ == "__main__":
-    # Run the CLI application
     app()
