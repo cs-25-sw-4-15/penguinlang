@@ -151,7 +151,7 @@ procedure main() {
             updateBallPosition();
 
             Xtile = (ballX-9) >> 3;
-            Ytile = (ballY-16) >> 3;
+            Ytile = (ballY-18) >> 3;
             tile = display_tilemap0[Xtile][Ytile];
 
             handleBrickCollision();
