@@ -60,7 +60,12 @@ py cli.py COMMAND [option] ...
 ```
 
 Commands:
-- `cst` - options: penguin soruce code filepath
-- `ast` - options: penguin soruce code filepath
-- `taast` - options: penguin soruce code filepath
-- `compile` - options: penguin soruce code filepath
+- `test`
+- `cst` - options: input_path
+- `ast` - options: input_path
+- `taast` - options: input_path
+- `ir` - options: input_path
+- `ra` - options: input_path
+- `codegen` - options: input_path, output_path
+- `compile` - options: input_path, output_path
+- `crgbasm` - options: input_path, output_path

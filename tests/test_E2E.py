@@ -324,6 +324,7 @@ def test_logical_and():
 
     teardown()
 
+
 def test_logical_or():
     """
     End-to-end test for logial or
@@ -355,6 +356,7 @@ def test_logical_or():
 
     teardown()
 
+
 def test_bitwise_and():
     """
     End-to-end test for bitwise and operator (&).
@@ -378,6 +380,7 @@ def test_bitwise_and():
     assert result == 0b1010
 
     teardown()
+
 
 def test_right_shift():
     """
@@ -438,6 +441,7 @@ def test_left_shift():
     assert result3 == 0b1000
     assert result4 == 0b10000
 
+
 def test_loop_1():
     """
     End-to-end test for a loop with conditional logic.
@@ -469,6 +473,7 @@ def test_loop_1():
     assert result == 13
 
     teardown()
+
 
 def test_binary_load_behavior():
     """
