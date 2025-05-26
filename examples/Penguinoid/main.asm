@@ -10,18 +10,6 @@ PenguinEntry:
   ; include binary hooked to below footer
   ; include binary hooked to below footer
   ; include binary hooked to below footer
-  ; include binary hooked to below footer
-  ; include binary hooked to below footer
-  ; include binary hooked to below footer
-  ; include binary hooked to below footer
-  ; include binary hooked to below footer
-  ; include binary hooked to below footer
-  ; include binary hooked to below footer
-  ; include binary hooked to below footer
-  ; include binary hooked to below footer
-  ; include binary hooked to below footer
-  ; include binary hooked to below footer
-  ; include binary hooked to below footer
   push bc
   push de
   push hl
@@ -1573,42 +1561,6 @@ Labelcontrol_checkRight:
   ld a, [wCurKeys]
   and a, PADF_RIGHT
   ret
-Labeltest1Start:
-  INCBIN "penguinoid_tilemap.bin"
-Labeltest1End:
-Labeltest2Start:
-  INCBIN "penguinoid_tilemap.bin"
-Labeltest2End:
-Labeltest3Start:
-  INCBIN "penguinoid_tilemap.bin"
-Labeltest3End:
-Labeltest4Start:
-  INCBIN "penguinoid_tilemap.bin"
-Labeltest4End:
-Labeltest5Start:
-  INCBIN "penguinoid_tilemap.bin"
-Labeltest5End:
-Labeltest6Start:
-  INCBIN "penguinoid_tilemap.bin"
-Labeltest6End:
-Labeltest7Start:
-  INCBIN "penguinoid_tilemap.bin"
-Labeltest7End:
-Labeltest8Start:
-  INCBIN "penguinoid_tilemap.bin"
-Labeltest8End:
-Labeltest9Start:
-  INCBIN "penguinoid_tilemap.bin"
-Labeltest9End:
-Labeltest10Start:
-  INCBIN "penguinoid_tilemap.bin"
-Labeltest10End:
-Labeltest11Start:
-  INCBIN "penguinoid_tilemap.bin"
-Labeltest11End:
-Labeltest12Start:
-  INCBIN "penguinoid_tilemap.bin"
-Labeltest12End:
 Labeltileset_block_0Start:
   INCBIN "penguinoid_tileset.2bpp"
 Labeltileset_block_0End:
