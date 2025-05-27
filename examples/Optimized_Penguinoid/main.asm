@@ -7,6 +7,9 @@ PenguinEntry:
   ld a, 0
   ld [wCurKeys], a
   ld [wNewKeys], a
+  ; include binary hooked to below footer
+  ; include binary hooked to below footer
+  ; include binary hooked to below footer
   push bc
   push de
   push hl
@@ -244,16 +247,16 @@ EQ_END_7:
 EQ_TRUE_8:
   ld c, 1
 EQ_END_8:
-  ld a, b   ; load left
-  cp 0   ; compare left to 0
-  jp nz, OR_TRUE_9   ; if nonzero, set true
-  ld a, c   ; load right
-  cp 0   ; compare right to 0
-  jp nz, OR_TRUE_9   ; if nonzero, set true
-  ld b, 0   ; set false
+  ld a, b
+  cp 0
+  jp nz, OR_TRUE_9
+  ld a, c
+  cp 0
+  jp nz, OR_TRUE_9
+  ld b, 0
   jp OR_END_9
 OR_TRUE_9:
-  ld b, 1   ; set true
+  ld b, 1
 OR_END_9:
   ld a, b
   cp 0
@@ -299,7 +302,7 @@ no_add10:
   cpl
   ld b, a
   ld c, 1
-  ld a, b   ; load left into A
+  ld a, b   ; load left into a
   or c
   ld b, a   ; store
   ld a, b
@@ -638,16 +641,16 @@ EQ_END_22:
 EQ_TRUE_23:
   ld d, 1
 EQ_END_23:
-  ld a, c   ; load left
-  cp 0   ; compare left to 0
-  jp nz, OR_TRUE_24   ; if nonzero, set true
-  ld a, d   ; load right
-  cp 0   ; compare right to 0
-  jp nz, OR_TRUE_24   ; if nonzero, set true
-  ld c, 0   ; set false
+  ld a, c
+  cp 0
+  jp nz, OR_TRUE_24
+  ld a, d
+  cp 0
+  jp nz, OR_TRUE_24
+  ld c, 0
   jp OR_END_24
 OR_TRUE_24:
-  ld c, 1   ; set true
+  ld c, 1
 OR_END_24:
   ld hl, 49176
   ld a, [hl]
@@ -661,16 +664,16 @@ OR_END_24:
 EQ_TRUE_25:
   ld d, 1
 EQ_END_25:
-  ld a, c   ; load left
-  cp 0   ; compare left to 0
-  jp nz, OR_TRUE_26   ; if nonzero, set true
-  ld a, d   ; load right
-  cp 0   ; compare right to 0
-  jp nz, OR_TRUE_26   ; if nonzero, set true
-  ld c, 0   ; set false
+  ld a, c
+  cp 0
+  jp nz, OR_TRUE_26
+  ld a, d
+  cp 0
+  jp nz, OR_TRUE_26
+  ld c, 0
   jp OR_END_26
 OR_TRUE_26:
-  ld c, 1   ; set true
+  ld c, 1
 OR_END_26:
   ld hl, 49176
   ld a, [hl]
@@ -684,16 +687,16 @@ OR_END_26:
 EQ_TRUE_27:
   ld d, 1
 EQ_END_27:
-  ld a, c   ; load left
-  cp 0   ; compare left to 0
-  jp nz, OR_TRUE_28   ; if nonzero, set true
-  ld a, d   ; load right
-  cp 0   ; compare right to 0
-  jp nz, OR_TRUE_28   ; if nonzero, set true
-  ld c, 0   ; set false
+  ld a, c
+  cp 0
+  jp nz, OR_TRUE_28
+  ld a, d
+  cp 0
+  jp nz, OR_TRUE_28
+  ld c, 0
   jp OR_END_28
 OR_TRUE_28:
-  ld c, 1   ; set true
+  ld c, 1
 OR_END_28:
   ld a, c
   cp 0
@@ -707,7 +710,7 @@ L14:
   cpl
   ld c, a
   ld d, 1
-  ld a, c   ; load left into A
+  ld a, c   ; load left into a
   or d
   ld c, a   ; store
   ld a, c
@@ -738,16 +741,16 @@ EQ_END_29:
 EQ_TRUE_30:
   ld d, 1
 EQ_END_30:
-  ld a, c   ; load left
-  cp 0   ; compare left to 0
-  jp nz, OR_TRUE_31   ; if nonzero, set true
-  ld a, d   ; load right
-  cp 0   ; compare right to 0
-  jp nz, OR_TRUE_31   ; if nonzero, set true
-  ld c, 0   ; set false
+  ld a, c
+  cp 0
+  jp nz, OR_TRUE_31
+  ld a, d
+  cp 0
+  jp nz, OR_TRUE_31
+  ld c, 0
   jp OR_END_31
 OR_TRUE_31:
-  ld c, 1   ; set true
+  ld c, 1
 OR_END_31:
   ld a, c
   cp 0
@@ -761,7 +764,7 @@ L16:
   cpl
   ld c, a
   ld d, 1
-  ld a, c   ; load left into A
+  ld a, c   ; load left into a
   or d
   ld c, a   ; store
   ld a, c

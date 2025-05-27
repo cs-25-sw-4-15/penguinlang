@@ -403,16 +403,16 @@ EQ_END_15:
 EQ_TRUE_16:
   ld c, 1
 EQ_END_16:
-  ld a, b   ; load left
-  cp 0   ; compare left to 0
-  jp nz, OR_TRUE_17   ; if nonzero, set true
-  ld a, c   ; load right
-  cp 0   ; compare right to 0
-  jp nz, OR_TRUE_17   ; if nonzero, set true
-  ld b, 0   ; set false
+  ld a, b
+  cp 0
+  jp nz, OR_TRUE_17
+  ld a, c
+  cp 0
+  jp nz, OR_TRUE_17
+  ld b, 0
   jp OR_END_17
 OR_TRUE_17:
-  ld b, 1   ; set true
+  ld b, 1
 OR_END_17:
   ld hl, 49186
   ld a, [hl]
@@ -428,16 +428,16 @@ OR_END_17:
 EQ_TRUE_18:
   ld c, 1
 EQ_END_18:
-  ld a, b   ; load left
-  cp 0   ; compare left to 0
-  jp nz, OR_TRUE_19   ; if nonzero, set true
-  ld a, c   ; load right
-  cp 0   ; compare right to 0
-  jp nz, OR_TRUE_19   ; if nonzero, set true
-  ld b, 0   ; set false
+  ld a, b
+  cp 0
+  jp nz, OR_TRUE_19
+  ld a, c
+  cp 0
+  jp nz, OR_TRUE_19
+  ld b, 0
   jp OR_END_19
 OR_TRUE_19:
-  ld b, 1   ; set true
+  ld b, 1
 OR_END_19:
   ld hl, 49186
   ld a, [hl]
@@ -453,16 +453,16 @@ OR_END_19:
 EQ_TRUE_20:
   ld c, 1
 EQ_END_20:
-  ld a, b   ; load left
-  cp 0   ; compare left to 0
-  jp nz, OR_TRUE_21   ; if nonzero, set true
-  ld a, c   ; load right
-  cp 0   ; compare right to 0
-  jp nz, OR_TRUE_21   ; if nonzero, set true
-  ld b, 0   ; set false
+  ld a, b
+  cp 0
+  jp nz, OR_TRUE_21
+  ld a, c
+  cp 0
+  jp nz, OR_TRUE_21
+  ld b, 0
   jp OR_END_21
 OR_TRUE_21:
-  ld b, 1   ; set true
+  ld b, 1
 OR_END_21:
   ld a, b
   cp 0
@@ -527,16 +527,16 @@ EQ_END_23:
 EQ_TRUE_24:
   ld c, 1
 EQ_END_24:
-  ld a, b   ; load left
-  cp 0   ; compare left to 0
-  jp nz, OR_TRUE_25   ; if nonzero, set true
-  ld a, c   ; load right
-  cp 0   ; compare right to 0
-  jp nz, OR_TRUE_25   ; if nonzero, set true
-  ld b, 0   ; set false
+  ld a, b
+  cp 0
+  jp nz, OR_TRUE_25
+  ld a, c
+  cp 0
+  jp nz, OR_TRUE_25
+  ld b, 0
   jp OR_END_25
 OR_TRUE_25:
-  ld b, 1   ; set true
+  ld b, 1
 OR_END_25:
   ld a, b
   cp 0
@@ -603,16 +603,16 @@ EQ_END_27:
 EQ_TRUE_28:
   ld c, 1
 EQ_END_28:
-  ld a, b   ; load left
-  cp 0   ; compare left to 0
-  jp nz, OR_TRUE_29   ; if nonzero, set true
-  ld a, c   ; load right
-  cp 0   ; compare right to 0
-  jp nz, OR_TRUE_29   ; if nonzero, set true
-  ld b, 0   ; set false
+  ld a, b
+  cp 0
+  jp nz, OR_TRUE_29
+  ld a, c
+  cp 0
+  jp nz, OR_TRUE_29
+  ld b, 0
   jp OR_END_29
 OR_TRUE_29:
-  ld b, 1   ; set true
+  ld b, 1
 OR_END_29:
   ld a, b
   cp 0
