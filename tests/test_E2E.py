@@ -496,7 +496,7 @@ def test_binary_load_behavior():
 
     pyboy.stop()
 
-    # load in the binary file
+    # load in the binary files
     with open('temp_files/tileset_block_0.2bpp', 'rb') as f:
         tileset_block_0 = list(f.read())
     with open('temp_files/tileset_block_1.2bpp', 'rb') as f:
@@ -695,7 +695,6 @@ def test_function_call_inside_loop():
     teardown()
 
 
-# input test
 def test_input():
     """
     End-to-end test for input function.

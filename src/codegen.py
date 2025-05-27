@@ -325,23 +325,20 @@ class CodeGenerator:
             end_lbl = f"AND_END_{self.cmp_counter}"
             self.cmp_counter += 1
 
-            # if left == 0 jump to false
             if instruction.left != 'a':
-                returnstr += f"ld a, {instruction.left}   ; load left\n"
+                returnstr += f"ld a, {instruction.left}\n"
             returnstr += "cp 0\n"
             returnstr += f"jp z, {false_lbl}\n"
 
-            # if right == 0 jump to false
-            returnstr += f"ld a, {instruction.right}   ; load right\n"
+            returnstr += f"ld a, {instruction.right}\n"
             returnstr += "cp 0\n"
             returnstr += f"jp z, {false_lbl}\n"
 
-            # both ≠ 0 (true)
-            returnstr += f"ld {instruction.dest}, 1   ; set true\n"
-            returnstr += f"jp {end_lbl}\n"  # Jump to end to avoid falling through to the 'false' logic if true
+            returnstr += f"ld {instruction.dest}, 1\n"
+            returnstr += f"jp {end_lbl}\n"
 
-            returnstr += f"{false_lbl}:\n"  # This label is no longer strictly needed but kept for clarity if you restructure
-            returnstr += f"ld {instruction.dest}, 0   ; set false (this line will only be reached if one of the 'jp z' branches is taken)\n"
+            returnstr += f"{false_lbl}:\n"
+            returnstr += f"ld {instruction.dest}, 0\n"
             returnstr += f"{end_lbl}:\n"
             return returnstr
         
@@ -352,7 +349,7 @@ class CodeGenerator:
             elif instruction.right == 'a':
                 returnstr += f"or {instruction.left}\n"
             else:
-                returnstr += f"ld a, {instruction.left}   ; load left into A\n"
+                returnstr += f"ld a, {instruction.left}   ; load left into a\n"
                 returnstr += f"or {instruction.right}\n"
 
             if instruction.dest != 'a':
@@ -365,24 +362,20 @@ class CodeGenerator:
             end_lbl = f"OR_END_{self.cmp_counter}"
             self.cmp_counter += 1
 
-            # Check left ≠ 0
             if instruction.left != 'a':
-                returnstr += f"ld a, {instruction.left}   ; load left\n"
-            returnstr += "cp 0   ; compare left to 0\n"
-            returnstr += f"jp nz, {true_lbl}   ; if nonzero, set true\n"
+                returnstr += f"ld a, {instruction.left} \n"
+            returnstr += "cp 0 \n"
+            returnstr += f"jp nz, {true_lbl}  \n"
 
-            # Check right ≠ 0
-            returnstr += f"ld a, {instruction.right}   ; load right\n"
-            returnstr += "cp 0   ; compare right to 0\n"
-            returnstr += f"jp nz, {true_lbl}   ; if nonzero, set true\n"
+            returnstr += f"ld a, {instruction.right} \n"
+            returnstr += "cp 0 \n"
+            returnstr += f"jp nz, {true_lbl} \n"
 
-            # False Case
-            returnstr += f"ld {instruction.dest}, 0   ; set false\n"
+            returnstr += f"ld {instruction.dest}, 0 \n"
             returnstr += f"jp {end_lbl}\n"
 
-            # True case
             returnstr += f"{true_lbl}:\n"
-            returnstr += f"ld {instruction.dest}, 1   ; set true\n"
+            returnstr += f"ld {instruction.dest}, 1 \n"
             returnstr += f"{end_lbl}:\n"
             return returnstr
         
@@ -524,7 +517,7 @@ class CodeGenerator:
                 
             return returnstr
         
-        # >> shift right (sign extension)
+        # >> shift right
         elif instruction.op == '>>':
 
             loop_lbl = f"SHR_LOOP_{self.cmp_counter}"
