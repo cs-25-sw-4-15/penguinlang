@@ -7,6 +7,14 @@ from src.logger import logger
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+"""
+1. Visit every statement
+2. Check each value in the statement
+3. For the value, if consisting of two literals, merge
+4. Else, if contains more expressions, check those (recursive?)
+5. Else, if contains runtime shit (Vars, hardware shit), ignore, gg go next
+"""
+
 class LiteralMerger():
     def __init__(self):
         self.statementTypesToCheck = {Assignment, Initialization, Conditional, Loop, Return, ProcedureCall, ListAccess}
@@ -37,29 +45,32 @@ class LiteralMerger():
         
         return method(node)
     
-    def merge_Assignment(self, node: ASTNode):
+    def merge_Assignment(self, node: ASTNode) -> bool:
      
-    def merge_Initialization(self, node: ASTNode):
+    def merge_Initialization(self, node: ASTNode) -> bool:
          
-    def merge_Conditional(self, node: ASTNode):
+    def merge_Conditional(self, node: ASTNode) -> bool:
              
-    def merge_Loop(self, node: ASTNode):
+    def merge_Loop(self, node: ASTNode) -> bool:
     
-    def merge_Return(self, node: ASTNode): 
+    def merge_Return(self, node: ASTNode) -> bool: 
                  
-    def merge_ProcedureCall(self, node: ASTNode):
+    def merge_ProcedureCall(self, node: ASTNode) -> bool:
     
-    def merge_ListAccess(self, node: ASTNode):
+    def merge_ListAccess(self, node: ASTNode) -> bool:
 
-    def checkExpression(self, node: ASTNode):
+    def checkExpression(self, node: ASTNode) -> bool:
         if node.__class__ == BinaryOp.__class__:
             logger.info("Found binary expression, attempting merge")
 
-        else if node.__class__ == UnaryOp.__class__:
+        elif node.__class__ == UnaryOp.__class__:
+            logger.info("Found binary expression, attempting merge")
 
-        else if node.__class__ == BinaryOp.__class__:
+        elif node.__class__ == BinaryOp.__class__:
+            logger.info("Found binary expression, attempting merge")
 
-        else if node.__class__ == Variable.__class__:
+        elif node.__class__ == Variable.__class__:
+            logger.info("Found binary expression, attempting merge")
 
 
 
