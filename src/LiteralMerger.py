@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 5. Else, if contains runtime shit (Vars, hardware shit), ignore, gg go next
 """
 
-class LiteralMerger():
+class LiteralMergerChecker():
     def __init__(self):
         self.statementTypesToCheck = {Assignment, Initialization, Conditional, Loop, Return, ProcedureCall, ListAccess}
         self.ExpressionTypes = {BinaryOp, UnaryOp}
@@ -45,32 +45,30 @@ class LiteralMerger():
         
         return method(node)
     
-    def merge_Assignment(self, node: ASTNode) -> bool:
+    def merge_Assignment(self, node: Assignment) -> bool:
      
-    def merge_Initialization(self, node: ASTNode) -> bool:
+    def merge_Initialization(self, node: Initialization) -> bool:
          
-    def merge_Conditional(self, node: ASTNode) -> bool:
+    def merge_Conditional(self, node: Conditional) -> bool:
              
-    def merge_Loop(self, node: ASTNode) -> bool:
+    def merge_Loop(self, node: Loop) -> bool:
     
-    def merge_Return(self, node: ASTNode) -> bool: 
+    def merge_Return(self, node: Return) -> bool: 
                  
-    def merge_ProcedureCall(self, node: ASTNode) -> bool:
+    def merge_ProcedureCall(self, node: ProcedureCall) -> bool:
     
-    def merge_ListAccess(self, node: ASTNode) -> bool:
+    def merge_ListAccess(self, node: ListAccess) -> bool:
 
     def checkExpression(self, node: ASTNode) -> bool:
-        if node.__class__ == BinaryOp.__class__:
+        if isinstance(node, BinaryOp):
             logger.info("Found binary expression, attempting merge")
-
-        elif node.__class__ == UnaryOp.__class__:
-            logger.info("Found binary expression, attempting merge")
-
-        elif node.__class__ == BinaryOp.__class__:
-            logger.info("Found binary expression, attempting merge")
-
-        elif node.__class__ == Variable.__class__:
-            logger.info("Found binary expression, attempting merge")
+        elif isinstance(node, UnaryOp):
+            logger.info("Found unary expression, attempting merge")
+        elif isinstance(node, IntegerLiteral):
+            return True
+        else:
+            logger.error(f"Did not find an expression, instead found {node.__class__}")
+            return False
 
 
 
