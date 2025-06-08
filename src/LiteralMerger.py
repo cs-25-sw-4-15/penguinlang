@@ -91,10 +91,10 @@ class LiteralMerger():
     
     def merge_ListAccess(self, node: ListAccess) -> ASTNode:
         currentIndex = 0
-        for indice in node.target.indices:
+        for indice in node.indices:
             currentVal = self.merge_node(indice)
             if currentVal:
-                node.target.indices[currentIndex] = currentVal
+                node.indices[currentIndex] = currentVal
             currentIndex += 1
 
         return node
@@ -200,7 +200,7 @@ class LiteralMerger():
                 logger.info("Returning original node")
                 return node
             
-        return IntegerLiteral(str(result))
+        return IntegerLiteral((result))
         
 
 

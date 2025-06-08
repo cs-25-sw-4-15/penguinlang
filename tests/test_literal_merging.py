@@ -84,3 +84,12 @@ class TestLiteralMerging:
         merged_tree = build_taast(code)
         assert(isinstance(merged_tree.statements[0].value, IntegerLiteral))
         assert(merged_tree.statements[0].value.value == "9")
+
+    def testListAccessMerging(self):
+        code = """
+        int x = display_oam_x[25*10][7 + 5];
+        """
+        merged_tree = build_taast(code)
+        assert(isinstance(merged_tree.statements[0].value, ListAccess))
+        assert(merged_tree.statements[0].value.indices[0].value == "250")
+        assert(merged_tree.statements[0].value.indices[1].value == "12")
