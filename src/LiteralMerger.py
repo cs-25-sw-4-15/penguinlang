@@ -1,5 +1,4 @@
 from src.astClasses import *
-from astTypes import *
 import os
 import sys
 from typing import List, Tuple, Union, Optional, Dict
@@ -15,7 +14,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 5. Else, if contains runtime shit (Vars, hardware shit), ignore, gg go next
 """
 
-class LiteralMergerChecker():
+class LiteralMerger():
     def __init__(self):
         self.currentStatementIndex = 0
 
@@ -37,6 +36,7 @@ class LiteralMergerChecker():
         for stmt in node.statements:
             logger.info(f"Reached statement type {stmt.__class__}")
             node.statements[self.currentStatementIndex] = self.merge_node(stmt)
+            self.currentStatementIndex += 1
 
         return node
     
@@ -101,18 +101,18 @@ class LiteralMergerChecker():
 
     def merge_BinaryOp(self, node: BinaryOp) -> ASTNode:
         logger.info("Found binary expression, attempting merge")
-        node.left = self.checkExpression(node.left)
-        node.right = self.checkExpression(node.right)
+        node.left = self.merge_node(node.left)
+        node.right = self.merge_node(node.right)
         if (isinstance(node.left, IntegerLiteral) and isinstance(node.right, IntegerLiteral)):
-            return self.MergeBinary(node)
+            return self.mergeBinary(node)
             
         return node
     
     def merge_UnaryOp(self, node: BinaryOp) -> ASTNode:
         logger.info("Found unary expression, attempting merge")
-        node.operand = self.checkExpression(node.operand)
+        node.operand = self.merge_node(node.operand)
         if isinstance(node.operand, IntegerLiteral):
-            return self.MergeUnary(node)
+            return self.mergeUnary(node)
             
         return node
     
@@ -150,8 +150,8 @@ class LiteralMergerChecker():
     def mergeBinary(self, node: BinaryOp) -> ASTNode:
         # Prob could be done in a simpler manner by simply translating the operator,
         # but in case of future operators that dont match any Python math, this is how we do it
-        left_val = int(node.left.val)
-        right_val = int(node.right.val)
+        left_val = int(node.left.value)
+        right_val = int(node.right.value)
 
         def to_8bit(value):
             return value & 0xFF
@@ -207,7 +207,11 @@ class LiteralMergerChecker():
     def mergeUnary(self, node: UnaryOp) -> ASTNode:
         match node.op:
             case '~':
+                logger.info("Not implemented yet")
+                return node
             case 'not':
+                logger.info("Not implemented yet")
+                return node
             case _:
                 logger.error("Binary statement case not found, could not merge binary expression with two integer literals")
                 logger.info("Returning original node")

@@ -28,6 +28,7 @@ from src.IRProgram import IRGenerator, IRProgram
 from src.RegisterAllocator import RegisterAllocator
 from src.codegen import CodeGenerator
 from src.logger import logger
+from src.LiteralMerger import *
 
 
 class ASTEncoder(json.JSONEncoder):
@@ -208,6 +209,18 @@ def full_compile(input_file: str, output_file: str = "out.gb", p: bool = False):
     
     if not p: 
         print("Compilation finished.")
+
+def literal_optimization(ast: ASTNode, p: bool = False):
+    
+    if not p: 
+        print("Trying to optimize code by merging literals...")
+    
+    tree = ast
+    merger = LiteralMerger()
+    merger.merge_Program(tree)
+    
+    return tree
+
 
 
 def main(input_file: str, output_file: str = "out.gb", p: bool = False):

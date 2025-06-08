@@ -39,6 +39,7 @@ from src.compiler import (
     code_generation,
     compile_rgbasm,
     full_compile,
+    literal_optimization
 )
 
 # Typer CLI instance
@@ -87,6 +88,19 @@ def taast(input_path: Annotated[str, typer.Argument(help="Input file path")]):
     taast = typed_annotated_abstact_syntax_tree(ast)
     
     print_tree(taast)
+
+
+@app.command()
+def lr(input_path: Annotated[str, typer.Argument(help="Input file path")]):
+    print("Typed AST function called with input:", input_path)
+    
+    input_stream = read_input_file(input_path)
+    cst = concrete_syntax_tree(input_stream)
+    ast = abstact_syntax_tree(cst)
+    taast = typed_annotated_abstact_syntax_tree(ast)
+    lr = literal_optimization(taast)
+    
+    print_tree(lr)
 
 
 @app.command()
