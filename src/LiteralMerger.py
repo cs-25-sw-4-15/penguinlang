@@ -147,26 +147,68 @@ class LiteralMergerChecker():
     def merge_Variable(self, node: Variable) -> ASTNode:
         return node
     
-    def mergeBinary(self, node: BinaryOp):
+    def mergeBinary(self, node: BinaryOp) -> ASTNode:
+        # Prob could be done in a simpler manner by simply translating the operator,
+        # but in case of future operators that dont match any Python math, this is how we do it
+        left_val = int(node.left.val)
+        right_val = int(node.right.val)
+
+        def to_8bit(value):
+            return value & 0xFF
+    
+        # Ensure operands are in 8-bit range
+        left = to_8bit(left_val)
+        right = to_8bit(right_val)
+
+        result = 0
+
         match node.op:
             case '+':
+                result = to_8bit(left + right)
             case '-':
+                result = to_8bit(left - right)
             case '*':
+                result = to_8bit(left * right)
             case '==':
+                result = int(left == right)
             case '!=':
+                result = int(left != right)
             case '&':
+                result = left & right 
             case 'and':
+                result = int((left != 0) and (right != 0))
             case '|':
+                result = left | right 
             case 'or':
+                result = int((left != 0) or (right != 0))
             case '^':
+                result = left ^ right
             case '>':
+                result = int(left > right)
             case '<':
+                result = int(left < right)
             case '<=':
+                result = int(left <= right)
             case '>=':
+                result = int(left >= right)
             case '<<':
+                result = to_8bit(left << right)
             case '>>':
+                result = left >> right 
             case _:
                 logger.error("Binary statement case not found, could not merge binary expression with two integer literals")
+                logger.info("Returning original node")
+                return node
+            
+        return IntegerLiteral(str(result))
+        
 
 
-    def mergeUnary(self, node: UnaryOp):
+    def mergeUnary(self, node: UnaryOp) -> ASTNode:
+        match node.op:
+            case '~':
+            case 'not':
+            case _:
+                logger.error("Binary statement case not found, could not merge binary expression with two integer literals")
+                logger.info("Returning original node")
+                return node
