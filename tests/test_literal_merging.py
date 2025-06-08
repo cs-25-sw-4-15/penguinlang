@@ -39,8 +39,9 @@ class TestLiteralMerging:
     def test_list_access(self):
         """Test list access AST construction."""
         code = """
-int x = (5+5+5+5+5+5+5+5+5);
-"""
+        int x = (5+5+5+5+5+5+5+5+5);
+        """
         merged_tree = build_taast(code)
 
         assert(isinstance(merged_tree.statements[0].value, IntegerLiteral))
+        assert(merged_tree.statements[0].value.value == "45")

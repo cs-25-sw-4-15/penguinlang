@@ -232,8 +232,10 @@ def main(input_file: str, output_file: str = "out.gb", p: bool = False):
     ast = abstact_syntax_tree(cst, p=p)
     
     taast = typed_annotated_abstact_syntax_tree(ast, p=p)
+
+    optimized_taast = literal_optimization(taast, p=p)
     
-    ir = intermediate_representation(taast, p=p)
+    ir = intermediate_representation(optimized_taast, p=p)
     
     ra = register_allocation(ir, p=p)
     
