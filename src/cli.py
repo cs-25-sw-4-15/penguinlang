@@ -142,6 +142,7 @@ def codegen(input_path: Annotated[str, typer.Argument(help="Input file path")],
     cst = concrete_syntax_tree(input_stream)
     ast = abstact_syntax_tree(cst)
     taast = typed_annotated_abstact_syntax_tree(ast)
+    taast = literal_optimization(taast)
     ir = intermediate_representation(taast)
     ra = register_allocation(ir)
     rgbasm_code = code_generation(ra)
