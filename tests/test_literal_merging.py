@@ -36,8 +36,7 @@ def build_taast(source_code):
 
 
 class TestLiteralMerging:
-    def test_list_access(self):
-        """Test list access AST construction."""
+    def testSimpleLiteral(self):
         code = """
         int x = (5+5+5+5+5+5+5+5+5);
         """
@@ -45,3 +44,43 @@ class TestLiteralMerging:
 
         assert(isinstance(merged_tree.statements[0].value, IntegerLiteral))
         assert(merged_tree.statements[0].value.value == "45")
+
+    def testSimpleMultiplication(self):
+        code = """
+        int x = (3*4*2);
+        """
+        merged_tree = build_taast(code)
+        assert(isinstance(merged_tree.statements[0].value, IntegerLiteral))
+        assert(merged_tree.statements[0].value.value == "24")
+
+    def testSimpleSubtraction(self):
+        code = """
+        int x = (100-25-10);
+        """
+        merged_tree = build_taast(code)
+        assert(isinstance(merged_tree.statements[0].value, IntegerLiteral))
+        assert(merged_tree.statements[0].value.value == "65")
+
+    def testMixedArithmetic(self):
+        code = """
+        int x = (10*5-25+15);
+        """
+        merged_tree = build_taast(code)
+        assert(isinstance(merged_tree.statements[0].value, IntegerLiteral))
+        assert(merged_tree.statements[0].value.value == "40")
+
+    def testEightBitBoundary(self):
+        code = """
+        int x = (255);
+        """
+        merged_tree = build_taast(code)
+        assert(isinstance(merged_tree.statements[0].value, IntegerLiteral))
+        assert(merged_tree.statements[0].value.value == "255")
+
+    def testEightBitBoundary(self):
+        code = """
+        int x = (255 + 10);
+        """
+        merged_tree = build_taast(code)
+        assert(isinstance(merged_tree.statements[0].value, IntegerLiteral))
+        assert(merged_tree.statements[0].value.value == "9")
