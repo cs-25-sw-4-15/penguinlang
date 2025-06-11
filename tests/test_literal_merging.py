@@ -43,7 +43,7 @@ class TestLiteralMerging:
         merged_tree = build_taast(code)
 
         assert(isinstance(merged_tree.statements[0].value, IntegerLiteral))
-        assert(merged_tree.statements[0].value.value == "45")
+        assert(merged_tree.statements[0].value.value == 45)
 
     def testSimpleMultiplication(self):
         code = """
@@ -51,7 +51,7 @@ class TestLiteralMerging:
         """
         merged_tree = build_taast(code)
         assert(isinstance(merged_tree.statements[0].value, IntegerLiteral))
-        assert(merged_tree.statements[0].value.value == "24")
+        assert(merged_tree.statements[0].value.value == 24)
 
     def testSimpleSubtraction(self):
         code = """
@@ -59,7 +59,7 @@ class TestLiteralMerging:
         """
         merged_tree = build_taast(code)
         assert(isinstance(merged_tree.statements[0].value, IntegerLiteral))
-        assert(merged_tree.statements[0].value.value == "65")
+        assert(merged_tree.statements[0].value.value == 65)
 
     def testMixedArithmetic(self):
         code = """
@@ -67,7 +67,7 @@ class TestLiteralMerging:
         """
         merged_tree = build_taast(code)
         assert(isinstance(merged_tree.statements[0].value, IntegerLiteral))
-        assert(merged_tree.statements[0].value.value == "40")
+        assert(merged_tree.statements[0].value.value == 40)
 
     def testEightBitBoundary(self):
         code = """
@@ -75,7 +75,7 @@ class TestLiteralMerging:
         """
         merged_tree = build_taast(code)
         assert(isinstance(merged_tree.statements[0].value, IntegerLiteral))
-        assert(merged_tree.statements[0].value.value == "255")
+        assert(merged_tree.statements[0].value.value == 255)
 
     def testEightBitBoundary(self):
         code = """
@@ -83,7 +83,7 @@ class TestLiteralMerging:
         """
         merged_tree = build_taast(code)
         assert(isinstance(merged_tree.statements[0].value, IntegerLiteral))
-        assert(merged_tree.statements[0].value.value == "9")
+        assert(merged_tree.statements[0].value.value == 9)
 
     def testListAccessMerging(self):
         code = """
@@ -91,5 +91,5 @@ class TestLiteralMerging:
         """
         merged_tree = build_taast(code)
         assert(isinstance(merged_tree.statements[0].value, ListAccess))
-        assert(merged_tree.statements[0].value.indices[0].value == "250")
-        assert(merged_tree.statements[0].value.indices[1].value == "12")
+        assert(merged_tree.statements[0].value.indices[0].value == 250)
+        assert(merged_tree.statements[0].value.indices[1].value == 12)
