@@ -201,13 +201,19 @@ class TypeChecker:
             logger.error(f"Condition must be of type int, got {condition_type}")
             raise TypeMismatchError(f"Condition must be of type int, got {condition_type}")
         
+        self.env.push()
+
         for statement in node.then_body:
             self.check_node(statement)
         
+        self.env.pop()
+
         if node.else_body:
+
+            self.env.push()
             for statement in node.else_body:
                 self.check_node(statement)
-        
+            self.env.pop()
         return VoidType()
     
     def check_Loop(self, node: Loop) -> Type:
@@ -219,9 +225,11 @@ class TypeChecker:
             logger.error(f"Loop condition must be of type int, got {condition_type}")
             raise TypeMismatchError(f"Loop condition must be of type int, got {condition_type}")
         
+        self.env.push()
         for statement in node.body:
             self.check_node(statement)
-        
+        self.env.pop()
+
         return VoidType()
     
     def check_Return(self, node: Return) -> Type:

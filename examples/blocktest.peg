@@ -1,0 +1,15 @@
+procedure int mult()
+{
+    if (1 == 1)
+    {
+        int temp = 0;
+    }
+    else
+    {
+        temp = 1
+    }
+}
+
+result = mult();
+
+
