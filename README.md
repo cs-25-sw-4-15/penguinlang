@@ -2,7 +2,7 @@
 
 ## Setup
 0. Installer Python 3.10 or higher
-1. Upgade pip
+1. Upgrade pip
 ```bash
 python3 -m pip install --upgrade pip
 ```
@@ -10,7 +10,7 @@ python3 -m pip install --upgrade pip
 ```bash
 python3 -m venv .venv
 ```
-3. Aktiver enviroment
+3. Activate enviroment
 ```bash
 source .venv/bin/activate
 ```
